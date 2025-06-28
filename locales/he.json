@@ -1,0 +1,83 @@
+{
+  "refresh": "רענן",
+  "remove": "הסר",
+  "yourTime": "הזמן שלך",
+  "prev": "הקודם",
+  "next": "הבא",
+  "lastUpdated": "עדכון אחרון ב",
+  "common": {
+    "title": "כללי",
+    "close": "סגור"
+  },
+  "empty": "לא נבחרה עיר",
+  "emptyDescription": "בחר עיר",
+  "language": {
+    "he": "עברית",
+    "en": "אנגלית"
+  },
+  "theme": {
+    "light": "בהיר",
+    "dark": "כהה",
+    "system": "מערכת"
+  },
+  "search": {
+    "placeholder": "חפש עיר...",
+    "currentLocation": "השתמש במיקום הנוכחי",
+    "addCurrentLocation": "הוסף את המיקום הנוכחי",
+    "quickAdd": "הוספה מהירה"
+  },
+  "loading": "טוען...",
+  "popular": {
+    "title": "ערים פופולריות",
+    "cities": {
+      "newYork": "ניו יורק",
+      "london": "לונדון",
+      "tokyo": "טוקיו",
+      "paris": "פריז",
+      "sydney": "סידני",
+      "dubai": "דובאי",
+      "singapore": "סינגפור",
+      "toronto": "טורונטו",
+      "berlin": "ברלין",
+      "moscow": "מוסקבה"
+    }
+  },
+  "toasts": {
+    "added": "העיר נוספה",
+    "refreshed": "העיר עודכנה",
+    "exists": "העיר כבר קיימת",
+    "error": "משהו השתבש",
+    "locationAdded": "הוספת {name} לפי מיקום הנוכחי.",
+    "maxCities": "ניתן להוסיף עד {maxCities} ערים."
+  },
+  "feelsLike": "מרגיש כמו",
+  "humidity": "לחות",
+  "wind": "מהירות רוח",
+  "pressure": "לחץ אטמוספרי",
+  "visibility": "ראות",
+  "clouds": "עננות",
+  "uvIndex": "מדד קרינה",
+  "sunrise": "זריחה",
+  "sunset": "שקיעה",
+  "high": "גבוה",
+  "low": "נמוך",
+  "forecast": "תחזית ל-5 ימים",
+  "unit": {
+    "celsius": "°C",
+    "fahrenheit": "°F",
+    "toggle": "החלף"
+  },
+  "errors": {
+    "fetchWeather": "לא ניתן למשוך את מזג האוויר.",
+    "geolocationNotSupported": "דפדפן זה אינו תומך במיקום גיאוגרפי.",
+    "fetchLocationWeather": "לא ניתן למשוך את מזג האוויר למיקומך הנוכחי.",
+    "geolocationDenied": "הגישה למיקום נדחתה. אנא אפשר זאת בהגדרות הדפדפן."
+  },
+  "example_message": "הודעת דוגמא",
+  "clickToast": "לחץ על ההודעה",
+  "autoTimer": "טיימר אוטומטי",
+  "shortToast": "הודעה קצרה",
+  "firstToast": "הודעה ראשונה",
+  "secondToast": "הודעה שנייה",
+  "temporaryToast": "הודעה זמנית"
+}

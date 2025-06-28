@@ -1,0 +1,83 @@
+{
+  "search": {
+    "placeholder": "Search for a city...",
+    "currentLocation": "Use current location",
+    "addCurrentLocation": "Add current location",
+    "quickAdd": "Quick Add"
+  },
+  "loading": "Loading...",
+  "popular": {
+    "title": "Popular Cities",
+    "cities": {
+      "newYork": "New York",
+      "london": "London",
+      "tokyo": "Tokyo",
+      "paris": "Paris",
+      "sydney": "Sydney",
+      "dubai": "Dubai",
+      "singapore": "Singapore",
+      "toronto": "Toronto",
+      "berlin": "Berlin",
+      "moscow": "Moscow"
+    }
+  },
+  "refresh": "Refresh",
+  "remove": "Remove",
+  "yourTime": "Your Time",
+  "prev": "Previous",
+  "next": "Next",
+  "common": {
+    "close": "Close",
+    "title": "Common"
+  },
+  "empty": "No cities added",
+  "emptyDescription": "Add your first city to get started.",
+  "lastUpdated": "Last Updated at",
+  "language": {
+    "he": "Hebrew",
+    "en": "English"
+  },
+  "theme": {
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
+  },
+  "toasts": {
+    "added": "City added",
+    "refreshed": "City refreshed",
+    "exists": "City already exists",
+    "error": "Something went wrong",
+    "locationAdded": "Added {name} based on your location.",
+    "maxCities": "You can only add {maxCities} cities."
+  },
+  "feelsLike": "Feels like",
+  "humidity": "Humidity",
+  "wind": "Wind",
+  "pressure": "Pressure",
+  "visibility": "Visibility",
+  "clouds": "Clouds",
+  "uvIndex": "UV Index",
+  "sunrise": "Sunrise",
+  "sunset": "Sunset",
+  "high": "H",
+  "low": "L",
+  "forecast": "5-Day Forecast",
+  "unit": {
+    "celsius": "°C",
+    "fahrenheit": "°F",
+    "toggle": "Toggle Unit"
+  },
+  "errors": {
+    "fetchWeather": "Could not fetch weather.",
+    "geolocationNotSupported": "Geolocation is not supported by your browser.",
+    "fetchLocationWeather": "Could not fetch weather for your current location.",
+    "geolocationDenied": "Geolocation access was denied. Please enable it in your browser settings."
+  },
+  "exampleMessage": "Example message",
+  "clickToast": "Click toast",
+  "autoTimer": "Auto timer",
+  "shortToast": "Short toast",
+  "firstToast": "First toast",
+  "secondToast": "Second toast",
+  "temporaryToast": "Temporary toast"
+}
