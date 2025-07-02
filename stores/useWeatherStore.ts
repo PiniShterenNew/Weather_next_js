@@ -24,7 +24,6 @@ export const useWeatherStore = create<WeatherStore & WeatherStoreActions>()(
       userTimezoneOffset: -new Date().getTimezoneOffset() * 60,
 
       addCity: (city) => {
-        const locale = get().locale;
         if (get().cities.length >= 15) {
           get().showToast({
             message: 'toasts.maxCities',
@@ -36,7 +35,7 @@ export const useWeatherStore = create<WeatherStore & WeatherStoreActions>()(
         if (exists) {
           get().showToast({
             message: 'toasts.exists',
-            values: { name: city[locale].name }
+            values: { name: city.name }
           });
           return;
         }
@@ -47,25 +46,23 @@ export const useWeatherStore = create<WeatherStore & WeatherStoreActions>()(
       },
       addOrReplaceCurrentLocation: (city) =>
         set((state) => {
-          const locale = state.locale;
-      
+
           const alreadyExists = isCityExists(state.cities, city);
-          const isAlreadyCurrent = city[locale].isCurrentLocation;
-      
+          const isAlreadyCurrent = city.isCurrentLocation;
+
           if (alreadyExists && !isAlreadyCurrent) {
             return state;
           }
-      
+
           const filteredCities = state.autoLocationCityId
             ? state.cities.filter((c) => c.id !== state.autoLocationCityId)
             : state.cities;
-      
+
           const updatedCity: CityWeather = {
             ...city,
-            en: { ...city.en, isCurrentLocation: true },
-            he: { ...city.he, isCurrentLocation: true },
+            isCurrentLocation: true,
           };
-      
+
           return {
             cities: [updatedCity, ...filteredCities],
             autoLocationCityId: updatedCity.id,
@@ -128,7 +125,8 @@ export const useWeatherStore = create<WeatherStore & WeatherStoreActions>()(
           delete toastTimeouts[+id];
         }
       },
-
+      nextCity: () => set({ currentIndex: (get().currentIndex + 1) % get().cities.length }),
+      prevCity: () => set({ currentIndex: (get().currentIndex - 1 + get().cities.length) % get().cities.length }),
       setUserTimezoneOffset: (offset) => set({ userTimezoneOffset: offset }),
       getUserTimezoneOffset: () => get().userTimezoneOffset,
       resetStore: () => set({ cities: [], currentIndex: 0, unit: 'metric', locale: 'he', theme: 'system', direction: 'ltr', toasts: [], isLoading: false, autoLocationCityId: undefined, userTimezoneOffset: -new Date().getTimezoneOffset() * 60 }),

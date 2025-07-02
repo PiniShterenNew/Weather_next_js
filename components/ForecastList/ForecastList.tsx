@@ -37,6 +37,7 @@ export function ForecastListComponent({ forecast, cityUnit, unit }: ForecastList
                 className="shrink-0"
                 priority={index < 3}
               />
+              <p className="text-sm capitalize">{t(`weather.conditions.${day.codeId}.main`)}</p>
               <div className="flex flex-row items-center gap-2">
                 <span data-testid="forecast-min" className="text-right opacity-60 text-sm">{formatTemperatureWithConversion(day.min, cityUnit, unit)}</span>
                 <span data-testid="forecast-max" className="text-right text-sm">{formatTemperatureWithConversion(day.max, cityUnit, unit)}</span>

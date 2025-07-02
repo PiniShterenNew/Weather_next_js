@@ -12,10 +12,16 @@ import { useDebounce } from '@/lib/useDebounce';
 import { AppLocale } from '@/types/i18n';
 import { TemporaryUnit } from '@/types/ui';
 import { fetchReverse } from '@/features/weather/fetchReverse';
+import { getDirection } from '@/lib/intl';
 
-export default function SearchBar() {
+interface SearchBarProps {
+  onSelect: () => void;
+}
+
+export default function SearchBar({ onSelect }: SearchBarProps) {
   const t = useTranslations();
   const locale = useLocale() as AppLocale;
+  const direction = getDirection(locale);
   const [query, setQuery] = useState('');
   const debouncedQuery = useDebounce(query, 400);
 
@@ -43,6 +49,7 @@ export default function SearchBar() {
       showToast({ message: 'errors.geolocationNotSupported' });
       return;
     }
+    setIsLoading(true);
 
     navigator.geolocation.getCurrentPosition(
       async ({ coords }) => {
@@ -54,7 +61,6 @@ export default function SearchBar() {
             name: cityInfo.name,
             country: cityInfo.country,
             unit: unit as TemporaryUnit,
-            lang: locale,
             id: '',
           });
 
@@ -68,6 +74,7 @@ export default function SearchBar() {
 
           setQuery('');
           setSuggestions([]);
+          onSelect();
           showToast({ message: 'toasts.locationAdded', values: { name: weatherData.name } });
         } catch {
           showToast({ message: 'errors.fetchLocationWeather' });
@@ -78,11 +85,12 @@ export default function SearchBar() {
       },
       { enableHighAccuracy: false, timeout: 10_000 },
     );
+    setIsLoading(false);
   };
 
   const handleSelect = async (city: CitySuggestion) => {
     setIsLoading(true); // התחלת טעינה
-
+    onSelect();
     try {
       const exists = cities.some((c) => c.id === city.id);
       if (exists) {
@@ -96,11 +104,9 @@ export default function SearchBar() {
         name: city.name,
         country: city.country,
         unit: unit as TemporaryUnit,
-        lang: locale,
         id: city.id,
       });
       addCity(weather);
-      addToWeatherStore(weather.name, weather.current.temp, weather.unit);
       setQuery('');
       setSuggestions([]);
     } catch {
@@ -113,15 +119,6 @@ export default function SearchBar() {
   return (
     <div className="relative">
       <div className="flex items-center gap-2">
-        <Search className="h-5 w-5" />
-        <Input
-          type="text"
-          value={query}
-          onChange={(event) => setQuery(event.target.value)}
-          placeholder={t('search.placeholder')}
-          aria-label={t('search.placeholder')}
-          className="flex-grow"
-        />
         {!autoLocationCityId && (
           <Button
             variant="outline"
@@ -134,6 +131,15 @@ export default function SearchBar() {
             <LocateFixed className="h-5 w-5" />
           </Button>
         )}
+        <Input
+          type="text"
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+          placeholder={t('search.placeholder')}
+          aria-label={t('search.placeholder')}
+          className={`flex-grow ${direction === 'rtl' ? 'text-right' : 'text-left'}`}
+        />
+        <Search className="h-5 w-5" />
       </div>
 
       {suggestions.length > 0 && (
@@ -141,7 +147,7 @@ export default function SearchBar() {
           {suggestions.map((s) => (
             <li
               key={s.id}
-              className="flex flex-row items-center gap-5 cursor-pointer px-3 py-2"
+              className="flex flex-row items-center  gap-5 cursor-pointer px-3 py-2"
             >
               <Button
                 variant="destructive"

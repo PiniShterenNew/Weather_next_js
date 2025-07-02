@@ -1,11 +1,11 @@
-import type { City } from '@/types/weather';
+import type { CityWeather } from '@/types/weather';
 
 const THREE_HOURS_MS = 3 * 60 * 60 * 1000; // 3 hours
 const REFRESH_THROTTLE_MS = 1 * 60 * 1000; // 1 minutes
 
 const lastRefreshMap = new Map<string, number>();
 
-export function isCityDataStale(city: City): boolean {
+export function isCityDataStale(city: CityWeather): boolean {
     const now = Date.now();
     return (
       !city?.lastUpdated ||
@@ -22,7 +22,7 @@ export function isCityDataStale(city: City): boolean {
   }
   
   export function shouldAutoRefresh(
-    city: City,
+    city: CityWeather,
   ): boolean {
     return isCityDataStale(city) && canRefreshCity(city.id);
   }

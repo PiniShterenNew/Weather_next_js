@@ -1,4 +1,4 @@
-import { City, CityWeather } from "@/types/weather";
+import { CityWeather } from "@/types/weather";
 import React, { useCallback, useEffect, useState } from "react";
 import { formatPressure, formatTemperatureWithConversion, formatTimeWithOffset, formatVisibility, formatWindSpeed, getWindDirection, isSameTimezone } from "../../lib/helpers";
 import { Droplets, Wind, Gauge, Eye, Cloud, Sun, Sunrise, Sunset } from "lucide-react";
@@ -42,13 +42,8 @@ export default function CityInfo() {
     const [isRefreshing, setIsRefreshing] = useState(false);
 
     const cityWeather = cities[currentIndex]; // CityWeather | undefined
-    const city = cityWeather?.[localeLang];   // City | undefined
 
-    if (!city) {
-        return null;
-    }
-
-    const refreshCityIfNeeded = useCallback(async (city: City, options: { langChanged?: boolean; force?: boolean } = {}) => {
+    const refreshCityIfNeeded = useCallback(async (city: CityWeather, options: { langChanged?: boolean; force?: boolean } = {}) => {
         const { langChanged = false, force = false } = options;
         const isStale = isCityDataStale(city);
         if (!isStale && !force) return;
@@ -67,11 +62,9 @@ export default function CityInfo() {
                 name: reverseData?.name || city.name,
                 country: reverseData?.country || city.country,
                 unit,
-                lang: localeLang,
             });
 
-            freshData.en.lastUpdated = Date.now();
-            freshData.he.lastUpdated = Date.now();
+            freshData.lastUpdated = Date.now();
             updateCity({ ...freshData });
             showToast({ message: 'toasts.refreshed' });
         } catch {
@@ -83,11 +76,16 @@ export default function CityInfo() {
     }, [unit, localeLang, updateCity, showToast, refreshCity]);
 
     useEffect(() => {
-        if (shouldAutoRefresh(city)) {
-            refreshCityIfNeeded(city, { force: false });
+        if (cityWeather && shouldAutoRefresh(cityWeather)) {
+            refreshCityIfNeeded(cityWeather, { force: false });
         }
-    }, [refreshCityIfNeeded, city]);
+    }, [refreshCityIfNeeded, cityWeather]);
 
+    if (!cityWeather) {
+        return null;
+    }
+
+    console.log(cityWeather.current.codeId);
 
     return (
         <div className="w-full bg-card rounded-xl p-6 shadow-md border border-border">
@@ -95,7 +93,7 @@ export default function CityInfo() {
                 <Button
                     size="icon"
                     variant="ghost"
-                    onClick={() => refreshCityIfNeeded(city, { force: true })}
+                    onClick={() => refreshCityIfNeeded(cityWeather, { force: true })}
                     title={t('refresh')}
                     disabled={isRefreshing}
                     aria-label="Refresh"
@@ -109,7 +107,7 @@ export default function CityInfo() {
                 <Button
                     size="icon"
                     variant="ghost"
-                    onClick={() => removeCity(city.id)}
+                    onClick={() => removeCity(cityWeather.id)}
                     title={t('remove')}
                     aria-label="Remove"
                 >
@@ -122,16 +120,16 @@ export default function CityInfo() {
                     <div className="flex items-center justify-center gap-10">
                         <div className="flex flex-col items-center gap-2">
                             <div className="relative text-7xl font-thin">
-                                {formatTemperatureWithConversion(city.current.temp, city.unit, unit)}
+                                {formatTemperatureWithConversion(cityWeather.current.temp, cityWeather.unit, unit)}
                             </div>
-                            <p className="text-xl capitalize font-semibold">{city.current.desc}</p>
+                            <p className="text-xl capitalize font-semibold">{t(`weather.conditions.${cityWeather.current.codeId}.description`)}</p>
                             <p className="text-sm opacity-70">
-                                {t('feelsLike')} {formatTemperatureWithConversion(city.current.feelsLike, city.unit, unit)}
+                                {t('feelsLike')} {formatTemperatureWithConversion(cityWeather.current.feelsLike, cityWeather.unit, unit)}
                             </p>
                         </div>
                         <WeatherIcon
-                            code={city.current.icon}
-                            alt={city.current.desc}
+                            code={cityWeather.current.icon}
+                            alt={cityWeather.current.desc}
                             size={96}
                             priority
                             className="shrink-0"
@@ -145,12 +143,12 @@ export default function CityInfo() {
                     <div className="flex flex-col items-center gap-2">
                         <div className="flex flex-col items-center">
                             <h2 className="text-lg font-bold flex items-center flex-row gap-2">
-                                {city.name}{' '}
-                                {city.isCurrentLocation || city.id === autoLocationCityId ? <LocateFixed size={18} role="presentation" data-testid="location-icon" /> : ''}
+                                {cityWeather.name}{' '}
+                                {cityWeather.isCurrentLocation || cityWeather.id === autoLocationCityId ? <LocateFixed size={18} role="presentation" data-testid="location-icon" /> : ''}
                             </h2>
-                            <p className="text-sm opacity-70">{city.country}</p>
+                            <p className="text-sm opacity-70">{cityWeather.country}</p>
                         </div>
-                        <WeatherTimeNow timezone={city.current.timezone} lastUpdated={city.lastUpdated} />
+                        <WeatherTimeNow timezone={cityWeather.current.timezone} lastUpdated={cityWeather.lastUpdated} />
                     </div>
                 </div>
             </div>
@@ -158,7 +156,7 @@ export default function CityInfo() {
             <div className="grid grid-cols-6 gap-4 w-full mt-10">
                 <div className="flex flex-col items-center justify-center gap-1">
                     <div className="flex flex-row items-center justify-center gap-2">
-                        <p className="font-bold">{city.current.humidity}%</p>
+                        <p className="font-bold">{cityWeather.current.humidity}%</p>
                         <Droplets className="h-5 w-5 text-blue-500" role="presentation" />
                     </div>
                     <p className="text-sm opacity-70">{t('humidity')}</p>
@@ -167,8 +165,8 @@ export default function CityInfo() {
                 <div className="flex flex-col items-center justify-center gap-1">
                     <div className="flex flex-row items-center justify-center gap-2">
                         <p className="font-bold" data-testid="wind">
-                            {formatWindSpeed(city.current.wind, city.unit)}{' '}
-                            {getWindDirection(city.current.windDeg)}
+                            {formatWindSpeed(cityWeather.current.wind, cityWeather.unit)}{' '}
+                            {getWindDirection(cityWeather.current.windDeg)}
                         </p>
                         <Wind className="h-5 w-5 text-blue-400" role="presentation" />
                     </div>
@@ -177,7 +175,7 @@ export default function CityInfo() {
 
                 <div className="flex flex-col items-center justify-center gap-1">
                     <div className="flex flex-row items-center justify-center gap-2">
-                        <p className="font-bold">{formatPressure(city.current.pressure)}</p>
+                        <p className="font-bold">{formatPressure(cityWeather.current.pressure)}</p>
                         <Gauge className="h-5 w-5 text-purple-500" role="presentation" />
                     </div>
                     <p className="text-sm opacity-70">{t('pressure')}</p>
@@ -185,7 +183,7 @@ export default function CityInfo() {
 
                 <div className="flex flex-col items-center justify-center gap-1">
                     <div className="flex flex-row items-center justify-center gap-2">
-                        <p className="font-bold">{formatVisibility(city.current.visibility)}</p>
+                        <p className="font-bold">{formatVisibility(cityWeather.current.visibility)}</p>
                         <Eye className="h-5 w-5 text-amber-500" role="presentation" />
                     </div>
                     <p className="text-sm opacity-70">{t('visibility')}</p>
@@ -193,7 +191,7 @@ export default function CityInfo() {
 
                 <div className="flex flex-col items-center justify-center gap-1">
                     <div className="flex flex-row items-center justify-center gap-2">
-                        <p className="font-bold">{city.current.clouds}%</p>
+                        <p className="font-bold">{cityWeather.current.clouds}%</p>
                         <Cloud className="h-5 w-5 text-gray-400" role="presentation" />
                     </div>
                     <p className="text-sm opacity-70">{t('clouds')}</p>
@@ -214,13 +212,13 @@ export default function CityInfo() {
                 <div className="flex items-center justify-center gap-2 p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg">
                     <div className="flex flex-col items-center">
                         <p className="font-bold flex flex-row items-center gap-2">
-                            <span>{formatTimeWithOffset(city.current.sunrise, city.current.timezone)}</span>
+                            <span>{formatTimeWithOffset(cityWeather.current.sunrise, cityWeather.current.timezone)}</span>
                             <Sunrise className="h-5 w-5 text-amber-500" />
                         </p>
                         <p className="text-sm opacity-70">{t('sunrise')}</p>
-                        {!isSameTimezone(city.current.timezone, getUserTimezoneOffset()) && (
+                        {!isSameTimezone(cityWeather.current.timezone, getUserTimezoneOffset()) && (
                             <span className="ml-2 text-xs opacity-70">
-                                ({formatTimeWithOffset(city.current.sunrise, getUserTimezoneOffset())}{' '}
+                                ({formatTimeWithOffset(cityWeather.current.sunrise, getUserTimezoneOffset())}{' '}
                                 {t('yourTime')})
                             </span>
                         )}
@@ -231,20 +229,20 @@ export default function CityInfo() {
                 <div className="flex items-center justify-center gap-2 p-3 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg">
                     <div className="flex flex-col items-center">
                         <p className="font-bold flex flex-row items-center gap-2">
-                            <span>{formatTimeWithOffset(city.current.sunset, city.current.timezone)}</span>
+                            <span>{formatTimeWithOffset(cityWeather.current.sunset, cityWeather.current.timezone)}</span>
                             <Sunset className="h-5 w-5 text-indigo-500" />
                         </p>
                         <p className="text-sm opacity-70">{t('sunset')}</p>
-                        {!isSameTimezone(city.current.timezone, getUserTimezoneOffset()) && (
+                        {!isSameTimezone(cityWeather.current.timezone, getUserTimezoneOffset()) && (
                             <span className="ml-2 text-xs opacity-70">
-                                ({formatTimeWithOffset(city.current.sunset, getUserTimezoneOffset())}{' '}
+                                ({formatTimeWithOffset(cityWeather.current.sunset, getUserTimezoneOffset())}{' '}
                                 {t('yourTime')})
                             </span>
                         )}
                     </div>
                 </div>
             </div>
-            <ForecastList cityUnit={city.unit} forecast={city.forecast} unit={city.unit} />
+            <ForecastList cityUnit={cityWeather.unit} forecast={cityWeather.forecast} unit={cityWeather.unit} />
         </div>
     );
 }

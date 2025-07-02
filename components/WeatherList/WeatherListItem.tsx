@@ -1,7 +1,7 @@
 'use client';
 import React, { forwardRef } from 'react';
 import { useWeatherStore } from '@/stores/useWeatherStore';
-import type { City } from '@/types/weather';
+import type { CityWeather } from '@/types/weather';
 import { LocateFixed } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { formatTemperatureWithConversion } from '../../lib/helpers';
@@ -9,7 +9,7 @@ import { WeatherIcon } from '../WeatherCard/WeatherIcon';
 import { cn } from '@/lib/utils';
 
 type Properties = {
-  city: City;
+  city: CityWeather;
   isCurrentIndex: boolean;
   onClick?: () => void;
 };
@@ -53,7 +53,7 @@ const WeatherListItem = forwardRef<HTMLButtonElement, Properties>(
             <div className="relative text-2xl font-bold">
               {formatTemperatureWithConversion(city.current.temp, city.unit, unit)}
             </div>
-            <p className="text-sm capitalize">{city.current.desc}</p>
+            <p className="text-sm capitalize">{t(`weather.conditions.${city.current.codeId}.main`)}</p>
             <p className="text-xs opacity-70">
               {t('feelsLike')} {formatTemperatureWithConversion(city.current.feelsLike, city.unit, unit)}
             </p>

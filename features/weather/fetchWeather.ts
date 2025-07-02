@@ -1,5 +1,4 @@
-import { AppLocale } from '@/types/i18n';
-import { City, CityWeather } from '@/types/weather';
+import { CityWeather } from '@/types/weather';
 
 type FetchWeatherInput = {
   id: string;
@@ -7,7 +6,6 @@ type FetchWeatherInput = {
   lon: number;
   name: string;
   country: string;
-  lang: AppLocale;
   unit: 'metric' | 'imperial';
 };
 
@@ -17,11 +15,10 @@ export async function fetchWeather({
   lon,
   name,
   country,
-  lang,
   unit,
 }: FetchWeatherInput): Promise<CityWeather> {
   const response = await fetch(
-    `/api/weather?lat=${lat}&lon=${lon}&name=${name}&country=${country}&lang=${lang}&unit=${unit}`,
+    `/api/weather?lat=${lat}&lon=${lon}&name=${name}&country=${country}&unit=${unit}&lang=en`,
   );
   if (!response.ok) throw new Error('Failed to fetch weather');
 

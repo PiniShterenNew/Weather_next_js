@@ -50,21 +50,21 @@ describe('QuickCityAdd', () => {
         { lat: 51.5074, lon: -0.1278 },
       ],
     });
-    const { QuickCityAdd } = await import('./QuickCityAdd');
+    const { QuickCityAdd } = await import('../QuickCityAdd');
     const { container } = render(<QuickCityAdd />);
     expect(container).toBeEmptyDOMElement();
   });
 
   it('renders the quick add button if cities are available', async () => {
     mockWeatherStore({ cities: [{ lat: 40.7128, lon: -74.0060 }] });
-    const { QuickCityAdd } = await import('./QuickCityAdd');
+    const { QuickCityAdd } = await import('../QuickCityAdd');
     render(<QuickCityAdd />);
     expect(screen.getByRole('button', { name: /\+/ })).toBeInTheDocument();
   });
 
   it('adds a city when city button is clicked', async () => {
     mockWeatherStore({ cities: [{ lat: 40.7128, lon: -74.0060 }] });
-    const { QuickCityAdd } = await import('./QuickCityAdd');
+    const { QuickCityAdd } = await import('../QuickCityAdd');
     render(<QuickCityAdd />);
     fireEvent.click(screen.getByRole('button', { name: /\+/ }));
     const londonButton = await screen.findByText(/London/i);
@@ -87,7 +87,7 @@ describe('QuickCityAdd', () => {
     }));
     mockWeatherStore({ cities: [{ lat: 40.7128, lon: -74.0060 }] });
 
-    const { QuickCityAdd } = await import('./QuickCityAdd');
+    const { QuickCityAdd } = await import('../QuickCityAdd');
     render(<QuickCityAdd />);
     fireEvent.click(screen.getByRole('button', { name: /\+/ }));
     const londonButton = await screen.findByText(/London/i);

@@ -1,18 +1,18 @@
-import { CityWeather, City } from './weather';
-import { AppLocale } from './i18n';
+import { CityWeather } from './weather';
 import { TemporaryUnit as TemporaryUnit, ThemeMode, Direction, ToastMessage } from './ui';
+import { AppLocale } from './i18n';
 
 export interface WeatherStore {
   cities: CityWeather[]; 
   currentIndex: number; 
   unit: TemporaryUnit; 
-  locale: AppLocale; 
   theme: ThemeMode; 
   direction: Direction; 
   toasts: ToastMessage[];
   isLoading: boolean;
   autoLocationCityId?: string;
   userTimezoneOffset: number;
+  locale: AppLocale;
 }
 
 export interface WeatherStoreActions {
@@ -20,6 +20,8 @@ export interface WeatherStoreActions {
   addOrReplaceCurrentLocation: (_city: CityWeather) => void;
   updateCity: (_city: CityWeather) => void;
   removeCity: (_id: string) => void;
+  nextCity: () => void;
+  prevCity: () => void;
   refreshCity: (_id: string) => void;
   setUnit: (_unit: TemporaryUnit) => void;
   setLocale: (_locale: AppLocale) => void;

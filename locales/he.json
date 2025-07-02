@@ -1,10 +1,15 @@
 {
   "search": {
-    "placeholder": "חפש עיר...",
+    "placeholder": "חפש עיר",
     "currentLocation": "השתמש במיקום הנוכחי",
     "addCurrentLocation": "הוסף את המיקום הנוכחי",
     "quickAdd": "הוספה מהירה",
-    "addCity": "הוסף עיר"
+    "addCity": "הוסף עיר",
+    "addCityDescription": "הוספת עיר מהירה",
+    "searchCity": "חיפוש עיר",
+    "popularCities": "ערים פופולריות",
+    "searchResults": "תוצאות חיפוש",
+    "allCitiesAdded": "אין ערים נוספות"
   },
   "loading": "טוען...",
   "popular": {

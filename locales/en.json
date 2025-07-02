@@ -1,10 +1,15 @@
 {
   "search": {
-    "placeholder": "Search for a city...",
+    "placeholder": "Search for a city",
     "currentLocation": "Use current location",
     "addCurrentLocation": "Add current location",
     "quickAdd": "Quick Add",
-    "addCity": "Add City"
+    "addCity": "Add City",
+    "addCityDescription": "Add a city quickly",
+    "searchCity": "Search for a city",
+    "popularCities": "Popular Cities",
+    "searchResults": "Search Results",
+    "allCitiesAdded": "No more cities to add"
   },
   "loading": "Loading...",
   "popular": {

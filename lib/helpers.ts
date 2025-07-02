@@ -1,4 +1,4 @@
-import { City, CityWeather, WeatherCurrent, WeatherForecastItem } from '@/types/weather';
+import { CityWeather, WeatherCurrent, WeatherForecastItem } from '@/types/weather';
 import { CitySuggestion } from '@/types/suggestion';
 import { GeoAPIResult, OpenWeatherForecastItem } from '@/types/api';
 import { TemporaryUnit } from '@/types/ui';
@@ -88,9 +88,9 @@ export const isCityExists = (cities: CityWeather[], newCity: CityWeather) => {
   return cities.some(
     (city) =>
       city.id === newCity.id || // בדיקה לפי ID
-      (city.en.lat.toFixed(2) === newCity.en.lat.toFixed(2) && city.en.lon.toFixed(2) === newCity.en.lon.toFixed(2)) || // בדיקה לפי קואורדינטות
-      (city.en.name.toLowerCase() === newCity.en.name.toLowerCase() &&
-        city.en.country.toLowerCase() === newCity.en.country.toLowerCase()) // בדיקה לפי שם ומדינה
+      (city.lat.toFixed(2) === newCity.lat.toFixed(2) && city.lon.toFixed(2) === newCity.lon.toFixed(2)) || // בדיקה לפי קואורדינטות
+      (city.name.toLowerCase() === newCity.name.toLowerCase() &&
+        city.country.toLowerCase() === newCity.country.toLowerCase()) // בדיקה לפי שם ומדינה
   );
 };
 
@@ -141,86 +141,74 @@ export async function getWeatherByCoords({
   country,
 }: GetWeatherInput): Promise<CityWeather> {
   const API_KEY = process.env.OWM_API_KEY as string;
-  const langs: ('en' | 'he')[] = ['en', 'he'];
 
-  const results = await Promise.all(
-    langs.map(async (lang) => {
-      const [currentResponse, forecastResponse] = await Promise.all([
-        fetch(
-          `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=metric&lang=${lang}`
-        ),
-        fetch(
-          `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=metric&lang=${lang}`
-        ),
-      ]);
+  const [currentResponse, forecastResponse] = await Promise.all([
+    fetch(
+      `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=metric&lang=en`
+    ),
+    fetch(
+      `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=metric&lang=en`
+    ),
+  ]);
 
-      if (!currentResponse.ok || !forecastResponse.ok) {
-        throw new Error(`Failed to fetch weather for language: ${lang}`);
-      }
+  if (!currentResponse.ok || !forecastResponse.ok) {
+    throw new Error(`Failed to fetch weather for language: en`);
+  }
 
-      const currentJson = await currentResponse.json();
-      const forecastJson = await forecastResponse.json();
-
-      const current: WeatherCurrent = {
-        temp: currentJson.main.temp,
-        feelsLike: currentJson.main.feels_like,
-        desc: currentJson.weather[0].description,
-        icon: currentJson.weather[0].icon,
-        humidity: currentJson.main.humidity,
-        wind: currentJson.wind.speed,
-        windDeg: currentJson.wind.deg || 0,
-        pressure: currentJson.main.pressure,
-        visibility: currentJson.visibility,
-        clouds: currentJson.clouds.all,
-        sunrise: currentJson.sys.sunrise,
-        sunset: currentJson.sys.sunset,
-        timezone: currentJson.timezone,
-      };
-
-      const grouped = groupForecastByDay(forecastJson.list);
-      const today = new Date().toISOString().split('T')[0];
-
-      const forecast: WeatherForecastItem[] = grouped
-        .filter(([date]) => date > today)
-        .slice(0, 5)
-        .map(([date, items]) => {
-          const temps = items.map((i) => i.main);
-          const weatherMidday =
-            items.find((i) => i.dt_txt.includes('12:00:00')) || items[Math.floor(items.length / 2)];
-
-          return {
-            date: new Date(date).getTime(),
-            min: Math.min(...temps.map((t) => t.temp_min)),
-            max: Math.max(...temps.map((t) => t.temp_max)),
-            icon: weatherMidday.weather[0].icon,
-            desc: weatherMidday.weather[0].description,
-          };
-        });
-
-      const city: City = {
-        id: `${name || currentJson.name}_${country || currentJson.sys.country}`,
-        name: name || currentJson.name,
-        country: country || currentJson.sys.country,
-        lat,
-        lon,
-        current,
-        forecast,
-        lastUpdated: Date.now(),
-        unit: 'metric',
-      };
-
-      return [lang, city] as const;
-    })
-  );
-
-  const cityByLang = Object.fromEntries(results) as Record<'en' | 'he', City>;
-  const id = cityByLang.en.id || cityByLang.he.id;
-
-  return {
-    id,
-    en: cityByLang.en,
-    he: cityByLang.he,
+  const currentJson = await currentResponse.json();
+  const forecastJson = await forecastResponse.json();
+console.log(forecastJson)
+  const current: WeatherCurrent = {
+    codeId: currentJson.weather[0].id,
+    temp: currentJson.main.temp,
+    feelsLike: currentJson.main.feels_like,
+    desc: currentJson.weather[0].description,
+    icon: currentJson.weather[0].icon,
+    humidity: currentJson.main.humidity,
+    wind: currentJson.wind.speed,
+    windDeg: currentJson.wind.deg || 0,
+    pressure: currentJson.main.pressure,
+    visibility: currentJson.visibility,
+    clouds: currentJson.clouds.all,
+    sunrise: currentJson.sys.sunrise,
+    sunset: currentJson.sys.sunset,
+    timezone: currentJson.timezone,
   };
+
+  const grouped = groupForecastByDay(forecastJson.list);
+  const today = new Date().toISOString().split('T')[0];
+
+  const forecast: WeatherForecastItem[] = grouped
+    .filter(([date]) => date > today)
+    .slice(0, 5)
+    .map(([date, items]) => {
+      const temps = items.map((i) => i.main);
+      const weatherMidday =
+        items.find((i) => i.dt_txt.includes('12:00:00')) || items[Math.floor(items.length / 2)];
+
+      return {
+        date: new Date(date).getTime(),
+        min: Math.min(...temps.map((t) => t.temp_min)),
+        max: Math.max(...temps.map((t) => t.temp_max)),
+        icon: weatherMidday.weather[0].icon,
+        desc: weatherMidday.weather[0].description,
+        codeId: weatherMidday.weather[0].id,
+      };
+    });
+
+  const city: CityWeather = {
+    id: `${name || currentJson.name}_${country || currentJson.sys.country}`,
+    name: name || currentJson.name,
+    country: country || currentJson.sys.country,
+    lat,
+    lon,
+    current,
+    forecast,
+    lastUpdated: Date.now(),
+    unit: 'metric',
+  };
+
+  return city;
 }
 
 /**

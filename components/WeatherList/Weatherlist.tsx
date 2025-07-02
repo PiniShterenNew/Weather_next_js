@@ -12,16 +12,34 @@ export default function WeatherList() {
   const cities = useWeatherStore((s) => s.cities);
   const currentIndex = useWeatherStore((s) => s.currentIndex);
   const setCurrentIndex = useWeatherStore((s) => s.setCurrentIndex);
+  const nextCity = useWeatherStore((s) => s.nextCity);
+  const prevCity = useWeatherStore((s) => s.prevCity);
 
   const itemRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
 
   useEffect(() => {
-    const currentItem = itemRefs.current[currentIndex];
-    if (currentItem) {
-      currentItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
+    requestAnimationFrame(() => {
+      const currentItem = itemRefs.current[currentIndex];
+      if (currentItem) {
+        currentItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        currentItem.focus();
+      }
+    });
   }, [currentIndex]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
+        nextCity();
+      } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+        prevCity();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [nextCity, prevCity]);
 
   if (!isClient) return null;
   if (!cities.length) return <WeatherEmpty />;
@@ -30,14 +48,14 @@ export default function WeatherList() {
     <div className="relative w-full max-h-[calc(100vh-6rem)] overflow-y-auto scrollbar-none mx-auto space-y-4 bg" aria-live="polite" data-testid="weather-carousel">
       <div className="w-full flex flex-col gap-4">
         {cities.map((city, index) => (
-            <WeatherListItem
-              ref={(el) => { itemRefs.current[index] = el; }}
-              key={index}
-              city={city}
-              onClick={() => setCurrentIndex(index)}
-              isCurrentIndex={index === currentIndex}
-            />
-          ))
+          <WeatherListItem
+            ref={(el) => { itemRefs.current[index] = el; }}
+            key={index}
+            city={city}
+            onClick={() => setCurrentIndex(index)}
+            isCurrentIndex={index === currentIndex}
+          />
+        ))
         }
       </div>
     </div>
