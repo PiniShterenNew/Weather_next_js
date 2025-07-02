@@ -18,16 +18,14 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const cityWeather = await getWeatherByCoords({
+    const city = await getWeatherByCoords({
       lat: Number.parseFloat(lat),
       lon: Number.parseFloat(lon),
       name: name as string,
       country: country as string,
-      lang: lang as AppLocale,
-      unit: unit as 'metric' | 'imperial',
     });
 
-    return NextResponse.json(cityWeather);
+    return NextResponse.json(city);
   } catch {
     return NextResponse.json({ error: 'Failed to fetch weather' }, { status: 500 });
   }

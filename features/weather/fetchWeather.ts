@@ -1,5 +1,5 @@
 import { AppLocale } from '@/types/i18n';
-import { CityWeather } from '@/types/weather';
+import { City, CityWeather } from '@/types/weather';
 
 type FetchWeatherInput = {
   id: string;

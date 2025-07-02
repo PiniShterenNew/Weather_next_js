@@ -1,6 +1,6 @@
 import { vi } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@/test/utils/renderWithIntl';
-import WeatherCarousel from './WeatherCarousel';
+import WeatherCarousel from './Weatherlist';
 import { CityWeather } from '@/types/weather';
 
 vi.mock('@/hooks/useIsClient', () => ({
@@ -175,7 +175,7 @@ describe('WeatherCarousel – Unit + Integration', () => {
       __esModule: true,
       default: () => false,
     }));
-    const { default: WeatherCarousel } = await import('./WeatherCarousel');
+    const { default: WeatherCarousel } = await import('./Weatherlist');
     render(<WeatherCarousel />);
     expect(screen.queryByTestId('weather-carousel')).toBeNull();
   });

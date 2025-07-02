@@ -1,4 +1,4 @@
-import { CityWeather } from './weather';
+import { CityWeather, City } from './weather';
 import { AppLocale } from './i18n';
 import { TemporaryUnit as TemporaryUnit, ThemeMode, Direction, ToastMessage } from './ui';
 
@@ -24,8 +24,7 @@ export interface WeatherStoreActions {
   setUnit: (_unit: TemporaryUnit) => void;
   setLocale: (_locale: AppLocale) => void;
   setTheme: (_theme: ThemeMode) => void;
-  nextCity: () => void;
-  prevCity: () => void;
+  setCurrentIndex: (_index: number) => void;
   showToast: (options: { message: string; values?: Record<string, any> }) => void;
   hideToast: (_id: number) => void;
   setIsLoading: (_isLoading: boolean) => void;

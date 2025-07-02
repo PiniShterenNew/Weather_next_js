@@ -4,6 +4,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { WeatherStore, WeatherStoreActions } from '@/types/store';
 import { isCityExists } from '@/lib/helpers';
+import { CityWeather } from '@/types/weather';
 
 let toastIdCounter = 0;
 const toastTimeouts: Record<number, ReturnType<typeof setTimeout>> = {};
@@ -23,6 +24,7 @@ export const useWeatherStore = create<WeatherStore & WeatherStoreActions>()(
       userTimezoneOffset: -new Date().getTimezoneOffset() * 60,
 
       addCity: (city) => {
+        const locale = get().locale;
         if (get().cities.length >= 15) {
           get().showToast({
             message: 'toasts.maxCities',
@@ -34,7 +36,7 @@ export const useWeatherStore = create<WeatherStore & WeatherStoreActions>()(
         if (exists) {
           get().showToast({
             message: 'toasts.exists',
-            values: { name: city.name }
+            values: { name: city[locale].name }
           });
           return;
         }
@@ -44,18 +46,29 @@ export const useWeatherStore = create<WeatherStore & WeatherStoreActions>()(
         }));
       },
       addOrReplaceCurrentLocation: (city) =>
-        set((s) => {
-          if (isCityExists(s.cities, city) && !city.isCurrentLocation) {
-            return s;
+        set((state) => {
+          const locale = state.locale;
+      
+          const alreadyExists = isCityExists(state.cities, city);
+          const isAlreadyCurrent = city[locale].isCurrentLocation;
+      
+          if (alreadyExists && !isAlreadyCurrent) {
+            return state;
           }
-
-          const filteredCities = s.autoLocationCityId
-            ? s.cities.filter((c) => c.id !== s.autoLocationCityId)
-            : s.cities;
-
+      
+          const filteredCities = state.autoLocationCityId
+            ? state.cities.filter((c) => c.id !== state.autoLocationCityId)
+            : state.cities;
+      
+          const updatedCity: CityWeather = {
+            ...city,
+            en: { ...city.en, isCurrentLocation: true },
+            he: { ...city.he, isCurrentLocation: true },
+          };
+      
           return {
-            cities: [{ ...city, isCurrentLocation: true }, ...filteredCities],
-            autoLocationCityId: city.id,
+            cities: [updatedCity, ...filteredCities],
+            autoLocationCityId: updatedCity.id,
           };
         }),
       updateCity: (city) => {
@@ -92,16 +105,7 @@ export const useWeatherStore = create<WeatherStore & WeatherStoreActions>()(
       setUnit: (unit) => set({ unit }),
       setLocale: (locale) => set({ locale }),
       setTheme: (theme) => set({ theme }),
-      nextCity: () =>
-        set((state) => ({
-          currentIndex: (state.currentIndex + 1) % Math.max(1, state.cities.length),
-        })),
-
-      prevCity: () =>
-        set((state) => ({
-          currentIndex:
-            (state.currentIndex - 1 + state.cities.length) % Math.max(1, state.cities.length),
-        })),
+      setCurrentIndex: (index) => set({ currentIndex: index }),
 
       showToast: ({ message, values = {} }) => {
         toastIdCounter += 1;

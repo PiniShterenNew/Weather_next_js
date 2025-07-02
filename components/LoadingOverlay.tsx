@@ -3,11 +3,15 @@
 import { useWeatherStore } from '@/stores/useWeatherStore';
 import { useTranslations } from 'next-intl';
 
-const LoadingOverlay = () => {
-  const t = useTranslations();
-  const isLoading = useWeatherStore((s) => s.isLoading);
+type Props = {
+  isLoading?: boolean;
+};
 
-  if (!isLoading) return null;
+const LoadingOverlay = ({ isLoading }: Props) => {
+  const t = useTranslations();
+  const isLoadingFlag = useWeatherStore((s) => s.isLoading);
+
+  if (!isLoadingFlag && !isLoading) return null;
 
   return (
     <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center">

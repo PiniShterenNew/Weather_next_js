@@ -7,11 +7,14 @@ import { AppLocale } from '@/types/i18n';
 import { TemporaryUnit } from '@/types/ui';
 import { fetchWeather } from '@/features/weather';
 import { POPULAR_CITIES } from '@/constants/popularCities'; // אם הפכת לקבוע
-import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
+import { Dialog, DialogContent, DialogTrigger, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { useState } from 'react';
+import SearchBar from '../SearchBar/SearchBar';
 
 export function QuickCityAdd() {
   const t = useTranslations();
   const locale = useLocale() as AppLocale;
+  const [open, setOpen] = useState(false);
   const cities = useWeatherStore((s) => s.cities);
   const addCity = useWeatherStore((s) => s.addCity);
   const showToast = useWeatherStore((s) => s.showToast);
@@ -37,29 +40,41 @@ export function QuickCityAdd() {
     }
   };
 
-  if (filteredCities.length === 0) return null;
-
   return (
-    <Popover>
-      <PopoverTrigger asChild>
-        <Button variant="outline">
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button
+          variant="default"
+          size="lg"
+          aria-label={t('search.quickAdd')}
+          title={t('search.quickAdd')}
+        >
           + {t('search.quickAdd')}
         </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-60 space-y-2">
+      </DialogTrigger>
+      <DialogContent className="w-2/4 h-96 space-y-2 flex flex-col">
+        <DialogHeader>
+          <DialogTitle>{t('search.addCity')}</DialogTitle>
+        </DialogHeader>
+        <SearchBar />
+        <div className="flex flex-col gap-2 overflow-y-auto">
         {filteredCities.map((city) => (
           <Button
             key={city.id}
             size="sm"
             variant="ghost"
             className="w-full justify-between"
-            onClick={() => handleAdd(city)}
+            onClick={() => {
+              handleAdd(city);
+              setOpen(false);
+            }}
           >
             <span>{t(`popular.cities.${city.id}`)}</span>
             <span className="opacity-60">{city.country}</span>
           </Button>
         ))}
-      </PopoverContent>
-    </Popover>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }

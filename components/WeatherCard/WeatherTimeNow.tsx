@@ -52,7 +52,6 @@ export default function WeatherTimeNow({ timezone, lastUpdated }: Properties) {
 
   // השגת אזור הזמן של המשתמש מ-Store במקום מ-new Date()
   const userTimezoneOffset = useWeatherStore(state => state.getUserTimezoneOffset());
-  
   useEffect(() => {
     const interval = setInterval(() => setCurrentTime(Math.floor(Date.now() / 1000)), 1000);
     return () => clearInterval(interval);
@@ -68,27 +67,26 @@ export default function WeatherTimeNow({ timezone, lastUpdated }: Properties) {
   const [userHours, userMinutes] = isDifferentTimezone ? userTime.split(':') : ['', ''];
 
   return (
-    <div className="flex flex-col items-center space-y-3">
+    <div className="flex flex-col items-center space-y-2">
       {/* Main city time display */}
       <div className="flex flex-col items-center space-y-2" data-testid="city-time">
         {/* Time with blinking colon */}
         <div className="flex items-center gap-1 relative">
-          <Clock className="h-5 w-5 opacity-60 absolute right-[-30%]" role="presentation" />
           <div className="flex items-baseline rtl:flex-row-reverse gap-1">
-            <span className="text-3xl font-mono font-bold tracking-wider">{cityHours}</span>
+            <span className="text-3xl font-mono font-extrabold tracking-wider">{cityHours}</span>
             <span
-              className={`text-3xl font-mono font-bold transition-opacity duration-500 ${Math.floor(currentTime) % 2 === 0 ? 'opacity-100' : 'opacity-20'
+              className={`text-3xl font-mono font-extrabold transition-opacity duration-500 ${Math.floor(currentTime) % 2 === 0 ? 'opacity-100' : 'opacity-20'
                 }`}
             >
               :
             </span>
-            <span className="text-3xl font-mono font-bold tracking-wider">{cityMinutes}</span>
+            <span className="text-3xl font-mono font-extrabold tracking-wider">{cityMinutes}</span>
           </div>
         </div>
 
         {/* City date */}
         <div className="text-center">
-          <p className="text-lg font-medium opacity-90">{cityDate}</p>
+          <p className="text-sm font-normal opacity-90">{cityDate}</p>
         </div>
       </div>
 
@@ -114,7 +112,7 @@ export default function WeatherTimeNow({ timezone, lastUpdated }: Properties) {
         </div>
       )}
       <div className="mt-3 px-4" data-testid="last-updated">
-        <p className="text-sm opacity-90">
+        <p className="text-xs text-black/60">
           {t('lastUpdated')} - {formatTimeWithOffset(lastUpdated, userTimezoneOffset)}
         </p>
       </div>

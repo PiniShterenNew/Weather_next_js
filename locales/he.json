@@ -1,30 +1,10 @@
 {
-  "refresh": "רענן",
-  "remove": "הסר",
-  "yourTime": "הזמן שלך",
-  "prev": "הקודם",
-  "next": "הבא",
-  "lastUpdated": "עדכון אחרון ב",
-  "common": {
-    "title": "כללי",
-    "close": "סגור"
-  },
-  "empty": "לא נבחרה עיר",
-  "emptyDescription": "בחר עיר",
-  "language": {
-    "he": "עברית",
-    "en": "אנגלית"
-  },
-  "theme": {
-    "light": "בהיר",
-    "dark": "כהה",
-    "system": "מערכת"
-  },
   "search": {
     "placeholder": "חפש עיר...",
     "currentLocation": "השתמש במיקום הנוכחי",
     "addCurrentLocation": "הוסף את המיקום הנוכחי",
-    "quickAdd": "הוספה מהירה"
+    "quickAdd": "הוספה מהירה",
+    "addCity": "הוסף עיר"
   },
   "loading": "טוען...",
   "popular": {
@@ -42,14 +22,18 @@
       "moscow": "מוסקבה"
     }
   },
-  "toasts": {
-    "added": "העיר נוספה",
-    "refreshed": "העיר עודכנה",
-    "exists": "העיר כבר קיימת",
-    "error": "משהו השתבש",
-    "locationAdded": "הוספת {name} לפי מיקום הנוכחי.",
-    "maxCities": "ניתן להוסיף עד {maxCities} ערים."
+  "refresh": "רענן",
+  "remove": "הסר",
+  "yourTime": "הזמן שלך",
+  "prev": "הקודם",
+  "next": "הבא",
+  "common": {
+    "title": "כללי",
+    "close": "סגור"
   },
+  "empty": "לא נבחרה עיר",
+  "emptyDescription": "בחר עיר",
+  "lastUpdated": "עדכון אחרון ב",
   "feelsLike": "מרגיש כמו",
   "humidity": "לחות",
   "wind": "מהירות רוח",
@@ -67,17 +51,271 @@
     "fahrenheit": "°F",
     "toggle": "החלף"
   },
+  "weather": {
+    "conditions": {
+      "200": {
+        "main": "רעמים",
+        "description": "רעמים עם גשם קל"
+      },
+      "201": {
+        "main": "רעמים",
+        "description": "רעמים עם גשם"
+      },
+      "202": {
+        "main": "רעמים",
+        "description": "רעמים עם גשם חזק"
+      },
+      "210": {
+        "main": "רעמים",
+        "description": "רעמים קלים"
+      },
+      "211": {
+        "main": "רעמים",
+        "description": "רעמים"
+      },
+      "212": {
+        "main": "רעמים",
+        "description": "רעמים חזקים"
+      },
+      "221": {
+        "main": "רעמים",
+        "description": "רעמים סוערים"
+      },
+      "230": {
+        "main": "רעמים",
+        "description": "רעמים עם טפטוף קל"
+      },
+      "231": {
+        "main": "רעמים",
+        "description": "רעמים עם טפטוף"
+      },
+      "232": {
+        "main": "רעמים",
+        "description": "רעמים עם טפטוף כבד"
+      },
+      "300": {
+        "main": "טפטוף",
+        "description": "טפטוף בעוצמה קלה"
+      },
+      "301": {
+        "main": "טפטוף",
+        "description": "טפטוף"
+      },
+      "302": {
+        "main": "טפטוף",
+        "description": "טפטוף בעוצמה חזקה"
+      },
+      "310": {
+        "main": "טפטוף",
+        "description": "גשם קל עם טפטוף"
+      },
+      "311": {
+        "main": "טפטוף",
+        "description": "גשם טפטופים"
+      },
+      "312": {
+        "main": "טפטוף",
+        "description": "גשם טפטופים חזק"
+      },
+      "313": {
+        "main": "טפטוף",
+        "description": "מקלחות גשם וטפטוף"
+      },
+      "314": {
+        "main": "טפטוף",
+        "description": "מקלחות גשם חזקות וטפטוף"
+      },
+      "321": {
+        "main": "טפטוף",
+        "description": "טפטוף במקלחות"
+      },
+      "500": {
+        "main": "גשם",
+        "description": "גשם קל"
+      },
+      "501": {
+        "main": "גשם",
+        "description": "גשם בינוני"
+      },
+      "502": {
+        "main": "גשם",
+        "description": "גשם חזק"
+      },
+      "503": {
+        "main": "גשם",
+        "description": "גשם כבד מאוד"
+      },
+      "504": {
+        "main": "גשם",
+        "description": "גשם קיצוני"
+      },
+      "511": {
+        "main": "גשם",
+        "description": "גשם קפוא"
+      },
+      "520": {
+        "main": "גשם",
+        "description": "מקלחות גשם קלות"
+      },
+      "521": {
+        "main": "גשם",
+        "description": "מקלחות גשם"
+      },
+      "522": {
+        "main": "גשם",
+        "description": "מקלחות גשם חזקות"
+      },
+      "531": {
+        "main": "גשם",
+        "description": "מקלחות גשם סוערות"
+      },
+      "600": {
+        "main": "שלג",
+        "description": "שלג קל"
+      },
+      "601": {
+        "main": "שלג",
+        "description": "שלג"
+      },
+      "602": {
+        "main": "שלג",
+        "description": "שלג כבד"
+      },
+      "611": {
+        "main": "שלג",
+        "description": "קיפאון"
+      },
+      "612": {
+        "main": "שלג",
+        "description": "מקלחות קיפאון קלות"
+      },
+      "613": {
+        "main": "שלג",
+        "description": "מקלחות קיפאון"
+      },
+      "615": {
+        "main": "שלג",
+        "description": "גשם קל ושלג"
+      },
+      "616": {
+        "main": "שלג",
+        "description": "גשם ושלג"
+      },
+      "620": {
+        "main": "שלג",
+        "description": "מקלחת שלג קלה"
+      },
+      "621": {
+        "main": "שלג",
+        "description": "מקלחת שלג"
+      },
+      "622": {
+        "main": "שלג",
+        "description": "מקלחת שלג חזקה"
+      },
+      "701": {
+        "main": "ערפל",
+        "description": "ערפל"
+      },
+      "711": {
+        "main": "עשן",
+        "description": "עשן"
+      },
+      "721": {
+        "main": "אובך",
+        "description": "אובך"
+      },
+      "731": {
+        "main": "אבק",
+        "description": "מערבולות חול/אבק"
+      },
+      "741": {
+        "main": "ערפל",
+        "description": "ערפל"
+      },
+      "751": {
+        "main": "חול",
+        "description": "חול"
+      },
+      "761": {
+        "main": "אבק",
+        "description": "אבק"
+      },
+      "762": {
+        "main": "אפר",
+        "description": "אפר וולקני"
+      },
+      "771": {
+        "main": "משבים",
+        "description": "משבי רוח"
+      },
+      "781": {
+        "main": "טורנדו",
+        "description": "טורנדו"
+      },
+      "800": {
+        "main": "בהיר",
+        "description": "שמיים בהירים"
+      },
+      "801": {
+        "main": "עננים",
+        "description": "מעט עננים"
+      },
+      "802": {
+        "main": "עננים",
+        "description": "פיזור עננים"
+      },
+      "803": {
+        "main": "עננים",
+        "description": "שברי עננים"
+      },
+      "804": {
+        "main": "עננים",
+        "description": "שמיים מעוננים לחלוטין"
+      }
+    }
+  },
+  "ui": {
+    "temperature": "טמפרטורה",
+    "humidity": "לחות",
+    "wind": "רוח",
+    "lastUpdated": "עודכן לפני {time}"
+  },
+  "toasts": {
+    "added": "העיר נוספה",
+    "refreshed": "העיר עודכנה",
+    "exists": "העיר כבר קיימת",
+    "error": "משהו השתבש",
+    "locationAdded": "הוספת {name} לפי מיקום הנוכחי.",
+    "maxCities": "ניתן להוסיף עד {maxCities} ערים."
+  },
   "errors": {
     "fetchWeather": "לא ניתן למשוך את מזג האוויר.",
     "geolocationNotSupported": "דפדפן זה אינו תומך במיקום גיאוגרפי.",
     "fetchLocationWeather": "לא ניתן למשוך את מזג האוויר למיקומך הנוכחי.",
     "geolocationDenied": "הגישה למיקום נדחתה. אנא אפשר זאת בהגדרות הדפדפן."
   },
-  "example_message": "הודעת דוגמא",
+  "settings": {
+    "title": "הגדרות",
+    "close": "סגור",
+    "theme": "ערכת נושא",
+    "language": "שפה",
+    "unit": "יחידות"
+  },
+  "language": {
+    "he": "עברית",
+    "en": "אנגלית"
+  },
+  "theme": {
+    "light": "בהיר",
+    "dark": "כהה",
+    "system": "מערכת"
+  },
   "clickToast": "לחץ על ההודעה",
   "autoTimer": "טיימר אוטומטי",
   "shortToast": "הודעה קצרה",
   "firstToast": "הודעה ראשונה",
   "secondToast": "הודעה שנייה",
-  "temporaryToast": "הודעה זמנית"
+  "temporaryToast": "הודעה זמנית",
+  "example_message": "הודעת דוגמא"
 }

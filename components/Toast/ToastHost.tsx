@@ -16,12 +16,13 @@ export default function ToastHost() {
     for (const toast of toasts) {
       if (!timersReference.current.has(toast.id)) {
         const timeout = setTimeout(() => {
-          hideToast(toast.id); // פשוט תמיד תקרא
+          hideToast(toast.id);
           timersReference.current.delete(toast.id);
         }, 3000);
         timersReference.current.set(toast.id, timeout);
       }
     }
+
     for (const [id, timeout] of timersReference.current.entries()) {
       if (!toasts.find((t) => t.id === id)) {
         clearTimeout(timeout);
@@ -35,7 +36,7 @@ export default function ToastHost() {
       }
       timersReference.current.clear();
     };
-  }, [toasts]);
+  }, [toasts, hideToast]);
 
   if (toasts.length === 0) return null;
 
@@ -51,7 +52,6 @@ export default function ToastHost() {
             onClick={() => hideToast(toast.id)}
             aria-label={t('common.close')}
             role="button"
-            name={t('common.close')}
             className="p-1 hover:bg-background/20 rounded"
           >
             <X size={16} role="presentation" aria-hidden="true" />

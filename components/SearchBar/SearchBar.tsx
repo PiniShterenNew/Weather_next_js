@@ -4,8 +4,8 @@ import { useEffect, useState } from 'react';
 import { fetchSuggestions, fetchWeather } from '@/features/weather';
 import { useWeatherStore } from '@/stores/useWeatherStore';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button'; // Added
-import { LocateFixed } from 'lucide-react'; // Added
+import { Button } from '@/components/ui/button';
+import { LocateFixed, Plus, Search } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 import type { CitySuggestion } from '@/types/suggestion';
 import { useDebounce } from '@/lib/useDebounce';
@@ -21,14 +21,13 @@ export default function SearchBar() {
 
   const [suggestions, setSuggestions] = useState<CitySuggestion[]>([]);
   const addCity = useWeatherStore((s) => s.addCity);
-  const addOrReplaceCurrentLocation = useWeatherStore((s) => s.addOrReplaceCurrentLocation); 
-  const autoLocationCityId = useWeatherStore((s) => s.autoLocationCityId); 
+  const addOrReplaceCurrentLocation = useWeatherStore((s) => s.addOrReplaceCurrentLocation);
+  const autoLocationCityId = useWeatherStore((s) => s.autoLocationCityId);
   const showToast = useWeatherStore((s) => s.showToast);
   const cities = useWeatherStore((s) => s.cities);
   const unit = useWeatherStore((s) => s.unit);
   const setIsLoading = useWeatherStore((s) => s.setIsLoading);
 
-  // בקשת הצעות
   useEffect(() => {
     if (!debouncedQuery || debouncedQuery.length < 3) {
       setSuggestions([]);
@@ -59,10 +58,8 @@ export default function SearchBar() {
             id: '',
           });
 
-          // ניצור ID ייחודי למיקום הנוכחי
           const currentLocationId = `current_${coords.latitude.toFixed(2)}_${coords.longitude.toFixed(2)}`;
 
-          // נוסיף את ה-ID לנתוני מזג האוויר
           addOrReplaceCurrentLocation({
             ...weatherData,
             id: currentLocationId,
@@ -103,6 +100,7 @@ export default function SearchBar() {
         id: city.id,
       });
       addCity(weather);
+      addToWeatherStore(weather.name, weather.current.temp, weather.unit);
       setQuery('');
       setSuggestions([]);
     } catch {
@@ -115,6 +113,7 @@ export default function SearchBar() {
   return (
     <div className="relative">
       <div className="flex items-center gap-2">
+        <Search className="h-5 w-5" />
         <Input
           type="text"
           value={query}
@@ -130,6 +129,7 @@ export default function SearchBar() {
             onClick={handleAddCurrentLocation}
             title={t('search.currentLocation')}
             aria-label={t('search.currentLocation')}
+            disabled={autoLocationCityId !== undefined}
           >
             <LocateFixed className="h-5 w-5" />
           </Button>
@@ -137,14 +137,25 @@ export default function SearchBar() {
       </div>
 
       {suggestions.length > 0 && (
-        <ul className="absolute z-50 mt-2 w-full rounded border bg-white shadow dark:bg-zinc-900">
+        <ul className="mt-2 w-full overflow-y-auto max-h-64 scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200">
           {suggestions.map((s) => (
             <li
               key={s.id}
-              className="cursor-pointer px-3 py-2 hover:bg-muted transition"
-              onClick={() => handleSelect(s)}
+              className="flex flex-row items-center gap-5 cursor-pointer px-3 py-2"
             >
-              {s.displayName}
+              <Button
+                variant="destructive"
+                size="icon"
+                onClick={() => handleSelect(s)}
+                title={t('search.quickAdd')}
+                aria-label={t('search.quickAdd')}
+              >
+                <Plus className="h-5 w-5" />
+              </Button>
+              <div className="flex flex-col">
+                <span>{s.name}</span>
+                <span className="opacity-60">{s.country}</span>
+              </div>
             </li>
           ))}
         </ul>
