@@ -1,27 +1,19 @@
-'use client';
+import { Metadata } from 'next';
+import HomePage from '@/components/HomePage/HomePage';
 
-import WeatherList from '@/components/WeatherList/Weatherlist';
-import { QuickCityAdd } from '@/components/WeatherCard/QuickCityAdd';
-import { useWeatherStore } from '@/stores/useWeatherStore';
-import CityInfo from '@/components/WeatherCard/CityInfo';
-import SettingsModal from '@/components/Settings/SettingsModal';
+/**
+ * Metadata for the home page
+ */
+export const metadata: Metadata = {
+  title: 'Weather App - Home',
+  description: 'Check current weather and forecasts for cities around the world',
+};
 
-export default function HomePage() {
-  return (
-    <main className="min-h-screen w-full px-6 py-4 flex flex-col gap-6">
-      <div className="w-full flex justify-between items-center">
-        <QuickCityAdd />
-        <SettingsModal />
-      </div>
-
-      <div className="w-full flex flex-row gap-6 items-start">
-        <div className="w-1/4">
-          <WeatherList />
-        </div>
-        <div className="w-3/4 flex flex-col gap-6">
-          <CityInfo />
-        </div>
-      </div>
-    </main>
-  );
+/**
+ * Home page component that renders the main weather application
+ * This follows Next.js app directory pattern where page components are server components
+ * that import and render client components
+ */
+export default function Page() {
+  return <HomePage />;
 }

@@ -1,29 +1,55 @@
-import { vi } from 'vitest';
+import { describe, it, expect, beforeEach, vi, Mock } from 'vitest';
 import { render, screen } from '@/test/utils/renderWithIntl';
 import LoadingOverlay from './LoadingOverlay';
+import { useWeatherStore } from '@/stores/useWeatherStore';
 
-const mockUseWeatherStore = vi.fn();
+vi.mock('@/stores/useWeatherStore', async () => {
+  const actual = await vi.importActual<typeof import('@/stores/useWeatherStore')>('@/stores/useWeatherStore');
+  return {
+    ...actual,
+    useWeatherStore: vi.fn(),
+  };
+});
 
-vi.mock('@/stores/useWeatherStore', () => ({
-  useWeatherStore: (selector: any) => mockUseWeatherStore(selector),
-}));
+const mockStore = {
+  isLoading: false,
+};
 
 describe('LoadingOverlay', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    (useWeatherStore as unknown as Mock).mockImplementation((selector: (s: any) => any) =>
+      selector(mockStore)
+    );
   });
 
-  it('does not render anything if isLoading is false', () => {
-    mockUseWeatherStore.mockImplementation((selector) => selector({ isLoading: false }));
-    const { container } = render(<LoadingOverlay />);
-    expect(container.innerHTML).toBe('');
-  });
-
-  it('renders overlay and translated text when isLoading is true', () => {
-    mockUseWeatherStore.mockImplementation((selector) => selector({ isLoading: true }));
+  it('does not render when both store and prop are false', () => {
     render(<LoadingOverlay />);
-    expect(screen.getByText('Loading...')).toBeInTheDocument();
-    expect(screen.getByText('Loading...').closest('.bg-white')).toBeInTheDocument();
-    expect(document.querySelector('.fixed.inset-0.z-50')).toBeInTheDocument();
+    expect(screen.queryByText(/loading/i)).not.toBeInTheDocument();
+  });
+
+  it('renders when store isLoading is true', () => {
+    (useWeatherStore as unknown as Mock).mockImplementation((selector: (s: any) => any) =>
+      selector({ isLoading: true })
+    );
+    render(<LoadingOverlay />);
+    expect(screen.getByText(/loading/i)).toBeInTheDocument();
+    expect(screen.getByTestId('spinner')).toBeInTheDocument();
+  });
+
+  it('renders when prop isLoading is true (even if store is false)', () => {
+    render(<LoadingOverlay isLoading />);
+    expect(screen.getByText(/loading/i)).toBeInTheDocument();
+    expect(screen.getByTestId('spinner')).toBeInTheDocument();
+  });
+
+  it('has proper accessibility attributes', () => {
+    render(<LoadingOverlay isLoading />);
+    const overlay = screen.getByRole('status');
+    expect(overlay).toHaveAttribute('aria-live', 'polite');
+
+    const spinner = screen.getByTestId('spinner');
+    expect(spinner).toHaveAttribute('role', 'img');
+    expect(spinner).toHaveAttribute('aria-label', 'Loading...');
   });
 });

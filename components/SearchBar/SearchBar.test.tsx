@@ -1,10 +1,12 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@/test/utils/renderWithIntl';
+import * as weatherModule from '@/features/weather';
 import SearchBar from './SearchBar';
 import type { CitySuggestion } from '@/types/suggestion';
 import type { CityWeather } from '@/types/weather';
-import * as weatherModule from '@/features/weather';
-import * as fetchReverseModule from '@/features/weather/fetchReverse';
+import { act } from 'react';
+
+vi.mock('@/lib/useDebounce', () => ({ useDebounce: (v: unknown) => v }));
 
 const stateMock = {
   addCity: vi.fn(),
@@ -21,297 +23,310 @@ vi.mock('@/stores/useWeatherStore', () => ({
   getState: () => stateMock,
 }));
 
+const londonSuggestion: CitySuggestion = {
+  id: '1',
+  city: { en: 'London', he: 'London' },
+  country: { en: 'GB', he: 'GB' },
+  lat: 51.5,
+  lon: -0.12,
+};
+
+const londonWeather: CityWeather = {
+  id: '1',
+  lat: 51.5,
+  lon: -0.12,
+  currentEn: {
+    current: {
+      codeId: 1,
+      temp: 20,
+      feelsLike: 19,
+      desc: 'Sunny',
+      icon: '01d',
+      humidity: 50,
+      wind: 5,
+      windDeg: 90,
+      pressure: 1012,
+      visibility: 10000,
+      clouds: 0,
+      sunrise: 1,
+      sunset: 1,
+      timezone: 7200,
+    },
+    forecast: [],
+    lastUpdated: Date.now(),
+    unit: 'metric',
+    lat: 51.5,
+    lon: -0.12,
+  },
+  currentHe: {
+    current: {
+      codeId: 1,
+      temp: 20,
+      feelsLike: 19,
+      desc: 'Sunny',
+      icon: '01d',
+      humidity: 50,
+      wind: 5,
+      windDeg: 90,
+      pressure: 1012,
+      visibility: 10000,
+      clouds: 0,
+      sunrise: 1,
+      sunset: 1,
+      timezone: 7200,
+    },
+    forecast: [],
+    lastUpdated: Date.now(),
+    unit: 'metric',
+    lat: 51.5,
+    lon: -0.12,
+  },
+  lastUpdated: Date.now(),
+  name: { en: 'London', he: 'London' },
+  country: { en: 'GB', he: 'GB' },
+};
+
+const mockSuggestions = (...s: CitySuggestion[]) =>
+  vi.spyOn(weatherModule, 'fetchSuggestions').mockResolvedValue(s);
+
+const mockWeatherSuccess = (w: CityWeather) =>
+  vi.spyOn(weatherModule, 'fetchWeather').mockResolvedValue(w);
+
+const mockWeatherError = (e = new Error('API error')) =>
+  vi.spyOn(weatherModule, 'fetchWeather').mockRejectedValue(e);
+
+let onSelectMock: ReturnType<typeof vi.fn>;
+
+const renderSearchBar = () => render(<SearchBar onSelect={onSelectMock} />);
+const getInput = () => screen.getByPlaceholderText('Search for a city');
+const typeSearch = async (value: string) => {
+  await act(() => Promise.resolve()); // ensure debounce + updates
+  fireEvent.change(getInput(), { target: { value } });
+};
+
 beforeEach(() => {
+  onSelectMock = vi.fn();
   Object.values(stateMock).forEach((v) => {
     if (typeof v === 'function') v.mockClear();
   });
   stateMock.cities = [];
 });
 
+afterEach(() => {
+  vi.restoreAllMocks();
+});
+
 describe('SearchBar', () => {
-  describe('UI Rendering & Basic Interaction', () => {
-    it('renders search field and current location button with translated texts', () => {
-      render(<SearchBar />);
-      expect(screen.getByPlaceholderText('Search for a city...')).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: 'Use current location' })).toBeInTheDocument();
-    });
+  it('allows typing', async () => {
+    renderSearchBar();
+    await act(async () => {
+      await typeSearch('Lon');
+    })
+    expect(getInput()).toHaveValue('Lon');
+  });
 
-    it('allows typing in search box', () => {
-      render(<SearchBar />);
-      const input = screen.getByPlaceholderText('Search for a city...');
-      fireEvent.change(input, { target: { value: 'Lon' } });
-      expect(input).toHaveValue('Lon');
-    });
-
-    it('does not show suggestions if less than 3 characters are typed', async () => {
-      render(<SearchBar />);
-      const input = screen.getByPlaceholderText('Search for a city...');
-      fireEvent.change(input, { target: { value: 'Lo' } });
-      await waitFor(() => {
-        expect(screen.queryByRole('list')).not.toBeInTheDocument();
-      });
-    });
-
-    it('resets suggestions when field is cleared', async () => {
-      vi.spyOn(weatherModule, 'fetchSuggestions').mockResolvedValue([
-        { id: '2', name: 'Paris', country: 'FR', lat: 48.8, lon: 2.3, displayName: 'Paris, FR', language: 'en' }
-      ] as CitySuggestion[]);
-
-      render(<SearchBar />);
-      fireEvent.change(screen.getByPlaceholderText('Search for a city...'), { target: { value: 'Par' } });
-
-      await waitFor(() => {
-        expect(screen.getByText('Paris, FR')).toBeInTheDocument();
-      });
-
-      fireEvent.change(screen.getByPlaceholderText('Search for a city...'), { target: { value: '' } });
-
-      await waitFor(() => {
-        expect(screen.queryByText('Paris, FR')).not.toBeInTheDocument();
-      });
-    });
-
-    it('does not show current location button if autoLocationCityId exists', () => {
-      stateMock.autoLocationCityId = 'current_32.08_34.78';
-      render(<SearchBar />);
-      expect(screen.queryByRole('button', { name: 'Use current location' })).not.toBeInTheDocument();
-      stateMock.autoLocationCityId = null;
+  it('does not show suggestions for less than 3 chars', async () => {
+    renderSearchBar();
+    await typeSearch('Lo');
+    await waitFor(() => {
+      expect(screen.queryByRole('list')).not.toBeInTheDocument();
     });
   });
 
-  describe('Suggestions & City Selection Flow', () => {
-    it('displays search suggestions', async () => {
-      vi.spyOn(weatherModule, 'fetchSuggestions').mockResolvedValue([
-        { id: '1', name: 'London', country: 'GB', lat: 51.5, lon: -0.12, displayName: 'London, GB', language: 'en' }
-      ] as CitySuggestion[]);
+  it('shows and clears suggestions', async () => {
+    mockSuggestions(londonSuggestion);
+    renderSearchBar();
+    await act(async () => {
+      await typeSearch('Lon');
+    })
+    await screen.findByText(/London/);
+    await typeSearch('');
+    await waitFor(() => expect(screen.queryByText(/London/)).not.toBeInTheDocument());
+  });
 
-      render(<SearchBar />);
-      fireEvent.change(screen.getByPlaceholderText('Search for a city...'), {
-        target: { value: 'Lon' }
-      });
+  it('selects suggestion via mouse and adds city', async () => {
+    mockSuggestions(londonSuggestion);
+    mockWeatherSuccess(londonWeather);
+    renderSearchBar();
+    await act(async () => {
+      await typeSearch('Lon');
+    })
+    await screen.findByText(/London/);
+    await act(async () => {
+      fireEvent.click(screen.getByText(/London/));
+    })
+    await waitFor(() => expect(stateMock.addCity).toHaveBeenCalled());
+    expect(onSelectMock).toHaveBeenCalled();
+  });
 
-      await waitFor(() => {
-        expect(screen.getByText('London, GB')).toBeInTheDocument();
-      });
+  it('selects suggestion via keyboard and adds city', async () => {
+    mockSuggestions(londonSuggestion);
+    mockWeatherSuccess(londonWeather);
+    renderSearchBar();
+    await act(async () => {
+      await typeSearch('Lon');
+    })
+    await screen.findByText(/London/);
+    await act(async () => {
+      fireEvent.keyDown(getInput(), { key: 'ArrowDown' });
     });
+    await act(async () => {
+      fireEvent.keyDown(getInput(), { key: 'Enter' });
+    })
+    await waitFor(() => expect(stateMock.addCity).toHaveBeenCalled());
+  });
 
-    it('selecting suggestion from list triggers fetchWeather and adds city', async () => {
-      vi.spyOn(weatherModule, 'fetchSuggestions').mockResolvedValue([
-        { id: '1', name: 'London', country: 'GB', lat: 51.5, lon: -0.12, displayName: 'London, GB', language: 'en' }
-      ] as CitySuggestion[]);
+  it('avoids adding existing city', async () => {
+    stateMock.cities = [londonWeather];
+    mockSuggestions(londonSuggestion);
+    renderSearchBar();
+    await act(async () => {
+      await typeSearch('Lon');
+    })
+    await screen.findByText(/London/);
+    await act(async () => {
+      fireEvent.click(screen.getByText(/London/));
+    })
+    await waitFor(() => expect(stateMock.addCity).not.toHaveBeenCalled());
+  });
 
-      vi.spyOn(weatherModule, 'fetchWeather').mockResolvedValue({
-        id: '1',
-        name: 'London',
-        country: 'GB',
-        lat: 51.5,
-        lon: -0.12,
-        lang: 'en',
-        current: {
-          temp: 20, feelsLike: 19, desc: 'Sunny', icon: '01d', humidity: 50, wind: 5,
-          windDeg: 90, pressure: 1012, visibility: 10000, clouds: 0,
-          sunrise: 1680000000, sunset: 1680040000, timezone: 7200,
-        },
-        forecast: [],
-        lastUpdated: Date.now(),
-        unit: 'metric',
-      });
-
-      render(<SearchBar />);
-      fireEvent.change(screen.getByPlaceholderText('Search for a city...'), {
-        target: { value: 'Lon' }
-      });
-
-      await waitFor(() => {
-        expect(screen.getByText('London, GB')).toBeInTheDocument();
-      });
-
-      fireEvent.click(screen.getByText('London, GB'));
-
-      await waitFor(() => {
-        expect(stateMock.addCity).toHaveBeenCalled();
-      });
-    });
-
-    it('shows toast when trying to add city that already exists', async () => {
-      stateMock.cities = [
-        {
-          id: '1',
-          name: 'London',
-          country: 'GB',
-          lat: 51.5,
-          lon: -0.12,
-          lang: 'en',
-          current: {
-            temp: 20,
-            feelsLike: 19,
-            desc: 'Sunny',
-            icon: '01d',
-            humidity: 50,
-            wind: 5,
-            windDeg: 90,
-            pressure: 1012,
-            visibility: 10000,
-            clouds: 0,
-            sunrise: 1680000000,
-            sunset: 1680040000,
-            timezone: 7200,
-          },
-          forecast: [],
-          lastUpdated: Date.now(),
-          unit: 'metric',
-        }
-      ];
-
-      vi.spyOn(weatherModule, 'fetchSuggestions').mockResolvedValue([
-        { id: '1', name: 'London', country: 'GB', lat: 51.5, lon: -0.12, displayName: 'London, GB', language: 'en' }
-      ]);
-
-      render(<SearchBar />);
-      fireEvent.change(screen.getByPlaceholderText('Search for a city...'), {
-        target: { value: 'Lon' }
-      });
-
-      await waitFor(() => {
-        expect(screen.getByText('London, GB')).toBeInTheDocument();
-      });
-
-      fireEvent.click(screen.getByText('London, GB'));
-
-      await waitFor(() => {
-        expect(stateMock.showToast).toHaveBeenCalled();
-        expect(stateMock.addCity).not.toHaveBeenCalled();
-      });
+  it('shows loader and handles weather error', async () => {
+    mockSuggestions(londonSuggestion);
+    mockWeatherError();
+    renderSearchBar();
+    await act(async () => {
+      await typeSearch('Lon');
+    })
+    await screen.findByText(/London/);
+    await act(async () => {
+      fireEvent.click(screen.getByText(/London/));
+    })
+    await waitFor(() => {
+      expect(stateMock.setIsLoading).toHaveBeenCalledWith(true);
+      expect(stateMock.setIsLoading).toHaveBeenCalledWith(false);
+      expect(stateMock.showToast).toHaveBeenCalled();
     });
   });
 
-  describe('Current Location Flow', () => {
-    it('shows toast when geolocation is not supported', async () => {
-      const orig = global.navigator.geolocation;
-      // @ts-ignore
-      delete global.navigator.geolocation;
+  it('closes dropdown on outside click', async () => {
+    mockSuggestions(londonSuggestion);
+    renderSearchBar();
+    await act(async () => {
+      await typeSearch('Lon');
+    })
+    await screen.findByText(/London/);
 
-      render(<SearchBar />);
-      fireEvent.click(screen.getByRole('button', { name: 'Use current location' }));
+    const outside = document.createElement('div');
+    document.body.appendChild(outside);
 
-      await waitFor(() => {
-        expect(stateMock.showToast).toHaveBeenCalledWith({
-          message: 'errors.geolocationNotSupported',
-        });
-      });
-
-      if (orig) {
-        // @ts-ignore
-        global.navigator.geolocation = orig;
-      }
+    await act(async () => {
+      fireEvent.mouseDown(outside);
+      return Promise.resolve();
     });
 
-    it('adds city from current location and shows toast', async () => {
-      const mockCoords = { latitude: 32.08, longitude: 34.78 };
-      // @ts-ignore
-      global.navigator.geolocation = {
-        getCurrentPosition: (success: any) =>
-          success({ coords: mockCoords }),
-      };
+    await waitFor(() => {
+      expect(screen.queryByText(/London/)).not.toBeInTheDocument();
+    });
+  });
+});
 
-      vi.spyOn(fetchReverseModule, 'fetchReverse').mockResolvedValue({
-        name: 'Tel Aviv',
-        country: 'IL',
-        lat: 32.08,
-        lon: 34.78
-      });
-      vi.spyOn(weatherModule, 'fetchWeather').mockResolvedValue({
-        id: '2', name: 'Tel Aviv', country: 'IL', lat: 32.08, lon: 34.78, lang: 'he',
-        current: {
-          temp: 25, feelsLike: 26, desc: 'Clear', icon: '01d',
-          humidity: 45, wind: 5, windDeg: 120, pressure: 1015,
-          visibility: 10000, clouds: 0, sunrise: 1680000000,
-          sunset: 1680040000, timezone: 7200
-        }, forecast: [], lastUpdated: Date.now(), unit: 'metric'
-      } as CityWeather);
+describe('SearchBar ­– extra UX', () => {
+  it('✕ button clears text and dropdown', async () => {
+    mockSuggestions(londonSuggestion);
+    renderSearchBar();
+    await act(async () => {
+      await typeSearch('Lon');
+    })
+    await screen.findByText(/London/);
 
-      render(<SearchBar />);
-      fireEvent.click(screen.getByRole('button', { name: 'Use current location' }));
-
-      await waitFor(() => {
-        expect(stateMock.addOrReplaceCurrentLocation).toHaveBeenCalled();
-        expect(stateMock.showToast).toHaveBeenCalledWith({
-          message: 'toasts.locationAdded',
-          values: { name: 'Tel Aviv' }
-        });
-      });
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /clear/i }));
+    })
+    expect(screen.getByRole('textbox')).toHaveValue('');
+    await waitFor(() => {
+      expect(screen.queryByText(/London/)).not.toBeInTheDocument();
     });
   });
 
-  describe('Loading and Error Handling', () => {
-    it('setIsLoading stops even in case of API error', async () => {
-      vi.spyOn(weatherModule, 'fetchSuggestions').mockResolvedValue([
-        { id: '2', name: 'Paris', country: 'FR', lat: 48.8, lon: 2.3, displayName: 'Paris, FR', language: 'en' }
-      ] as CitySuggestion[]);
+  it('shows loading icon while suggestions pending', async () => {
+    let resolve!: (v: CitySuggestion[]) => void;
+    vi.spyOn(weatherModule, 'fetchSuggestions')
+      .mockImplementation(() => new Promise(r => { resolve = r; }));
 
-      vi.spyOn(weatherModule, 'fetchWeather').mockRejectedValue(new Error('API error'));
+    renderSearchBar();
+    await act(async () => {
+      await typeSearch('Lon');
+    })
 
-      render(<SearchBar />);
-      fireEvent.change(screen.getByPlaceholderText('Search for a city...'), {
-        target: { value: 'Par' }
-      });
+    expect(screen.getByTestId('loader-icon')).toBeInTheDocument();
+    await act(async () => {
+      resolve([londonSuggestion]);
+    })
+    await screen.findByText(/London/);
+  });
 
-      await waitFor(() => {
-        expect(screen.getByText('Paris, FR')).toBeInTheDocument();
-      });
+  it('index navigation stops at bounds', async () => {
+    mockSuggestions(londonSuggestion);
+    renderSearchBar();
+    await act(async () => {
+      await typeSearch('Lon');
+    })
+    await screen.findByText(/London/);
 
-      fireEvent.click(screen.getByText('Paris, FR'));
-
-      await waitFor(() => {
-        expect(stateMock.setIsLoading).toHaveBeenCalledWith(true);
-        expect(stateMock.setIsLoading).toHaveBeenCalledWith(false);
-        expect(stateMock.addCity).not.toHaveBeenCalled();
-        expect(stateMock.showToast).toHaveBeenCalled();
-      });
+    await act(async () => {
+      fireEvent.keyDown(screen.getByRole('textbox'), { key: 'ArrowUp' });
     });
+    await act(async () => {
+      fireEvent.keyDown(screen.getByRole('textbox'), { key: 'Enter' });
+    })
+    expect(screen.queryByText(/London/)).toBeInTheDocument();
 
-    it('shows toast if fetchWeather or fetchReverse fails during current location', async () => {
-      const mockCoords = { latitude: 32.08, longitude: 34.78 };
-
-      // @ts-ignore
-      global.navigator.geolocation = {
-        getCurrentPosition: (success: any) => success({ coords: mockCoords }),
-      };
-
-      vi.spyOn(fetchReverseModule, 'fetchReverse').mockResolvedValue({
-        name: 'Tel Aviv',
-        country: 'IL',
-        lat: 32.08,
-        lon: 34.78
-      });
-
-      vi.spyOn(weatherModule, 'fetchWeather').mockRejectedValue(new Error('fail'));
-
-      render(<SearchBar />);
-      fireEvent.click(screen.getByRole('button', { name: 'Use current location' }));
-
-      await waitFor(() => {
-        expect(stateMock.showToast).toHaveBeenCalledWith({
-          message: 'errors.fetchLocationWeather',
-        });
-      });
+    await act(async () => {
+      fireEvent.keyDown(screen.getByRole('textbox'), { key: 'ArrowDown' });
     });
-
-    it('shows toast if user denies geolocation access', async () => {
-      // @ts-ignore
-      global.navigator.geolocation = {
-        getCurrentPosition: (_success: any, error: any) => error(),
-      };
-
-      render(<SearchBar />);
-      fireEvent.click(screen.getByRole('button', { name: 'Use current location' }));
-
-      await waitFor(() => {
-        expect(stateMock.showToast).toHaveBeenCalledWith({
-          message: 'errors.geolocationDenied',
-        });
-      });
+    await act(async () => {
+      fireEvent.keyDown(screen.getByRole('textbox'), { key: 'ArrowDown' });
     });
+  });
 
+  it('RTL layout places icons on correct sides', async () => {
+    render(<SearchBar onSelect={() => { }} />, { locale: 'he' });
+    const input = screen.getByRole('textbox');
+    expect(input).toHaveClass('text-right');
+  });
+
+  it('shows loader and then check icon when adding a city', async () => {
+    mockSuggestions(londonSuggestion);
+    
+    let resolveWeather!: (w: CityWeather) => void;
+    vi.spyOn(weatherModule, 'fetchWeather')
+      .mockImplementation(() => new Promise(r => { resolveWeather = r; }));
+  
+    renderSearchBar();
+    await act(async () => {
+      await typeSearch('Lon');
+    })
+    await screen.findByText(/London/);
+  
+    act(() => {
+      fireEvent.click(screen.getByText(/London/));
+    });
+  
+    await waitFor(() => {
+      expect(screen.getByTestId('suggestion-loader')).toBeInTheDocument();
+    });
+    
+    act(() => {
+      resolveWeather(londonWeather);
+    });
+    
+    await waitFor(() => {
+      expect(stateMock.addCity).toHaveBeenCalled();
+    });
+  });
+
+  it('accessibility - input has accessible name', () => {
+    renderSearchBar();
+    expect(screen.getByRole('textbox')).toHaveAccessibleName('Search for a city');
   });
 });

@@ -54,6 +54,13 @@ export default [
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
       '@typescript-eslint/no-explicit-any': 'warn',
       '@typescript-eslint/explicit-module-boundary-types': 'off',
+      'no-warning-comments': [
+        'warn',
+        {
+          terms: ['\\u0590-\\u05FF'], // טווח תווים בעברית
+          location: 'anywhere',
+        },
+      ],
     },
   },
   {
@@ -67,6 +74,13 @@ export default [
     rules: {
       'no-unused-vars': 'off',
       '@typescript-eslint/no-unused-vars': 'off',
+      'no-warning-comments': [
+        'warn',
+        {
+          terms: ['\\u0590-\\u05FF'], // טווח תווים בעברית
+          location: 'anywhere',
+        },
+      ],
     },
   },
   {
@@ -101,10 +115,16 @@ export default [
     },
   },
   {
-    files: ['**/*.test.ts', '**/*.test.tsx', '**/*.spec.ts', '**/*.spec.tsx', '**/__tests__/**'],
+    files: [
+      '**/*.test.ts',
+      '**/*.test.tsx',
+      '**/*.spec.ts',
+      '**/*.spec.tsx',
+      '**/__tests__/**',
+      'test/setup.ts',
+    ],
     languageOptions: {
       globals: {
-        // Jest globals
         describe: 'readonly',
         test: 'readonly',
         it: 'readonly',
@@ -114,9 +134,10 @@ export default [
         afterEach: 'readonly',
         beforeAll: 'readonly',
         afterAll: 'readonly',
-        // Vitest globals (הוסף)
         vi: 'readonly',
         global: 'readonly',
+        requestAnimationFrame: 'readonly',
+        cancelAnimationFrame: 'readonly',
       },
     },
     rules: {
@@ -125,6 +146,19 @@ export default [
       '@typescript-eslint/no-require-imports': 'off',
       'no-console': 'off',
       'unicorn/consistent-function-scoping': 'off',
+      'no-warning-comments': [
+        'warn',
+        {
+          terms: ['\\u0590-\\u05FF'], // טווח תווים בעברית
+          location: 'anywhere',
+        },
+      ],
+    },
+  },
+  {
+    files: ['lib/errors.ts'],
+    rules: {
+      'no-console': 'off',
     },
   },
 ];

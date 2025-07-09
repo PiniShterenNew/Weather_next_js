@@ -5,5 +5,7 @@ export type Direction = 'ltr' | 'rtl';
 export interface ToastMessage {
   id: number;
   message: string;
-  values?: Record<string, any>;
+  type?: 'success' | 'error' | 'warning' | 'info';
+  duration?: number;
+  values?: Record<string, string>;
 }

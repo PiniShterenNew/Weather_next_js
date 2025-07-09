@@ -1,9 +1,11 @@
+// types/suggestion.d.ts
+
+import { CityTranslation } from "./cache";
+
 export interface CitySuggestion {
-  id: string; 
-  name: string; 
-  country: string; 
-  lat: number; 
-  lon: number; 
-  displayName: string;
-  language: 'he' | 'en'; 
+  id: string;
+  lat: number;
+  lon: number;
+  city: CityTranslation;
+  country: CityTranslation;
 }

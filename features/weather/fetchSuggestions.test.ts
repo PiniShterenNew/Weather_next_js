@@ -1,40 +1,46 @@
-import { fetchSuggestions } from '@/features/weather/fetchSuggestions';
-import { vi } from 'vitest';
+// features/weather/fetchSuggestions.test.ts
+import { fetchSuggestions } from '@/features/weather/fetchSuggestions'
+import { vi } from 'vitest'
 
 describe('fetchSuggestions (using fetch)', () => {
   beforeEach(() => {
-    vi.stubGlobal('fetch', vi.fn());
-  });
+    vi.stubGlobal('fetch', vi.fn())
+  })
 
   afterEach(() => {
-    vi.restoreAllMocks();
-  });
+    vi.restoreAllMocks()
+  })
 
-  const mockSuggestions = ['Tel Aviv', 'Tiberias'];
+  const mockSuggestions = ['Tel Aviv', 'Tiberias']
 
-  it('calls fetch with correct query string and returns data', async () => {
-    (fetch as any).mockResolvedValue({
+  it('calls fetch with correct query string, lang param and options, then returns data', async () => {
+    ;(fetch as any).mockResolvedValue({
       ok: true,
       json: async () => mockSuggestions,
-    });
+    })
 
-    const result = await fetchSuggestions('tel');
+    const result = await fetchSuggestions('tel')
 
-    expect(fetch).toHaveBeenCalledWith('/api/suggest?q=tel');
-    expect(result).toEqual(mockSuggestions);
-  });
+    expect(fetch).toHaveBeenCalledWith(
+      '/api/suggest?q=tel&lang=he',
+      { next: { revalidate: 300 } },
+    )
+    expect(result).toEqual(mockSuggestions)
+  })
 
-  it('throws an error if fetch response is not ok', async () => {
-    (fetch as any).mockResolvedValue({
-      ok: false,
-    });
+  it('returns [] if fetch response is not ok', async () => {
+    ;(fetch as any).mockResolvedValue({ ok: false })
 
-    await expect(fetchSuggestions('x')).rejects.toThrow('Failed to fetch city suggestions');
-  });
+    const result = await fetchSuggestions('x')
 
-  it('throws an error if fetch itself fails', async () => {
-    (fetch as any).mockRejectedValue(new Error('network fail'));
+    expect(result).toEqual([])
+  })
 
-    await expect(fetchSuggestions('anything')).rejects.toThrow('network fail');
-  });
-});
+  it('returns [] if fetch itself fails', async () => {
+    ;(fetch as any).mockRejectedValue(new Error('network fail'))
+
+    const result = await fetchSuggestions('anything')
+
+    expect(result).toEqual([])
+  })
+})

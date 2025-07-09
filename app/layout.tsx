@@ -2,7 +2,7 @@ import React from 'react';
 import type { Metadata } from 'next';
 import '../styles/globals.css';
 
-// הוסרו הגדרות הפונטים שאינן בשימוש
+// Font definitions removed as they are not in use
 
 export const metadata: Metadata = {
   title: 'Create Next App',

@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/select';
 import { useLocale, useTranslations } from 'next-intl';
 import { AppLocale } from '@/types/i18n';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 export default function LanguageSwitcher() {
   const t = useTranslations('language'); // מפתחות תחת 'language.*'
@@ -30,19 +31,26 @@ export default function LanguageSwitcher() {
     startTransition(() => router.replace(newPath));
   };
 
- useLayoutEffect(() => {
+  useLayoutEffect(() => {
     setLocale(locale as AppLocale);
-  }, [locale]);
+  }, [locale, setLocale]);
 
   return (
-    <Select value={localeStore} onValueChange={handleLocaleChange}>
-      <SelectTrigger className="w-[100px]" aria-label={t(localeStore)}>
-        <SelectValue />
-      </SelectTrigger>
-      <SelectContent>
-        <SelectItem value="he" aria-label={t('he')}>{t('he')}</SelectItem>
-        <SelectItem value="en" aria-label={t('en')}>{t('en')}</SelectItem>
-      </SelectContent>
-    </Select>
+    <Tooltip>
+      <Select
+        value={localeStore} onValueChange={handleLocaleChange}>
+        <TooltipTrigger asChild>
+          <SelectTrigger tabIndex={-1} className="w-[100px]" aria-label={t(localeStore)}>
+            <SelectValue />
+          </SelectTrigger>
+        </TooltipTrigger>
+        <SelectContent>
+          <SelectItem value="he" aria-label={t('he')}>{t('he')}</SelectItem>
+          <SelectItem value="en" aria-label={t('en')}>{t('en')}</SelectItem>
+        </SelectContent>
+      </Select>
+      <TooltipContent dir="ltr">{t(localeStore)}</TooltipContent>
+    </Tooltip>
+
   );
 }

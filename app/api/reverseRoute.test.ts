@@ -3,11 +3,44 @@ import { GET as reverseRoute } from '@/app/api/reverse/route';
 import { vi } from 'vitest';
 import { NextRequest } from 'next/server';
 
+// Mock all dependencies
 vi.mock('@/lib/helpers', () => ({
-  getCityInfoByCoords: vi.fn(),
+  getLocationForDB: vi.fn(),
 }));
 
-import { getCityInfoByCoords } from '@/lib/helpers';
+vi.mock('@/lib/db/suggestion', () => ({
+  findCityById: vi.fn(),
+  saveCityToDatabase: vi.fn(),
+}));
+
+vi.mock('@/lib/utils', () => ({
+  getCityId: vi.fn(),
+}));
+
+vi.mock('@/lib/errors', () => ({
+  logger: {
+    warn: vi.fn(),
+    info: vi.fn(),
+    debug: vi.fn(),
+    error: vi.fn(),
+  },
+  ValidationError: class extends Error {
+    statusCode = 400;
+    constructor(message: string) {
+      super(message);
+    }
+  },
+  ExternalApiError: class extends Error {
+    statusCode = 502;
+    constructor(service: string, message: string) {
+      super(`${service} API error: ${message}`);
+    }
+  },
+}));
+
+import { getLocationForDB } from '@/lib/helpers';
+import { findCityById, saveCityToDatabase } from '@/lib/db/suggestion';
+import { getCityId } from '@/lib/utils';
 
 function createRequest(params: Record<string, string> = {}) {
   const url = new URL('http://localhost/api/reverse');
@@ -15,38 +48,128 @@ function createRequest(params: Record<string, string> = {}) {
   return new NextRequest(url.toString(), { method: 'GET' });
 }
 
+const mockCityData = {
+  id: 'city:32.1_34.8',
+  city: { en: 'Tel Aviv', he: 'תל אביב' },
+  country: { en: 'Israel', he: 'ישראל' },
+  lat: 32.07,
+  lon: 34.79,
+};
+
 describe('GET /api/reverse', () => {
   beforeEach(() => {
     vi.resetAllMocks();
   });
 
-  it('returns empty array if lat/lon are missing', async () => {
+  it('returns 400 if lat/lon are missing', async () => {
     const request = createRequest(); // no params
     const response = await reverseRoute(request);
-    expect(response.status).toBe(200);
+    
+    expect(response.status).toBe(400);
     const data = await response.json();
-    expect(data).toEqual([]);
+    expect(data.error).toBe('Missing required parameters: lat, lon');
   });
 
-  it('returns city info if lat/lon provided', async () => {
-    const mockCity = { name: 'Tel Aviv', country: 'IL' };
-    (getCityInfoByCoords as any).mockResolvedValue(mockCity);
+  it('returns 400 if coordinates are invalid format', async () => {
+    const request = createRequest({ lat: 'invalid', lon: '34.79' });
+    const response = await reverseRoute(request);
+    
+    expect(response.status).toBe(400);
+    const data = await response.json();
+    expect(data.error).toBe('Invalid coordinates format');
+  });
 
+  it('returns 400 if coordinates are out of range', async () => {
+    const request = createRequest({ lat: '91', lon: '34.79' }); // lat > 90
+    const response = await reverseRoute(request);
+    
+    expect(response.status).toBe(400);
+    const data = await response.json();
+    expect(data.error).toBe('Coordinates out of valid range');
+  });
+
+  it('returns existing city from database', async () => {
+    (getCityId as any).mockReturnValue('city:32.1_34.8');
+    (findCityById as any).mockResolvedValue(mockCityData);
+    
     const request = createRequest({ lat: '32.07', lon: '34.79', lang: 'he' });
     const response = await reverseRoute(request);
+    
     expect(response.status).toBe(200);
     const data = await response.json();
-    expect(data).toEqual(mockCity);
-    expect(getCityInfoByCoords).toHaveBeenCalledWith(32.07, 34.79, 'he');
+    expect(data).toEqual(mockCityData);
+    expect(getCityId).toHaveBeenCalledWith(32.07, 34.79);
+    expect(findCityById).toHaveBeenCalledWith('city:32.1_34.8');
   });
 
-  it('returns 500 on failure', async () => {
-    (getCityInfoByCoords as any).mockRejectedValue(new Error('fail'));
-
-    const request = createRequest({ lat: '31', lon: '35' });
+  it('fetches from API and saves when city not in database', async () => {
+    const newCityData = { ...mockCityData, id: 'city:31.0_35.0' };
+    
+    (getCityId as any).mockReturnValue('city:31.0_35.0');
+    (findCityById as any).mockResolvedValue(null);
+    (getLocationForDB as any).mockResolvedValue(newCityData);
+    (saveCityToDatabase as any).mockResolvedValue(newCityData);
+    
+    const request = createRequest({ lat: '31.0', lon: '35.0', lang: 'he' });
     const response = await reverseRoute(request);
+    
+    expect(response.status).toBe(200);
+    const data = await response.json();
+    expect(data).toEqual(newCityData);
+    expect(getLocationForDB).toHaveBeenCalledWith(31.0, 35.0);
+    expect(saveCityToDatabase).toHaveBeenCalledWith(newCityData);
+  });
+
+  it('returns 502 on external API error', async () => {
+    (getCityId as any).mockReturnValue('city:31.0_35.0');
+    (findCityById as any).mockResolvedValue(null);
+    (getLocationForDB as any).mockRejectedValue(new Error('Geoapify API failure'));
+    
+    const request = createRequest({ lat: '31.0', lon: '35.0' });
+    const response = await reverseRoute(request);
+    
+    expect(response.status).toBe(502);
+    const data = await response.json();
+    expect(data.error).toContain('Geoapify API error');
+  });
+
+  it('returns 500 on database save error', async () => {
+    const newCityData = { ...mockCityData, id: 'city:31.0_35.0' };
+    
+    (getCityId as any).mockReturnValue('city:31.0_35.0');
+    (findCityById as any).mockResolvedValue(null);
+    (getLocationForDB as any).mockResolvedValue(newCityData);
+    (saveCityToDatabase as any).mockRejectedValue(new Error('Database error'));
+    
+    const request = createRequest({ lat: '31.0', lon: '35.0' });
+    const response = await reverseRoute(request);
+    
+    expect(response.status).toBe(502);
+    const data = await response.json();
+    expect(data.error).toContain('Failed to save city data');
+  });
+
+  it('returns 500 on unexpected error', async () => {
+    (getCityId as any).mockImplementation(() => {
+      throw new Error('Unexpected error');
+    });
+    
+    const request = createRequest({ lat: '32.07', lon: '34.79' });
+    const response = await reverseRoute(request);
+    
     expect(response.status).toBe(500);
     const data = await response.json();
-    expect(data.error).toContain('Failed to fetch');
+    expect(data.error).toContain('unexpected error occurred');
+  });
+
+  it('uses default language when lang not provided', async () => {
+    (getCityId as any).mockReturnValue('city:32.1_34.8');
+    (findCityById as any).mockResolvedValue(mockCityData);
+    
+    const request = createRequest({ lat: '32.07', lon: '34.79' }); // no lang param
+    const response = await reverseRoute(request);
+    
+    expect(response.status).toBe(200);
+    // Should use 'he' as default language
   });
 });

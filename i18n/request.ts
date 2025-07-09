@@ -12,7 +12,7 @@ export default getRequestConfig(async ({ requestLocale }) => {
   try {
     messages = (await import(`../locales/${locale}.json`)).default;
   } catch {
-    // השתמשנו בערך ברירת מחדל במקרה של שגיאה
+    // Using default value in case of error
     messages = {};
   }
 

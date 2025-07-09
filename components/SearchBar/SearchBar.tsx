@@ -1,23 +1,26 @@
 'use client';
-
-import { useEffect, useState } from 'react';
+import React from 'react';
+import { useEffect, useState, useRef, Suspense } from 'react';
 import { fetchSuggestions, fetchWeather } from '@/features/weather';
 import { useWeatherStore } from '@/stores/useWeatherStore';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { LocateFixed, Plus, Search } from 'lucide-react';
+import { Search, X, Loader2 } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 import type { CitySuggestion } from '@/types/suggestion';
 import { useDebounce } from '@/lib/useDebounce';
 import { AppLocale } from '@/types/i18n';
-import { TemporaryUnit } from '@/types/ui';
-import { fetchReverse } from '@/features/weather/fetchReverse';
 import { getDirection } from '@/lib/intl';
+import { cn } from '@/lib/utils';
+import { SuggestionsList } from './SuggestionsList';
 
 interface SearchBarProps {
   onSelect: () => void;
 }
 
+/**
+ * SearchBar component with autocomplete functionality
+ * Uses Suspense for improved loading experience
+ */
 export default function SearchBar({ onSelect }: SearchBarProps) {
   const t = useTranslations();
   const locale = useLocale() as AppLocale;
@@ -26,145 +29,235 @@ export default function SearchBar({ onSelect }: SearchBarProps) {
   const debouncedQuery = useDebounce(query, 400);
 
   const [suggestions, setSuggestions] = useState<CitySuggestion[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [hasSearched, setHasSearched] = useState(false);
+  const [selectedIndex, setSelectedIndex] = useState(-1);
+  const [isAdding, setIsAdding] = useState<string | null>(null);
+
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [focused, setFocused] = useState(false);
+
+  const hideTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
   const addCity = useWeatherStore((s) => s.addCity);
-  const addOrReplaceCurrentLocation = useWeatherStore((s) => s.addOrReplaceCurrentLocation);
-  const autoLocationCityId = useWeatherStore((s) => s.autoLocationCityId);
   const showToast = useWeatherStore((s) => s.showToast);
-  const cities = useWeatherStore((s) => s.cities);
-  const unit = useWeatherStore((s) => s.unit);
   const setIsLoading = useWeatherStore((s) => s.setIsLoading);
 
+  // Handle search input
   useEffect(() => {
-    if (!debouncedQuery || debouncedQuery.length < 3) {
+    if (!debouncedQuery || debouncedQuery.length < 2) {
       setSuggestions([]);
+      setHasSearched(false);
+      setSelectedIndex(-1);
+      setLoading(false);
       return;
     }
-    fetchSuggestions(debouncedQuery)
-      .then(setSuggestions)
-      .catch(() => setSuggestions([]));
-  }, [debouncedQuery]);
 
-  const handleAddCurrentLocation = async () => {
-    if (!('geolocation' in navigator)) {
-      showToast({ message: 'errors.geolocationNotSupported' });
-      return;
-    }
-    setIsLoading(true);
+    setLoading(true);
+    setSelectedIndex(-1);
 
-    navigator.geolocation.getCurrentPosition(
-      async ({ coords }) => {
-        try {
-          const cityInfo = await fetchReverse(coords.latitude, coords.longitude, locale);
-          const weatherData = await fetchWeather({
-            lat: coords.latitude,
-            lon: coords.longitude,
-            name: cityInfo.name,
-            country: cityInfo.country,
-            unit: unit as TemporaryUnit,
-            id: '',
-          });
-
-          const currentLocationId = `current_${coords.latitude.toFixed(2)}_${coords.longitude.toFixed(2)}`;
-
-          addOrReplaceCurrentLocation({
-            ...weatherData,
-            id: currentLocationId,
-            isCurrentLocation: true
-          });
-
-          setQuery('');
-          setSuggestions([]);
-          onSelect();
-          showToast({ message: 'toasts.locationAdded', values: { name: weatherData.name } });
-        } catch {
-          showToast({ message: 'errors.fetchLocationWeather' });
-        }
-      },
-      () => {
-        showToast({ message: 'errors.geolocationDenied' });
-      },
-      { enableHighAccuracy: false, timeout: 10_000 },
-    );
-    setIsLoading(false);
-  };
-
-  const handleSelect = async (city: CitySuggestion) => {
-    setIsLoading(true); // התחלת טעינה
-    onSelect();
-    try {
-      const exists = cities.some((c) => c.id === city.id);
-      if (exists) {
-        showToast({ message: 'toasts.exists' });
-        return;
-      }
-
-      const weather = await fetchWeather({
-        lat: city.lat,
-        lon: city.lon,
-        name: city.name,
-        country: city.country,
-        unit: unit as TemporaryUnit,
-        id: city.id,
+    fetchSuggestions(debouncedQuery, locale)
+      .then((results) => {
+        setSuggestions(results);
+        setHasSearched(true);
+      })
+      .catch(() => {
+        setSuggestions([]);
+        setHasSearched(true);
+      })
+      .finally(() => {
+        setLoading(false);
       });
-      addCity(weather);
-      setQuery('');
-      setSuggestions([]);
-    } catch {
-      showToast({ message: 'errors.fetchWeather' });
-    } finally {
-      setIsLoading(false); // סיום טעינה
+  }, [debouncedQuery, locale]);
+
+  // Handle dropdown display
+  useEffect(() => {
+    const shouldShow = query.length >= 2 && focused;
+
+    if (shouldShow) {
+      if (hideTimeout.current) {
+        clearTimeout(hideTimeout.current);
+        hideTimeout.current = null;
+      }
+      setShowDropdown(true);
+    } else {
+      if (showDropdown) {
+        if (hideTimeout.current) clearTimeout(hideTimeout.current);
+        hideTimeout.current = setTimeout(() => {
+          setShowDropdown(false);
+          hideTimeout.current = null;
+        }, 150);
+      }
+    }
+
+    return () => {
+      if (hideTimeout.current) {
+        clearTimeout(hideTimeout.current);
+        hideTimeout.current = null;
+      }
+    };
+  }, [query.length, showDropdown, focused]);
+
+  // Handle keyboard navigation
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (!showDropdown || suggestions.length === 0) return;
+
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault();
+        setSelectedIndex(prev =>
+          prev < suggestions.length - 1 ? prev + 1 : prev
+        );
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        setSelectedIndex(prev => prev > 0 ? prev - 1 : -1);
+        break;
+      case 'Enter':
+        e.preventDefault();
+        if (selectedIndex >= 0 && selectedIndex < suggestions.length) {
+          handleSelect(suggestions[selectedIndex]);
+        }
+        break;
+      case 'Escape':
+        setShowDropdown(false);
+        inputRef.current?.blur();
+        break;
     }
   };
+
+  // Handle city selection
+  const handleSelect = async (city: CitySuggestion) => {
+    setIsAdding(city.id);
+
+    try {
+      setIsLoading(true);
+      const weatherData = await fetchWeather({
+        id: city.id,
+        lat: Number(city.lat),
+        lon: Number(city.lon),
+        unit: 'metric'
+      });
+
+      addCity(weatherData);
+      showToast({
+        message: 'toasts.added',
+        values: { city: city.city[locale] || city.city.en },
+        type: 'success',
+      });
+
+      // Clear search after adding
+      setTimeout(clearSearch, 300);
+      onSelect();
+    } catch {
+      showToast({
+        message: 'errors.fetchWeather',
+        type: 'error'
+      });
+    } finally {
+      setIsAdding(null);
+      setIsLoading(false);
+    }
+  };
+
+  // Clear search input
+  const clearSearch = () => {
+    setQuery('');
+    setSuggestions([]);
+    setHasSearched(false);
+    setSelectedIndex(-1);
+    setShowDropdown(false);
+    inputRef.current?.blur();
+  };
+
+  // Handle click outside to close dropdown
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        clearSearch();
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   return (
     <div className="relative">
       <div className="flex items-center gap-2">
-        {!autoLocationCityId && (
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={handleAddCurrentLocation}
-            title={t('search.currentLocation')}
-            aria-label={t('search.currentLocation')}
-            disabled={autoLocationCityId !== undefined}
-          >
-            <LocateFixed className="h-5 w-5" />
-          </Button>
-        )}
-        <Input
-          type="text"
-          value={query}
-          onChange={(event) => setQuery(event.target.value)}
-          placeholder={t('search.placeholder')}
-          aria-label={t('search.placeholder')}
-          className={`flex-grow ${direction === 'rtl' ? 'text-right' : 'text-left'}`}
-        />
-        <Search className="h-5 w-5" />
+        <div className="relative flex-grow">
+          <Input
+            ref={inputRef}
+            type="text"
+            value={query}
+            onFocus={() => setFocused(true)}
+            onBlur={() => setFocused(false)}
+            onChange={(e) => {
+              setQuery(e.target.value);
+              if (!focused) setFocused(true);   // מבטיח שתמיד בפוקוס בזמן כתיבה
+            }}
+            onKeyDown={handleKeyDown}
+            placeholder={t('search.placeholder')}
+            aria-label={t('search.placeholder')}
+            className={cn(
+              "flex-grow h-12 !text-lg shadow-sm transition-all",
+              "focus-visible:ring-primary/30 focus-visible:ring-2",
+              "border-2 focus-visible:border-primary/50",
+              direction === 'rtl' ? 'text-right pr-12 pl-8' : 'text-left pl-12 pr-8'
+            )}
+          />
+          <div className={cn(
+            "absolute top-1/2 transform -translate-y-1/2 transition-all duration-200",
+            direction === 'ltr' ? 'right-3' : 'left-3'
+          )}>
+            {loading ? (
+              <Loader2 data-testid="loader-icon" aria-label="loading" className="h-5 w-5 animate-spin text-primary" />
+            ) : (
+              <Search aria-label="search" className="h-5 w-5 text-muted-foreground" />
+            )}
+          </div>
+          {query && (
+            <button
+              onClick={clearSearch}
+              aria-label="clear"
+              className={cn(
+                "absolute top-1/2 transform -translate-y-1/2 p-1 rounded-full",
+                "hover:bg-muted transition-colors",
+                direction === 'rtl' ? 'left-10' : 'right-10'
+              )}
+            >
+              <X aria-label="clear" className="h-4 w-4 text-muted-foreground hover:text-foreground" />
+            </button>
+          )}
+        </div>
       </div>
 
-      {suggestions.length > 0 && (
-        <ul className="mt-2 w-full overflow-y-auto max-h-64 scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200">
-          {suggestions.map((s) => (
-            <li
-              key={s.id}
-              className="flex flex-row items-center  gap-5 cursor-pointer px-3 py-2"
-            >
-              <Button
-                variant="destructive"
-                size="icon"
-                onClick={() => handleSelect(s)}
-                title={t('search.quickAdd')}
-                aria-label={t('search.quickAdd')}
-              >
-                <Plus className="h-5 w-5" />
-              </Button>
-              <div className="flex flex-col">
-                <span>{s.name}</span>
-                <span className="opacity-60">{s.country}</span>
-              </div>
-            </li>
-          ))}
-        </ul>
+      {showDropdown && (
+        <div
+          ref={dropdownRef}
+          className="mt-2 w-full border rounded-lg shadow-lg bg-card/98 backdrop-blur-sm border-border/50 animate-in fade-in-0 zoom-in-95 duration-200">
+          <Suspense fallback={
+            <div className="p-6 text-center">
+              <Loader2 aria-label="loading" className="h-6 w-6 animate-spin text-primary mx-auto mb-2" />
+              <p aria-label="loading" className="text-sm text-muted-foreground font-medium">
+                {t('loading')}
+              </p>
+            </div>
+          }>
+            <SuggestionsList
+              suggestions={suggestions}
+              loading={loading}
+              hasSearched={hasSearched}
+              selectedIndex={selectedIndex}
+              isAdding={isAdding}
+              handleSelect={handleSelect}
+            />
+          </Suspense>
+        </div>
       )}
     </div>
   );

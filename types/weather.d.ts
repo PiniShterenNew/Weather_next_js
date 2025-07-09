@@ -1,5 +1,4 @@
-import { AppLocale } from "./i18n";
-
+// types/weather.d.ts
 export interface WeatherForecastItem {
   date: number; 
   min: number; 
@@ -26,10 +25,12 @@ export interface WeatherCurrent {
   timezone: number;
 }
 
-export interface CityWeather {
-  id: string; 
-  name: string; 
-  country: string; 
+export interface BilingualName {
+  en: string;
+  he: string;
+}
+
+export interface CityWeatherCurrent {
   lat: number;
   lon: number;
   current: WeatherCurrent;
@@ -38,3 +39,16 @@ export interface CityWeather {
   unit: 'metric'; 
   isCurrentLocation?: boolean; 
 }
+
+export interface CityWeather{
+  currentEn: CityWeatherCurrent;
+  currentHe: CityWeatherCurrent;
+  name: BilingualName;
+  country: BilingualName;
+  id: string;
+  lat: number;
+  lon: number;
+  lastUpdated: number;
+  isCurrentLocation?: boolean; 
+}
+  

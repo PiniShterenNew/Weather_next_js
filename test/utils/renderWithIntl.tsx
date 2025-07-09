@@ -1,3 +1,4 @@
+// /test/utils/renderWithIntl.tsx
 import React from 'react';
 import { NextIntlClientProvider } from 'next-intl';
 import { render as rtlRender } from '@testing-library/react';

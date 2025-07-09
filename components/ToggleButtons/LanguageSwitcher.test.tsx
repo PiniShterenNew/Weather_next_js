@@ -5,82 +5,81 @@ import userEvent from '@testing-library/user-event';
 
 const mockSetLocale = vi.fn();
 const mockReplace = vi.fn();
-const mockStartTransition = vi.fn((cb) => cb());
+const mockStartTransition = vi.fn(cb => cb());
 const pathname = '/he/weather';
 
 vi.mock('next/navigation', () => ({
-    useRouter: () => ({ replace: mockReplace }),
-    usePathname: () => pathname,
+  useRouter: () => ({ replace: mockReplace }),
+  usePathname: () => pathname,
 }));
 
-vi.mock('react', async (original) => {
-    const actual = await vi.importActual<typeof import('react')>('react');
-    return {
-        ...actual,
-        useTransition: () => [false, mockStartTransition],
-    };
+vi.mock('react', async orig => {
+  const actual = await orig<typeof import('react')>();
+  return { ...actual, useTransition: () => [false, mockStartTransition] };
 });
 
 vi.mock('@/stores/useWeatherStore', () => ({
-    useWeatherStore: (selector: any) =>
-        selector({ locale: 'en', setLocale: mockSetLocale }),
+  useWeatherStore: (sel: any) => sel({ locale: 'en', setLocale: mockSetLocale }),
 }));
 
-beforeEach(() => {
-    vi.clearAllMocks();
+vi.mock('next-intl', async importOriginal => {
+  const actual = await importOriginal<typeof import('next-intl')>();
+  return {
+    ...actual,
+    useLocale: () => 'he',
+    useTranslations: () => (k: string) =>
+      k === 'language.he' ? 'Hebrew' : k === 'language.en' ? 'English' : k,
+  };
 });
 
+beforeEach(() => vi.clearAllMocks());
+
 describe('LanguageSwitcher', () => {
-    it('renders the current language from the store', () => {
-        render(<LanguageSwitcher />);
-        expect(screen.getByText('English')).toBeInTheDocument();
-    });
+  it('renders current language from store', () => {
+    render(<LanguageSwitcher />);
+    expect(screen.getByText('en')).toBeInTheDocument();
+    expect(screen.getByRole('combobox')).toHaveAttribute('aria-label', 'en');
+  });
 
-    it('calls setLocale with "he" when clicking on "Hebrew"', async () => {
-        render(<LanguageSwitcher />);
-        const user = userEvent.setup();
+  it('syncs locale from useLocale on mount', () => {
+    render(<LanguageSwitcher />);
+    expect(mockSetLocale).toHaveBeenCalledWith('he');
+  });
 
-        // Opens the menu (Radix doesn't expose options without real interaction)
-        const combobox = screen.getByRole('combobox');
-        await user.click(combobox);
-        await user.keyboard('[ArrowDown]');
+  it('shows language options when opened', async () => {
+    render(<LanguageSwitcher />);
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('combobox'));
 
-        // Selects the option with text containing "Hebrew"
-        const option = await screen.findByText('Hebrew');
+    // Radix משתמש ב-aria-label על ה-option, לכן עדיף role+name
+    expect(await screen.findByRole('option', { name: 'he' })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: 'en' })).toBeInTheDocument();
+  });
 
-        await user.click(option);
-        expect(mockSetLocale).toHaveBeenCalledWith('he');
-    });
+  it('calls setLocale with "he" when Hebrew selected', async () => {
+    render(<LanguageSwitcher />);
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('combobox'));
+    await user.click(await screen.findByRole('option', { name: 'he' }));
 
-    it('calls router.replace with the new path', async () => {
-        render(<LanguageSwitcher />);
-        const user = userEvent.setup();
-        const combobox = screen.getByRole('combobox');
+    expect(mockSetLocale).toHaveBeenCalledWith('he');
+  });
 
-        await user.click(combobox);
-        const option = await screen.findByText('Hebrew');
-        await user.click(option);
+  it('calls router.replace with new path', async () => {
+    render(<LanguageSwitcher />);
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('combobox'));
+    await user.click(await screen.findByRole('option', { name: 'he' }));
 
-        expect(mockReplace).toHaveBeenCalledWith('/he/weather');
-    });
+    expect(mockReplace).toHaveBeenCalledWith('/he/weather');
+  });
 
-    it('performs change within startTransition', async () => {
-        render(<LanguageSwitcher />);
-        const user = userEvent.setup();
+  it('wraps change in startTransition', async () => {
+    render(<LanguageSwitcher />);
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('combobox'));
+    await user.click(await screen.findByRole('option', { name: 'he' }));
 
-        await user.click(screen.getByRole('combobox'));
-        await user.click(screen.getByText('Hebrew'));
-
-        expect(mockStartTransition).toHaveBeenCalled();
-    });
-
-    it('does not crash if selecting the same language again', async () => {
-        render(<LanguageSwitcher />);
-        const user = userEvent.setup();
-        await user.click(screen.getByRole('combobox'));
-        await user.click(screen.getByText('Hebrew'));
-
-        expect(mockSetLocale).toHaveBeenCalledWith('he');
-        expect(mockReplace).toHaveBeenCalledWith('/he/weather');
-    });
+    expect(mockStartTransition).toHaveBeenCalled();
+  });
 });

@@ -5,9 +5,9 @@ import { persist } from 'zustand/middleware';
 import type { WeatherStore, WeatherStoreActions } from '@/types/store';
 import { isCityExists } from '@/lib/helpers';
 import { CityWeather } from '@/types/weather';
+import { ToastMessage } from '@/types/ui';
 
 let toastIdCounter = 0;
-const toastTimeouts: Record<number, ReturnType<typeof setTimeout>> = {};
 
 export const useWeatherStore = create<WeatherStore & WeatherStoreActions>()(
   persist(
@@ -22,12 +22,15 @@ export const useWeatherStore = create<WeatherStore & WeatherStoreActions>()(
       isLoading: false,
       autoLocationCityId: undefined,
       userTimezoneOffset: -new Date().getTimezoneOffset() * 60,
-
+      open: false,
+      maxCities: 15,
+      setOpen: (open) => set({ open }),
       addCity: (city) => {
-        if (get().cities.length >= 15) {
+        if (get().cities.length >= get().maxCities) {
           get().showToast({
             message: 'toasts.maxCities',
-            values: { maxCities: 15 }
+            type: 'warning',
+            values: { maxCities: get().maxCities.toString() }
           });
           return;
         }
@@ -35,7 +38,8 @@ export const useWeatherStore = create<WeatherStore & WeatherStoreActions>()(
         if (exists) {
           get().showToast({
             message: 'toasts.exists',
-            values: { name: city.name }
+            type: 'info',
+            values: { name: city.name[get().locale] }
           });
           return;
         }
@@ -66,6 +70,7 @@ export const useWeatherStore = create<WeatherStore & WeatherStoreActions>()(
           return {
             cities: [updatedCity, ...filteredCities],
             autoLocationCityId: updatedCity.id,
+            currentIndex: 0,
           };
         }),
       updateCity: (city) => {
@@ -104,13 +109,22 @@ export const useWeatherStore = create<WeatherStore & WeatherStoreActions>()(
       setTheme: (theme) => set({ theme }),
       setCurrentIndex: (index) => set({ currentIndex: index }),
 
-      showToast: ({ message, values = {} }) => {
+      showToast: ({ message, type = 'info', duration, values = {} }) => {
         toastIdCounter += 1;
         const id = toastIdCounter;
+        const newToast: ToastMessage = {
+          id,
+          message,
+          type,
+          values,
+          ...(duration && { duration })
+        };
+
         set((state) => ({
-          toasts: [...state.toasts, { id, message, values }],
+          toasts: [...state.toasts, newToast],
         }));
       },
+
       hideToast: (id) => {
         set((state) => ({
           toasts: state.toasts.filter((t) => t.id !== id),
@@ -119,17 +133,22 @@ export const useWeatherStore = create<WeatherStore & WeatherStoreActions>()(
 
       setIsLoading: (isLoading) => set({ isLoading }),
 
-      clearAllToastTimeouts: () => {
-        Object.values(toastTimeouts).forEach(clearTimeout);
-        for (const id in toastTimeouts) {
-          delete toastTimeouts[+id];
-        }
-      },
       nextCity: () => set({ currentIndex: (get().currentIndex + 1) % get().cities.length }),
       prevCity: () => set({ currentIndex: (get().currentIndex - 1 + get().cities.length) % get().cities.length }),
       setUserTimezoneOffset: (offset) => set({ userTimezoneOffset: offset }),
       getUserTimezoneOffset: () => get().userTimezoneOffset,
-      resetStore: () => set({ cities: [], currentIndex: 0, unit: 'metric', locale: 'he', theme: 'system', direction: 'ltr', toasts: [], isLoading: false, autoLocationCityId: undefined, userTimezoneOffset: -new Date().getTimezoneOffset() * 60 }),
+      resetStore: () => set({
+        cities: [],
+        currentIndex: 0,
+        unit: 'metric',
+        locale: 'he',
+        theme: 'system',
+        direction: 'ltr',
+        toasts: [],
+        isLoading: false,
+        autoLocationCityId: undefined,
+        userTimezoneOffset: -new Date().getTimezoneOffset() * 60
+      }),
     }),
     {
       name: 'weather-store',

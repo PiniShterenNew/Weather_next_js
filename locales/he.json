@@ -1,41 +1,10 @@
 {
-  "search": {
-    "placeholder": "חפש עיר",
-    "currentLocation": "השתמש במיקום הנוכחי",
-    "addCurrentLocation": "הוסף את המיקום הנוכחי",
-    "quickAdd": "הוספה מהירה",
-    "addCity": "הוסף עיר",
-    "addCityDescription": "הוספת עיר מהירה",
-    "searchCity": "חיפוש עיר",
-    "popularCities": "ערים פופולריות",
-    "searchResults": "תוצאות חיפוש",
-    "allCitiesAdded": "אין ערים נוספות"
-  },
   "loading": "טוען...",
-  "popular": {
-    "title": "ערים פופולריות",
-    "cities": {
-      "newYork": "ניו יורק",
-      "london": "לונדון",
-      "tokyo": "טוקיו",
-      "paris": "פריז",
-      "sydney": "סידני",
-      "dubai": "דובאי",
-      "singapore": "סינגפור",
-      "toronto": "טורונטו",
-      "berlin": "ברלין",
-      "moscow": "מוסקבה"
-    }
-  },
   "refresh": "רענן",
   "remove": "הסר",
   "yourTime": "הזמן שלך",
   "prev": "הקודם",
   "next": "הבא",
-  "common": {
-    "title": "כללי",
-    "close": "סגור"
-  },
   "empty": "לא נבחרה עיר",
   "emptyDescription": "בחר עיר",
   "lastUpdated": "עדכון אחרון ב",
@@ -51,6 +20,56 @@
   "high": "גבוה",
   "low": "נמוך",
   "forecast": "תחזית ל-5 ימים",
+  "example_message": "הודעת דוגמא",
+  "clickToast": "לחץ על ההודעה",
+  "autoTimer": "טיימר אוטומטי",
+  "shortToast": "הודעה קצרה",
+  "firstToast": "הודעה ראשונה",
+  "secondToast": "הודעה שנייה",
+  "temporaryToast": "הודעה זמנית",
+  "error": {
+    "title": "שגיאה",
+    "description": "שגיאה",
+    "tryAgain": "נסה שוב",
+    "goHome": "חזור"
+  },
+  "search": {
+    "placeholder": "חפש עיר",
+    "currentLocation": "השתמש במיקום הנוכחי",
+    "addCurrentLocation": "הוסף את המיקום הנוכחי",
+    "quickAdd": "הוספה מהירה",
+    "addCity": "הוסף עיר",
+    "addCityDescription": "הוספת עיר מהירה",
+    "searchCity": "חיפוש עיר",
+    "popularCities": "ערים פופולריות",
+    "searchResults": "תוצאות חיפוש",
+    "allCitiesAdded": "אין ערים נוספות",
+    "noResults": "לא נמצאו ערים",
+    "noResultsDesc": "נסה לחפש עם איות שונה או שם עיר אחר",
+    "searching": "מחפש...",
+    "noRefreshNeeded": "אין צורך ברענון",
+    "typeToSearch": "הקלד כדי לחפש",
+    "startTyping": "הקלד כדי להתחיל לחפש"
+  },
+  "popular": {
+    "title": "ערים פופולריות",
+    "cities": {
+      "newYork": "ניו יורק",
+      "london": "לונדון",
+      "tokyo": "טוקיו",
+      "paris": "פריז",
+      "sydney": "סידני",
+      "dubai": "דובאי",
+      "singapore": "סינגפור",
+      "toronto": "טורונטו",
+      "berlin": "ברלין",
+      "moscow": "מוסקבה"
+    }
+  },
+  "common": {
+    "close": "סגור",
+    "title": "כללי"
+  },
   "unit": {
     "celsius": "°C",
     "fahrenheit": "°F",
@@ -292,7 +311,9 @@
     "exists": "העיר כבר קיימת",
     "error": "משהו השתבש",
     "locationAdded": "הוספת {name} לפי מיקום הנוכחי.",
-    "maxCities": "ניתן להוסיף עד {maxCities} ערים."
+    "maxCities": "ניתן להוסיף עד {maxCities} ערים.",
+    "slowNetwork": "נראה שחיבור האינטרנט איטי. אנא בדוק את חיבור הרשת שלך או נסה לעבור למקום אחר.",
+    "slowNetworkShort": "זוהה חיבור אינטרנט איטי. אנא בדוק את הרשת שלך."
   },
   "errors": {
     "fetchWeather": "לא ניתן למשוך את מזג האוויר.",
@@ -316,11 +337,8 @@
     "dark": "כהה",
     "system": "מערכת"
   },
-  "clickToast": "לחץ על ההודעה",
-  "autoTimer": "טיימר אוטומטי",
-  "shortToast": "הודעה קצרה",
-  "firstToast": "הודעה ראשונה",
-  "secondToast": "הודעה שנייה",
-  "temporaryToast": "הודעה זמנית",
-  "example_message": "הודעת דוגמא"
+  "history": {
+    "title": "היסטוריית מזג האוויר",
+    "empty": "אין היסטוריה עדיין. הוסף ערים כדי לראות שינויי טמפרטורה."
+  }
 }

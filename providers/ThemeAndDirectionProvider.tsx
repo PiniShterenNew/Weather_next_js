@@ -4,16 +4,20 @@ import React from 'react';
 import { useEffect } from 'react';
 import { useWeatherStore } from '@/stores/useWeatherStore';
 
-// צריך לקבל locale כ־prop
+/**
+ * Provider component for theme and text direction
+ * @param locale - Current locale code ('en' or 'he')
+ * @param children - Child components to render
+ */
 export function ThemeAndDirectionProvider({ locale, children }: { locale: string, children?: React.ReactNode }) {
   const theme = useWeatherStore((s) => s.theme);
 
-  // Direction (dir) לפי locale
+  // Set direction based on locale
   useEffect(() => {
     document.documentElement.dir = locale === 'he' ? 'rtl' : 'ltr';
   }, [locale]);
 
-  // Theme לפי Zustand
+  // Set theme based on Zustand store
   useEffect(() => {
     const root = document.documentElement;
     const classList = root.classList;
@@ -27,6 +31,6 @@ export function ThemeAndDirectionProvider({ locale, children }: { locale: string
     }
   }, [theme]);
 
-  // אל תחזיר null! תחזיר children.
+  // Always return children, not null
   return <>{children}</>;
 }

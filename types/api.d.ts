@@ -38,8 +38,11 @@ export interface GeoAPIResult {
   state?: string;
   name?: string;
   place_id?: string;
+  county?: string;
+  address_line1?: string;
   timezone?: {
     name: string;
     offset_STD: string;
   };
+  result_type?: string;
 }

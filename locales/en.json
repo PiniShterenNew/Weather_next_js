@@ -1,41 +1,10 @@
 {
-  "search": {
-    "placeholder": "Search for a city",
-    "currentLocation": "Use current location",
-    "addCurrentLocation": "Add current location",
-    "quickAdd": "Quick Add",
-    "addCity": "Add City",
-    "addCityDescription": "Add a city quickly",
-    "searchCity": "Search for a city",
-    "popularCities": "Popular Cities",
-    "searchResults": "Search Results",
-    "allCitiesAdded": "No more cities to add"
-  },
   "loading": "Loading...",
-  "popular": {
-    "title": "Popular Cities",
-    "cities": {
-      "newYork": "New York",
-      "london": "London",
-      "tokyo": "Tokyo",
-      "paris": "Paris",
-      "sydney": "Sydney",
-      "dubai": "Dubai",
-      "singapore": "Singapore",
-      "toronto": "Toronto",
-      "berlin": "Berlin",
-      "moscow": "Moscow"
-    }
-  },
   "refresh": "Refresh",
   "remove": "Remove",
   "yourTime": "Your Time",
   "prev": "Previous",
   "next": "Next",
-  "common": {
-    "close": "Close",
-    "title": "Common"
-  },
   "empty": "No cities added",
   "emptyDescription": "Add your first city to get started.",
   "lastUpdated": "Last Updated at",
@@ -51,6 +20,56 @@
   "high": "H",
   "low": "L",
   "forecast": "5-Day Forecast",
+  "exampleMessage": "Example message",
+  "clickToast": "Click toast",
+  "autoTimer": "Auto timer",
+  "shortToast": "Short toast",
+  "firstToast": "First toast",
+  "secondToast": "Second toast",
+  "temporaryToast": "Temporary toast",
+  "error": {
+    "title": "Error",
+    "description": "An error occurred",
+    "tryAgain": "Try Again",
+    "goHome": "Go Home"
+  },
+  "search": {
+    "placeholder": "Search for a city",
+    "currentLocation": "Use current location",
+    "addCurrentLocation": "Add current location",
+    "quickAdd": "Quick Add",
+    "addCity": "Add City",
+    "addCityDescription": "Add a city quickly",
+    "searchCity": "Search for a city",
+    "popularCities": "Popular Cities",
+    "searchResults": "Search Results",
+    "allCitiesAdded": "No more cities to add",
+    "noResults": "No cities found",
+    "noResultsDesc": "Try searching with a different spelling or city name",
+    "searching": "Searching...",
+    "noRefreshNeeded": "No refresh needed",
+    "typeToSearch": "Type to search",
+    "startTyping": "Start typing to search"
+  },
+  "popular": {
+    "title": "Popular Cities",
+    "cities": {
+      "newYork": "New York",
+      "london": "London",
+      "tokyo": "Tokyo",
+      "paris": "Paris",
+      "sydney": "Sydney",
+      "dubai": "Dubai",
+      "singapore": "Singapore",
+      "toronto": "Toronto",
+      "berlin": "Berlin",
+      "moscow": "Moscow"
+    }
+  },
+  "common": {
+    "close": "Close",
+    "title": "Common"
+  },
   "unit": {
     "celsius": "°C",
     "fahrenheit": "°F",
@@ -292,7 +311,9 @@
     "exists": "City already exists",
     "error": "Something went wrong",
     "locationAdded": "Added {name} based on your location.",
-    "maxCities": "You can only add {maxCities} cities."
+    "maxCities": "You can only add {maxCities} cities.",
+    "slowNetwork": "It seems like the internet connection is slow. Please check your network connection or try moving to a different location.",
+    "slowNetworkShort": "Slow internet connection detected. Please check your network."
   },
   "errors": {
     "fetchWeather": "Could not fetch weather.",
@@ -319,12 +340,5 @@
   "history": {
     "title": "Weather History",
     "empty": "No history yet. Add cities to see temperature changes."
-  },
-  "exampleMessage": "Example message",
-  "clickToast": "Click toast",
-  "autoTimer": "Auto timer",
-  "shortToast": "Short toast",
-  "firstToast": "First toast",
-  "secondToast": "Second toast",
-  "temporaryToast": "Temporary toast"
+  }
 }

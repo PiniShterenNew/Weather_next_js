@@ -1,8 +1,8 @@
-import { CityWeather, WeatherCurrent, WeatherForecastItem } from '@/types/weather';
-import { CitySuggestion } from '@/types/suggestion';
+import { BilingualName, CityWeather, CityWeatherCurrent, WeatherCurrent, WeatherForecastItem } from '@/types/weather';
 import { GeoAPIResult, OpenWeatherForecastItem } from '@/types/api';
 import { TemporaryUnit } from '@/types/ui';
-import { AppLocale } from '@/types/i18n';
+import { getCityId } from './utils';
+import { CityTranslation } from '@/types/cache';
 
 export function formatTemperatureWithConversion(
   value: number,
@@ -50,11 +50,12 @@ export function isSameTimezone(cityTz: number, userTz: number): boolean {
  * @param offset - timezone offset in seconds
  * @returns formatted time string (HH:MM)
  */
-export function formatTimeWithOffset(lastUpdated: number, userTimezoneOffset: number): string {
-  const date = new Date(lastUpdated + userTimezoneOffset);
+export function formatTimeWithOffset(timestamp: number, offsetSeconds: number): string {
+  const date = new Date(timestamp * 1000 + offsetSeconds * 1000);
 
-  const hours = date.getHours().toString().padStart(2, '0');
-  const minutes = date.getMinutes().toString().padStart(2, '0');
+  const hours = date.getUTCHours().toString().padStart(2, '0');
+  const minutes = date.getUTCMinutes().toString().padStart(2, '0');
+
   return `${hours}:${minutes}`;
 }
 
@@ -84,13 +85,19 @@ export function formatDate(timestamp: number, locale: string, offsetSec?: number
   return utcDate.toLocaleDateString(locale, { weekday: 'short', day: 'numeric' });
 }
 
+/**
+ * Checks if a city already exists in the cities array
+ * @param cities - Array of existing city weather data
+ * @param newCity - New city to check for existence
+ * @returns True if the city exists in the array, false otherwise
+ */
 export const isCityExists = (cities: CityWeather[], newCity: CityWeather) => {
   return cities.some(
     (city) =>
-      city.id === newCity.id || // בדיקה לפי ID
-      (city.lat.toFixed(2) === newCity.lat.toFixed(2) && city.lon.toFixed(2) === newCity.lon.toFixed(2)) || // בדיקה לפי קואורדינטות
-      (city.name.toLowerCase() === newCity.name.toLowerCase() &&
-        city.country.toLowerCase() === newCity.country.toLowerCase()) // בדיקה לפי שם ומדינה
+      city.id === newCity.id || // Check by ID
+      (city.lat.toFixed(2) === newCity.lat.toFixed(2) && city.lon.toFixed(2) === newCity.lon.toFixed(2)) || // Check by coordinates
+      (city.name.en === newCity.name.en &&
+        city.country.en === newCity.country.en) // Check by name and country
   );
 };
 
@@ -125,98 +132,102 @@ export function getWindDirection(degrees: number): string {
 type GetWeatherInput = {
   lat: number;
   lon: number;
-  name: string;
-  country: string;
+  name: string | BilingualName;
+  country: string | BilingualName;
 };
 
-/**
- * Fetch weather data from OpenWeatherMap API
- * @param params - location and preferences
- * @returns formatted weather data
- */
-export async function getWeatherByCoords({
-  lat,
-  lon,
-  name,
-  country,
-}: GetWeatherInput): Promise<CityWeather> {
+export async function getWeatherByCoords(
+  input: Omit<GetWeatherInput, 'lang'>
+): Promise<{ he: CityWeatherCurrent; en: CityWeatherCurrent }> {
   const API_KEY = process.env.OWM_API_KEY as string;
 
-  const [currentResponse, forecastResponse] = await Promise.all([
-    fetch(
-      `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=metric&lang=en`
-    ),
-    fetch(
-      `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&appid=${API_KEY}&units=metric&lang=en`
-    ),
+  const urls = {
+    he: {
+      current: `https://api.openweathermap.org/data/2.5/weather?lat=${input.lat}&lon=${input.lon}&appid=${API_KEY}&units=metric&lang=he`,
+      forecast: `https://api.openweathermap.org/data/2.5/forecast?lat=${input.lat}&lon=${input.lon}&appid=${API_KEY}&units=metric&lang=he`
+    },
+    en: {
+      current: `https://api.openweathermap.org/data/2.5/weather?lat=${input.lat}&lon=${input.lon}&appid=${API_KEY}&units=metric&lang=en`,
+      forecast: `https://api.openweathermap.org/data/2.5/forecast?lat=${input.lat}&lon=${input.lon}&appid=${API_KEY}&units=metric&lang=en`
+    }
+  };
+
+  const fetchWeatherData = async (lang: 'he' | 'en'): Promise<CityWeatherCurrent> => {
+    const [currentResponse, forecastResponse] = await Promise.all([
+      fetch(urls[lang].current),
+      fetch(urls[lang].forecast),
+    ]);
+
+    if (!currentResponse.ok || !forecastResponse.ok) {
+      throw new Error(`Failed to fetch weather for lang: ${lang}`);
+    }
+
+    const currentJson = await currentResponse.json();
+    const forecastJson = await forecastResponse.json();
+
+    const current: WeatherCurrent = {
+      codeId: currentJson.weather[0].id,
+      temp: currentJson.main.temp,
+      feelsLike: currentJson.main.feels_like,
+      desc: currentJson.weather[0].description,
+      icon: currentJson.weather[0].icon,
+      humidity: currentJson.main.humidity,
+      wind: currentJson.wind.speed,
+      windDeg: currentJson.wind.deg || 0,
+      pressure: currentJson.main.pressure,
+      visibility: currentJson.visibility,
+      clouds: currentJson.clouds.all,
+      sunrise: currentJson.sys.sunrise,
+      sunset: currentJson.sys.sunset,
+      timezone: currentJson.timezone,
+    };
+
+    const grouped = groupForecastByDay(forecastJson.list);
+    const today = new Date().toISOString().split('T')[0];
+
+    const forecast: WeatherForecastItem[] = grouped
+      .filter(([date]) => date > today)
+      .slice(0, 5)
+      .map(([date, items]) => {
+        const temps = items.map((i) => i.main);
+        const weatherMidday =
+          items.find((i) => i.dt_txt.includes('12:00:00')) || items[Math.floor(items.length / 2)];
+
+        return {
+          date: new Date(date).getTime(),
+          min: Math.min(...temps.map((t) => t.temp_min)),
+          max: Math.max(...temps.map((t) => t.temp_max)),
+          icon: weatherMidday.weather[0].icon,
+          desc: weatherMidday.weather[0].description,
+          codeId: weatherMidday.weather[0].id,
+        };
+      });
+
+    return {
+      current,
+      forecast,
+      lastUpdated: Date.now(),
+      unit: 'metric',
+      lat: input.lat,
+      lon: input.lon,
+    };
+  };
+
+  const [he, en] = await Promise.all([
+    fetchWeatherData('he'),
+    fetchWeatherData('en')
   ]);
 
-  if (!currentResponse.ok || !forecastResponse.ok) {
-    throw new Error(`Failed to fetch weather for language: en`);
-  }
-
-  const currentJson = await currentResponse.json();
-  const forecastJson = await forecastResponse.json();
-console.log(forecastJson)
-  const current: WeatherCurrent = {
-    codeId: currentJson.weather[0].id,
-    temp: currentJson.main.temp,
-    feelsLike: currentJson.main.feels_like,
-    desc: currentJson.weather[0].description,
-    icon: currentJson.weather[0].icon,
-    humidity: currentJson.main.humidity,
-    wind: currentJson.wind.speed,
-    windDeg: currentJson.wind.deg || 0,
-    pressure: currentJson.main.pressure,
-    visibility: currentJson.visibility,
-    clouds: currentJson.clouds.all,
-    sunrise: currentJson.sys.sunrise,
-    sunset: currentJson.sys.sunset,
-    timezone: currentJson.timezone,
-  };
-
-  const grouped = groupForecastByDay(forecastJson.list);
-  const today = new Date().toISOString().split('T')[0];
-
-  const forecast: WeatherForecastItem[] = grouped
-    .filter(([date]) => date > today)
-    .slice(0, 5)
-    .map(([date, items]) => {
-      const temps = items.map((i) => i.main);
-      const weatherMidday =
-        items.find((i) => i.dt_txt.includes('12:00:00')) || items[Math.floor(items.length / 2)];
-
-      return {
-        date: new Date(date).getTime(),
-        min: Math.min(...temps.map((t) => t.temp_min)),
-        max: Math.max(...temps.map((t) => t.temp_max)),
-        icon: weatherMidday.weather[0].icon,
-        desc: weatherMidday.weather[0].description,
-        codeId: weatherMidday.weather[0].id,
-      };
-    });
-
-  const city: CityWeather = {
-    id: `${name || currentJson.name}_${country || currentJson.sys.country}`,
-    name: name || currentJson.name,
-    country: country || currentJson.sys.country,
-    lat,
-    lon,
-    current,
-    forecast,
-    lastUpdated: Date.now(),
-    unit: 'metric',
-  };
-
-  return city;
+  return { he, en };
 }
+
 
 /**
  * Group forecast items by day
  * @param list - forecast items from API
  * @returns array of [date, items] tuples
  */
-function groupForecastByDay(
+export function groupForecastByDay(
   list: OpenWeatherForecastItem[],
 ): [string, OpenWeatherForecastItem[]][] {
   const days: Record<string, OpenWeatherForecastItem[]> = {};
@@ -230,46 +241,102 @@ function groupForecastByDay(
   return Object.entries(days);
 }
 
-/**
- * Get city suggestions from Geoapify API
- * @param query - search query
- * @returns array of city suggestions
- */
-export async function getSuggestions(query: string): Promise<CitySuggestion[]> {
-  const GEOAPIFY_KEY = process.env.GEOAPIFY_KEY as string;
-  const url = `https://api.geoapify.com/v1/geocode/autocomplete?text=${encodeURIComponent(query)}&limit=5&type=city&lang=he&format=json&apiKey=${GEOAPIFY_KEY}`;
-  const response = await fetch(url);
+const GEOAPIFY_KEY = process.env.GEOAPIFY_KEY as string;
 
-  if (!response.ok) throw new Error('Failed to fetch city suggestions');
+async function fetchGeoapify(query: string, lang: 'he' | 'en') {
+  const url = `https://api.geoapify.com/v1/geocode/autocomplete?text=${encodeURIComponent(query)}&limit=5&type=city&lang=${lang}&format=json&apiKey=${GEOAPIFY_KEY}`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`Geoapify error (${lang})`);
 
-  const json = await response.json();
+  const results = (await res.json()).results as GeoAPIResult[];
 
-  const suggestions: CitySuggestion[] = json.results.map((item: GeoAPIResult) => ({
-    id: `${item.city}_${item.country}`,
-    name: item.city,
-    country: item.country,
-    lat: item.lat,
-    lon: item.lon,
-    displayName: `${item.city}, ${item.country}`,
-    language: 'en',
-  }));
+  const allowedTypes = ['city', 'town', 'village', 'locality', 'district'];
 
-  return suggestions;
+  return results.filter((item) => allowedTypes.includes(item.result_type || ''));
 }
 
-type CityInfo = { name: string; country: string };
+export async function getSuggestionsForDB(query: string, lang: 'he' | 'en') {
+  const primaryResults = await fetchGeoapify(query, lang);
+  const fallbackLang = lang === 'he' ? 'en' : 'he';
+
+  const cityMap = new Map<string, {
+    id: string;
+    lat: number;
+    lon: number;
+    city: CityTranslation;
+    country: CityTranslation;
+  }>();
+
+  for (const item of primaryResults) {
+    const id = getCityId(item.lat, item.lon);
+    const cityName = item.address_line1 || item.city || '';
+    const countryName = item.country || '';
+
+    if (!cityMap.has(id)) {
+      cityMap.set(id, {
+        id,
+        lat: item.lat,
+        lon: item.lon,
+        city: { en: '', he: '' },
+        country: { en: '', he: '' },
+      });
+    }
+
+    const entry = cityMap.get(id)!;
+    if (lang === 'he') {
+      entry.city.he = cityName;
+      entry.country.he = countryName;
+    } else {
+      entry.city.en = cityName;
+      entry.country.en = countryName;
+    }
+
+    const fallback = await getCityInfoByCoords(item.lat, item.lon, fallbackLang);
+    if (fallbackLang === 'he') {
+      entry.city.he = fallback.name;
+      entry.country.he = fallback.country;
+    } else {
+        entry.city.en = fallback.name;
+        entry.country.en = fallback.country;
+      }
+  }
+
+  return Array.from(cityMap.values());
+}
+
+export const getLocationForDB = async (lat: number, lon: number) => {
+  const enInfo = await getCityInfoByCoords(lat, lon, 'en');
+  const heInfo = await getCityInfoByCoords(lat, lon, 'he');
+
+  return {
+    id: getCityId(lat, lon),
+    lat,
+    lon,
+    city: {
+      en: enInfo.name,
+      he: heInfo.name,
+    },
+    country: {
+      en: enInfo.country,
+      he: heInfo.country,
+    },
+  };
+};
+
+type CityInfoCoords = { name: string; country: string; id: string; lat: number; lon: number };
 
 /**
- * Reverse-geocode coordinates → { name, country }  (Geoapify)
- * @param lat
- * @param lon
- * @param lang  שני־אותיות, למשל 'he' או 'en'
+ * Reverse-geocode coordinates to get city information (Geoapify)
+ * @param lat - Latitude coordinate
+ * @param lon - Longitude coordinate
+ * @param lang - Language code ('en' or 'he')
+ * @returns City information including name, country, ID, and coordinates
  */
 export async function getCityInfoByCoords(
   lat: number,
   lon: number,
   lang = 'en',
-): Promise<CityInfo> {
+): Promise<CityInfoCoords> {
   const GEOAPIFY_KEY = process.env.GEOAPIFY_KEY as string;
   const url = `https://api.geoapify.com/v1/geocode/reverse?lat=${lat}&lon=${lon}&lang=${lang}&type=city&format=json&apiKey=${GEOAPIFY_KEY}`;
 
@@ -283,7 +350,10 @@ export async function getCityInfoByCoords(
   }
 
   return {
-    name: hit.city, // כבר בשפת ה-lang
-    country: hit.country, // שם מדינה מלא (לא קוד ISO)
+    name: hit.address_line1 || hit.city, // Already in the requested language
+    country: hit.country, // Full country name (not ISO code)
+    id: getCityId(hit.lat, hit.lon),
+    lat: hit.lat,
+    lon: hit.lon,
   };
 }

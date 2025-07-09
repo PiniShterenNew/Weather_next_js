@@ -2,7 +2,6 @@
 
 import { useWeatherStore } from '@/stores/useWeatherStore';
 import { useEffect, useRef } from 'react';
-import WeatherEmpty from '../WeatherCard/WeatherEmpty';
 import useIsClient from '@/hooks/useIsClient';
 import WeatherListItem from './WeatherListItem';
 
@@ -19,7 +18,7 @@ export default function WeatherList() {
 
 
   useEffect(() => {
-    requestAnimationFrame(() => {
+    window.requestAnimationFrame(() => {
       const currentItem = itemRefs.current[currentIndex];
       if (currentItem) {
         currentItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -42,7 +41,6 @@ export default function WeatherList() {
   }, [nextCity, prevCity]);
 
   if (!isClient) return null;
-  if (!cities.length) return <WeatherEmpty />;
 
   return (
     <div className="relative w-full max-h-[calc(100vh-6rem)] overflow-y-auto scrollbar-none mx-auto space-y-4 bg" aria-live="polite" data-testid="weather-carousel">
@@ -51,6 +49,7 @@ export default function WeatherList() {
           <WeatherListItem
             ref={(el) => { itemRefs.current[index] = el; }}
             key={index}
+            cityCurrent={city['currentEn']}
             city={city}
             onClick={() => setCurrentIndex(index)}
             isCurrentIndex={index === currentIndex}

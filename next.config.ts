@@ -27,7 +27,7 @@ const nextConfig: NextConfig = {
   // Configure Compression
   compress: true,
   typescript: {
-    ignoreBuildErrors: false, // ✅ יבטל את השגיאה בזמן build בלבד
+    ignoreBuildErrors: false, // Will disable errors during build only
   },
 
   // Set HTTP Headers
@@ -46,6 +46,6 @@ const nextConfig: NextConfig = {
   },
 };
 
-// השתמש בנתיב ברירת המחדל
+// Use the default path
 const withNextIntl = createNextIntlPlugin();
 export default withNextIntl(nextConfig);

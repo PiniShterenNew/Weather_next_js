@@ -1,52 +1,63 @@
-import { render, screen } from '@/test/utils/renderWithIntl'
-import ForecastList from './ForecastList'
-import type { WeatherForecastItem } from '@/types/weather'
+import { render, screen } from '@/test/utils/renderWithIntl';
+import ForecastList from './ForecastList';
+import { describe, it, expect } from 'vitest';
+import type { WeatherForecastItem } from '@/types/weather';
 
-const forecast: WeatherForecastItem[] = [
-    {
-        date: 1719157200, // Tue, 24 Jun 2024 @ 18:00:00 UTC
-        min: 21,
-        max: 29,
-        icon: '01d',
-        desc: 'Sunny',
-    },
-    {
-        date: 1719243600, // Wed, 25 Jun 2024 @ 18:00:00 UTC
-        min: 22,
-        max: 30,
-        icon: '02d',
-        desc: 'Partly cloudy',
-    },
+const forecastMock: WeatherForecastItem[] = [
+  { date: 1721174400, min: 22, max: 32, icon: '01d', desc: 'Clear sky', codeId: 800 },
+  { date: 1721088000, min: 21, max: 30, icon: '03d', desc: 'Cloudy', codeId: 803 },
+  { date: 1721001600, min: 20, max: 29, icon: '10d', desc: 'Rainy', codeId: 500 },
 ];
 
 describe('ForecastListComponent', () => {
-    it('renders the forecast title', () => {
-        render(<ForecastList forecast={forecast} unit="metric" />)
-        expect(screen.getByRole('heading', { name: '5-Day Forecast' })).toBeInTheDocument()
-    })
+  it('renders forecast items with dates and temperatures', () => {
+    render(<ForecastList forecast={forecastMock} unit="metric" cityUnit="metric" />);
 
-    it('renders correct number of forecast items', () => {
-        render(<ForecastList forecast={forecast} unit="metric" />)
-        expect(screen.getAllByTestId('forecast-item')).toHaveLength(forecast.length)
-    })
+    const dateEls = screen.getAllByTestId('forecast-date');
+    expect(dateEls).toHaveLength(3);
 
-    it('renders each forecast date', () => {
-        render(<ForecastList forecast={forecast} unit="metric" />)
-        const dates = screen.getAllByTestId('forecast-date')
-        expect(dates.map(el => el.textContent)).toEqual(["23 Sun", "24 Mon"])
-    })
+    const minTemps = screen.getAllByTestId('forecast-min');
+    const maxTemps = screen.getAllByTestId('forecast-max');
+    expect(minTemps.map(el => el.textContent)).toEqual(['22°C', '21°C', '20°C']);
+    expect(maxTemps.map(el => el.textContent)).toEqual(['32°C', '30°C', '29°C']);
+  });
 
-    it('renders temperature ranges correctly', () => {
-        render(<ForecastList forecast={forecast} unit="metric" />)
-        expect(screen.getAllByTestId('forecast-max')[0]).toHaveTextContent('29')
-        expect(screen.getAllByTestId('forecast-min')[0]).toHaveTextContent('21')
-        expect(screen.getAllByTestId('forecast-max')[1]).toHaveTextContent('30')
-        expect(screen.getAllByTestId('forecast-min')[1]).toHaveTextContent('22')
-    })
+  it('renders weather condition translations', () => {
+    render(<ForecastList forecast={forecastMock} unit="metric" cityUnit="metric" />);
+    expect(screen.getByText(/Clear/i)).toBeInTheDocument();
+    expect(screen.getByText(/Clouds/i)).toBeInTheDocument();
+    expect(screen.getByText(/Rain/i)).toBeInTheDocument();
+  });
 
-    it('renders the weather descriptions as icon alt and title', () => {
-        render(<ForecastList forecast={forecast} unit="metric" />)
-        expect(screen.getByRole('img', { name: 'Sunny' })).toBeInTheDocument()
-        expect(screen.getByRole('img', { name: 'Partly cloudy' })).toBeInTheDocument()
-    })
-})
+  it('renders translated forecast title', () => {
+    render(<ForecastList forecast={forecastMock} unit="metric" cityUnit="metric" />);
+    expect(screen.getByRole('heading')).toHaveTextContent(/forecast/i);
+  });
+
+  it('handles unit conversion between imperial and metric', () => {
+    render(<ForecastList forecast={forecastMock} unit="imperial" cityUnit="metric" />);
+    const minTemps = screen.getAllByTestId('forecast-min').map(el => el.textContent);
+    const maxTemps = screen.getAllByTestId('forecast-max').map(el => el.textContent);
+    expect(minTemps).toEqual(['72°F', '70°F', '68°F']);
+    expect(maxTemps).toEqual(['90°F', '86°F', '84°F']);
+  });
+
+  it('renders correctly with Hebrew locale', () => {
+    render(<ForecastList forecast={forecastMock} unit="metric" cityUnit="metric" />, {
+      locale: 'he',
+    });
+    expect(screen.getByRole('heading')).toBeInTheDocument(); // סתם בדיקה כללית שהתרגום עובד
+  });
+
+  it('renders nothing if forecast is empty', () => {
+    render(<ForecastList forecast={[]} unit="metric" cityUnit="metric" />);
+    expect(screen.queryByTestId('forecast-item')).not.toBeInTheDocument();
+  });
+
+  it('passes correct props to WeatherIcon', () => {
+    render(<ForecastList forecast={[forecastMock[0]]} unit="metric" cityUnit="metric" />);
+    const img = screen.getByRole('img', { name: /clear sky/i });
+    expect(img).toHaveAttribute('title', 'Clear sky');
+    expect(img).toHaveAttribute('alt', 'Clear sky');
+  });
+});

@@ -1,43 +1,27 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Clock } from 'lucide-react';
-import { useLocale, useTranslations } from 'next-intl';
-import { formatTimeWithOffset, isSameTimezone } from '@/lib/helpers';
+import { useLocale } from 'next-intl';
 import { AppLocale } from '@/types/i18n';
 import { useWeatherStore } from '@/stores/useWeatherStore';
+import { formatTimeWithOffset, isSameTimezone } from '@/lib/helpers';
+import { motion, AnimatePresence } from 'framer-motion';
 
 type Properties = {
   timezone: number;
-  lastUpdated: number;
 };
 
-/**
- * Format full date with day of week, day and month - FIXED VERSION
- * @param timestamp - UTC timestamp in seconds
- * @param locale - locale string
- * @param offsetSec - timezone offset in seconds
- * @returns formatted date string
- */
 function formatFullDate(timestamp: number, locale: string, offsetSec?: number): string {
   const utcDate = new Date(timestamp * 1000);
-
   if (offsetSec) {
-    // Calculate city time by adding offset
     const cityTime = new Date(utcDate.getTime() + offsetSec * 1000);
-
-    // Use UTC methods to format the date since we already calculated the local time
-    const options: Intl.DateTimeFormatOptions = {
+    return cityTime.toLocaleDateString(locale, {
       weekday: 'long',
       day: 'numeric',
       month: 'long',
-      timeZone: 'UTC', // Force UTC to prevent double timezone conversion
-    };
-
-    return cityTime.toLocaleDateString(locale, options);
+      timeZone: 'UTC',
+    });
   }
-
-  // No offset - use user's local time
   return utcDate.toLocaleDateString(locale, {
     weekday: 'long',
     day: 'numeric',
@@ -45,13 +29,11 @@ function formatFullDate(timestamp: number, locale: string, offsetSec?: number): 
   });
 }
 
-export default function WeatherTimeNow({ timezone, lastUpdated }: Properties) {
-  const t = useTranslations();
+export default function WeatherTimeNow({ timezone }: Properties) {
   const locale = useLocale() as AppLocale;
   const [currentTime, setCurrentTime] = useState(Math.floor(Date.now() / 1000));
-
-  // השגת אזור הזמן של המשתמש מ-Store במקום מ-new Date()
   const userTimezoneOffset = useWeatherStore(state => state.getUserTimezoneOffset());
+
   useEffect(() => {
     const interval = setInterval(() => setCurrentTime(Math.floor(Date.now() / 1000)), 1000);
     return () => clearInterval(interval);
@@ -67,55 +49,89 @@ export default function WeatherTimeNow({ timezone, lastUpdated }: Properties) {
   const [userHours, userMinutes] = isDifferentTimezone ? userTime.split(':') : ['', ''];
 
   return (
-    <div className="flex flex-col items-center space-y-2">
-      {/* Main city time display */}
-      <div className="flex flex-col items-center space-y-2" data-testid="city-time">
-        {/* Time with blinking colon */}
-        <div className="flex items-center gap-1 relative">
-          <div className="flex items-baseline rtl:flex-row-reverse gap-1">
-            <span className="text-3xl font-mono font-extrabold tracking-wider">{cityHours}</span>
-            <span
-              className={`text-3xl font-mono font-extrabold transition-opacity duration-500 ${Math.floor(currentTime) % 2 === 0 ? 'opacity-100' : 'opacity-20'
-                }`}
-            >
-              :
-            </span>
-            <span className="text-3xl font-mono font-extrabold tracking-wider">{cityMinutes}</span>
-          </div>
-        </div>
-
-        {/* City date */}
-        <div className="text-center">
+    <div className="flex flex-col items-start space-y-1">
+      <div className="flex flex-row items-start" data-testid="city-time">
+        <div className="text-start">
           <p className="text-sm font-normal opacity-90">{cityDate}</p>
         </div>
-      </div>
-
-      {/* User time (if different timezone) */}
-      {isDifferentTimezone && (
-        <div className="mt-3 px-4 py-2 bg-muted/40 rounded-xl border border-muted/60" data-testid="user-time">
-          <div className="flex items-center gap-2 text-sm">
-            <div className="flex items-center gap-1 rtl:flex-row-reverse">
-              <span className="font-mono font-semibold flex">{userHours}</span>
-              <span
-                className={`font-mono font-semibold transition-opacity duration-500 ${Math.floor(currentTime) % 2 === 0 ? 'opacity-100' : 'opacity-30'
-                  }`}
+        <p className="text-xs font-semibold opacity-90 mx-1">|</p>
+        <div className="flex items-center gap-2">
+          <div className="flex text-sm items-baseline rtl:flex-row-reverse">
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.span
+                key={cityHours}
+                initial={{ y: 10, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: -10, opacity: 0 }}
+                transition={{ duration: 0.3 }}
+                className="tracking-wider"
               >
-                :
-              </span>
-              <span className="font-mono font-semibold">{userMinutes}</span>
-            </div>
-            <span className="text-muted-foreground">•</span>
-            <span className="text-muted-foreground">{userDate}</span>
-            <span className="text-muted-foreground">•</span>
-            <span className="text-muted-foreground font-medium">{t('yourTime')}</span>
+                {cityHours}
+              </motion.span>
+            </AnimatePresence>
+            <motion.span
+              animate={{ opacity: [1, 0.2, 1] }}
+              transition={{ repeat: Infinity, duration: 1 }}
+            >
+              :
+            </motion.span>
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.span
+                key={cityMinutes}
+                initial={{ y: 10, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: -10, opacity: 0 }}
+                transition={{ duration: 0.3 }}
+                className="tracking-wider"
+              >
+                {cityMinutes}
+              </motion.span>
+            </AnimatePresence>
           </div>
         </div>
-      )}
-      <div className="mt-3 px-4" data-testid="last-updated">
-        <p className="text-xs text-black/60">
-          {t('lastUpdated')} - {formatTimeWithOffset(lastUpdated, userTimezoneOffset)}
-        </p>
       </div>
+
+      {isDifferentTimezone && (
+        <div className="flex flex-row items-start">
+          <p className="text-xs font-normal opacity-90">{`(${userDate}`}</p>
+          <p className="text-xs font-semibold opacity-90 mx-1">|</p>
+          <div className="flex text-xs font-light items-center gap-1 rtl:flex-row-reverse">
+              <AnimatePresence mode="wait" initial={false}>
+                <motion.span
+                  key={userHours}
+                  initial={{ y: 10, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  exit={{ y: -10, opacity: 0 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  {`${userHours})`}
+                </motion.span>
+              </AnimatePresence>
+              <motion.span
+                animate={{ opacity: [1, 0.2, 1] }}
+                transition={{ repeat: Infinity, duration: 1 }}
+              >
+                :
+              </motion.span>
+              <AnimatePresence mode="wait" initial={false}>
+                <motion.span
+                  key={userMinutes}
+                  initial={{ y: 10, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  exit={{ y: -10, opacity: 0 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  {userMinutes}
+                </motion.span>
+              </AnimatePresence>
+            </div>
+        </div>
+      )}
+      {/* <div className="" data-testid="last-updated">
+        <p className="text-xs leading-[0.2rem] text-black/60 dark:text-white/60">
+          {t('lastUpdated')} - {formatTimeWithOffset(lastUpdated / 1000, userTimezoneOffset)}
+        </p>
+      </div> */}
     </div>
   );
 }

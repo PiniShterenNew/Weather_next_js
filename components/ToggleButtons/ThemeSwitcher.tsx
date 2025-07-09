@@ -31,7 +31,9 @@ export default function ThemeSwitcher() {
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <Button variant="outline" size="icon" onClick={cycleTheme} aria-label={label}>
+        <Button
+          tabIndex={-1}
+          variant="outline" size="icon" onClick={cycleTheme} aria-label={label}>
           {icon}
         </Button>
       </TooltipTrigger>

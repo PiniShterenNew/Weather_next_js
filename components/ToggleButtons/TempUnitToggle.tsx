@@ -3,6 +3,7 @@
 import { useWeatherStore } from '@/stores/useWeatherStore';
 import { Button } from '@/components/ui/button';
 import { useTranslations } from 'next-intl';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 export default function TemporaryUnitToggle() {
   const t = useTranslations('unit');
@@ -16,14 +17,20 @@ export default function TemporaryUnitToggle() {
   const unitLabel = unit === 'metric' ? t('celsius') : t('fahrenheit');
 
   return (
-    <Button
-      variant="outline"
-      size="icon"
-      onClick={toggle}
-      dir="ltr"
-      aria-label={`${t('toggle')} ${unitLabel}`}
-    >
-      {unitLabel}
-    </Button>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={toggle}
+          tabIndex={-1}
+          dir="ltr"
+          aria-label={`${t('toggle')} ${unitLabel}`}
+        >
+          {unitLabel}
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent dir="ltr">{unitLabel}</TooltipContent>
+    </Tooltip>
   );
 }
