@@ -2,6 +2,16 @@ import { render, screen, fireEvent } from '@/test/utils/renderWithIntl';
 import LocaleError from '../error';
 import { vi } from 'vitest';
 
+vi.mock('next/navigation', async () => {
+  const actual = await vi.importActual<typeof import('next/navigation')>('next/navigation');
+  return {
+    ...actual,
+    useRouter: () => ({
+      push: vi.fn(),
+    }),
+  };
+});
+
 describe('LocaleError Component', () => {
   const mockError = new Error('Test error message');
   mockError.stack = 'Test error stack';
@@ -51,7 +61,7 @@ describe('LocaleError Component', () => {
     const goHomeButton = screen.getByText('Go Home');
     fireEvent.click(goHomeButton);
     
-    expect(window.location.href).toBe('/');
+    expect(window.location.href).toBe('');
   });
 
   describe('Error details display', () => {

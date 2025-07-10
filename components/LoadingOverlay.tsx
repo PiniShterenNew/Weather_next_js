@@ -16,10 +16,11 @@ const LoadingOverlay = ({ isLoading }: Props) => {
   return (
     <div
       className="fixed inset-0 z-[999] bg-black/50 flex items-center justify-center"
-      role="status"
-      aria-live="polite"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="loading-text"
     >
-      <div className="bg-white p-8 rounded-xl shadow-lg" aria-label="Loading dialog">
+      <div className="bg-white p-8 rounded-xl shadow-lg">
         <div className="flex flex-col items-center gap-4">
           <div
             data-testid="spinner"
@@ -27,7 +28,7 @@ const LoadingOverlay = ({ isLoading }: Props) => {
             role="img"
             aria-label={t('loading')}
           />
-          <p className="text-lg font-medium">{t('loading')}</p>
+          <p className="text-lg font-medium" id="loading-text">{t('loading')}</p>
         </div>
       </div>
     </div>

@@ -25,18 +25,18 @@ beforeEach(() => {
 
 describe('AddLocation', () => {
     it('renders AddLocation button', () => {
-        render(<AddLocation size="icon" type="icon" />);
+        render(<AddLocation size="icon" type="icon" dataTestid="add-location" />);
         expect(screen.getByTestId('add-location')).toBeInTheDocument();
     });
 
     it('renders AddLocation button with text', () => {
-        render(<AddLocation size="icon" type="default" />);
+        render(<AddLocation size="icon" type="default" dataTestid="add-location" />);
         expect(screen.getByText('Add current location')).toBeInTheDocument();
     });
 
     it('has disabled state when autoLocationCityId is not undefined', () => {
         mockStore.autoLocationCityId = '1';
-        render(<AddLocation size="icon" type="icon" />);
+        render(<AddLocation size="icon" type="icon" dataTestid="add-location" />);
         expect(screen.getByTestId('add-location')).toBeDisabled();
     });
 
@@ -44,7 +44,7 @@ describe('AddLocation', () => {
         // Ensure geolocation is not supported
         delete (global.navigator as any).geolocation;
 
-        render(<AddLocation size="icon" type="icon" />);
+        render(<AddLocation size="icon" type="icon" dataTestid="add-location" />);
         screen.getByTestId('add-location').click();
 
         expect(mockStore.showToast).toHaveBeenCalledWith({
@@ -122,7 +122,7 @@ describe('AddLocation', () => {
             isCurrentLocation: true
         });
 
-        render(<AddLocation size="icon" type="icon" />);
+        render(<AddLocation size="icon" type="icon" dataTestid="add-location" />);
         await screen.getByTestId('add-location').click();
 
         await waitFor(() => {
@@ -144,7 +144,7 @@ describe('AddLocation', () => {
 
         mockFetchReverse.mockRejectedValue(new Error('fail'));
 
-        render(<AddLocation size="icon" type="icon" />);
+        render(<AddLocation size="icon" type="icon" dataTestid="add-location" />);
         await screen.getByTestId('add-location').click();
 
         await waitFor(() => {
@@ -169,7 +169,7 @@ describe('AddLocation', () => {
         });
         mockFetchWeather.mockRejectedValue(new Error('fail'));
 
-        render(<AddLocation size="icon" type="icon" />);
+        render(<AddLocation size="icon" type="icon" dataTestid="add-location" />);
         await screen.getByTestId('add-location').click();
 
         await waitFor(() => {
@@ -250,7 +250,7 @@ describe('AddLocation', () => {
             isCurrentLocation: true
         });
 
-        render(<AddLocation size="icon" type="icon" />);
+        render(<AddLocation size="icon" type="icon" dataTestid="add-location" />);
         await screen.getByTestId('add-location').click();
 
         // אמור להיקרא מיד בתחילת תהליך

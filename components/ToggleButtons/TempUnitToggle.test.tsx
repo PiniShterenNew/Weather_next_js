@@ -37,7 +37,7 @@ describe('TempUnitToggle', () => {
   it('renders °C when unit is metric', () => {
     stateMock.unit = 'metric';
     render(<TempUnitToggle />);
-    const btn = screen.getByRole('button', { name: 'Toggle Unit °C' });
+    const btn = screen.getByRole('button', { name: '°C' });
     expect(btn).toBeInTheDocument();
     expect(btn).toHaveTextContent('°C');
   });
@@ -45,7 +45,7 @@ describe('TempUnitToggle', () => {
   it('renders °F when unit is imperial', () => {
     stateMock.unit = 'imperial';
     render(<TempUnitToggle />);
-    const btn = screen.getByRole('button', { name: 'Toggle Unit °F' });
+    const btn = screen.getByRole('button', { name: '°F' });
     expect(btn).toBeInTheDocument();
     expect(btn).toHaveTextContent('°F');
   });
@@ -53,20 +53,20 @@ describe('TempUnitToggle', () => {
   it('switches from metric to imperial on click', async () => {
     stateMock.unit = 'metric';
     render(<TempUnitToggle />);
-    await userEvent.click(screen.getByRole('button', { name: 'Toggle Unit °C' }));
+    await userEvent.click(screen.getByRole('button', { name: '°C' }));
     expect(mockSetUnit).toHaveBeenCalledWith('imperial');
   });
 
   it('switches from imperial to metric on click', async () => {
     stateMock.unit = 'imperial';
     render(<TempUnitToggle />);
-    await userEvent.click(screen.getByRole('button', { name: 'Toggle Unit °F' }));
+    await userEvent.click(screen.getByRole('button', { name: '°F' }));
     expect(mockSetUnit).toHaveBeenCalledWith('metric');
   });
 
   it('button has dir="ltr" and outline classes', () => {
     render(<TempUnitToggle />);
-    const btn = screen.getByRole('button');
+    const btn = screen.getByRole('button', { name: '°C' });
     expect(btn).toHaveAttribute('dir', 'ltr');
     expect(btn.className).toMatch(/border/);
   });

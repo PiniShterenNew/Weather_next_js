@@ -11,6 +11,7 @@ vi.mock('@/components/ToggleButtons/TempUnitToggle', () => ({
 vi.mock('@/components/ToggleButtons/LanguageSwitcher', () => ({
   default: () => <div data-testid="language-switcher" />,
 }));
+
 vi.mock('framer-motion', async () => {
   const actual = await vi.importActual<typeof import('framer-motion')>('framer-motion');
   return {
@@ -18,6 +19,8 @@ vi.mock('framer-motion', async () => {
     motion: {
       ...actual.motion,
       div: (props: any) => <div {...props} />,
+      span: (props: any) => <span {...props} />,
+      button: (props: any) => <button {...props} />,
     },
   };
 });

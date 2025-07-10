@@ -32,34 +32,30 @@ export function QuickCityAddModal() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <motion.div
-          whileHover="hover"
-          whileTap="tap"
-          aria-label={t('search.quickAdd')}
+        <Button
+          variant="default"
+          size="lg"
           data-testid="quick-add-button"
-          variants={{
-            hover: { scale: 1.02 },
-            initial: { scale: 1 },
-            tap: { scale: 0.98 },
-          }}
-          transition={{ duration: 0.2 }}
+          title={t('search.quickAdd')}
+          className="gap-2 rounded-full shadow-sm hover:shadow transition-all"
+          asChild
         >
-          <Button
-            variant="default"
-            size="lg"
-            className="gap-2 rounded-full shadow-sm hover:shadow transition-all"
-            title={t('search.quickAdd')}
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            transition={{ duration: 0.2 }}
           >
             <motion.div
               animate={{ rotate: open ? 45 : 0, scale: 1 }}
               whileHover={{ scale: 1.1 }}
               transition={{ duration: 0.3 }}
+              className="inline-flex"
             >
               <Plus className="h-4 w-4" />
             </motion.div>
             {t('search.quickAdd')}
-          </Button>
-        </motion.div>
+          </motion.button>
+        </Button>
       </DialogTrigger>
 
       <AnimatePresence>

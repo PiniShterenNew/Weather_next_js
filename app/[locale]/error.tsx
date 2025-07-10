@@ -3,12 +3,8 @@
 import { useTranslations } from 'next-intl';
 import { AlertCircle, RefreshCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useRouter } from 'next/navigation';
 
-/**
- * Error component for the locale-specific routes
- * Displays when an error occurs in the page or its children
- * Provides a way to recover from the error by refreshing the page
- */
 export default function LocaleError({
   error,
   reset,
@@ -17,6 +13,7 @@ export default function LocaleError({
   reset: () => void;
 }) {
   const t = useTranslations('error');
+  const router = useRouter();
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] px-4 text-center">
@@ -36,7 +33,7 @@ export default function LocaleError({
           
           <Button 
             variant="outline" 
-            onClick={() => window.location.href = '/'}
+            onClick={() => router.push('/')} 
           >
             {t('goHome')}
           </Button>

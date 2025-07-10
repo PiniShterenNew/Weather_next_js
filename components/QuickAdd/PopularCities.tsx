@@ -132,7 +132,7 @@ export default function PopularCities({ direction, color = 'default' }: CityList
     if (Object.keys(groupedCities).length === 0) {
         return (
             <div className="py-8 text-center text-muted-foreground">
-                <Globe className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <Globe className="h-12 w-12 mx-auto mb-4 opacity-50" role="presentation" />
                 <p>{t('search.allCitiesAdded')}</p>
             </div>
         );
@@ -154,7 +154,7 @@ export default function PopularCities({ direction, color = 'default' }: CityList
                             className="w-full p-4 flex items-center justify-between hover:bg-muted/50 transition-colors rounded-t-lg"
                         >
                             <div className="flex items-center gap-3">
-                                <Globe className={cn("h-5 w-5", color === "primary" ? "text-primary" : "text-muted-foreground")} />
+                                <Globe className={cn("h-5 w-5", color === "primary" ? "text-primary" : "text-muted-foreground")} role="presentation"/>
                                 <h3 className="font-semibold text-sm">
                                     {continentNames[continent as keyof typeof continentNames]?.[locale] || continent}
                                 </h3>
@@ -163,8 +163,8 @@ export default function PopularCities({ direction, color = 'default' }: CityList
                                 </span>
                             </div>
                             {expandedContinents[continent] ?
-                                <ChevronUp className="h-4 w-4 text-muted-foreground" /> :
-                                <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                                <ChevronUp className="h-4 w-4 text-muted-foreground" role="presentation" /> :
+                                <ChevronDown className="h-4 w-4 text-muted-foreground" role="presentation" />
                             }
                         </button>
 
@@ -180,7 +180,7 @@ export default function PopularCities({ direction, color = 'default' }: CityList
                                         onClick={() => handleAddCity(city)}
                                     >
                                         <div className="flex items-center gap-3 w-full">
-                                            <Building2 className={cn("h-5 w-5 shrink-0", color === "primary" && "text-primary")} />
+                                            <Building2 className={cn("h-5 w-5 shrink-0", color === "primary" && "text-primary")} role="presentation" />
                                             <div className={cn("flex flex-col items-start min-w-0 flex-1", color === "primary" && "text-primary")}>
                                                 <span className="font-medium truncate w-full text-right" dir={direction}>
                                                     {city.city[locale]}
@@ -193,7 +193,7 @@ export default function PopularCities({ direction, color = 'default' }: CityList
 
                                         {/* Local Time */}
                                         <div className="flex items-center gap-2 text-xs text-muted-foreground w-full justify-start">
-                                            <Clock className="h-3 w-3" />
+                                            <Clock className="h-3 w-3" role="presentation" />
                                             <span>
                                                 {currentTimes[city.id] || getCityTime(city.timezoneOffsetSeconds)}
                                             </span>

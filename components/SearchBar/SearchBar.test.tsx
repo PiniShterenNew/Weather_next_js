@@ -258,7 +258,7 @@ describe('SearchBar ­– extra UX', () => {
       await typeSearch('Lon');
     })
 
-    expect(screen.getByTestId('loader-icon')).toBeInTheDocument();
+    expect(screen.getByRole('status')).toBeInTheDocument();
     await act(async () => {
       resolve([londonSuggestion]);
     })

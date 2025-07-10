@@ -45,8 +45,9 @@ describe('LoadingOverlay', () => {
 
   it('has proper accessibility attributes', () => {
     render(<LoadingOverlay isLoading />);
-    const overlay = screen.getByRole('status');
-    expect(overlay).toHaveAttribute('aria-live', 'polite');
+    const overlay = screen.getByRole('dialog');
+    expect(overlay).toHaveAttribute('aria-modal', 'true');
+    expect(overlay).toHaveAttribute('aria-labelledby', 'loading-text');
 
     const spinner = screen.getByTestId('spinner');
     expect(spinner).toHaveAttribute('role', 'img');

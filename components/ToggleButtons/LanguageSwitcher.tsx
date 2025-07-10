@@ -40,13 +40,13 @@ export default function LanguageSwitcher() {
       <Select
         value={localeStore} onValueChange={handleLocaleChange}>
         <TooltipTrigger asChild>
-          <SelectTrigger tabIndex={-1} className="w-[100px]" aria-label={t(localeStore)}>
+          <SelectTrigger tabIndex={-1} className="w-[100px]">
             <SelectValue />
           </SelectTrigger>
         </TooltipTrigger>
         <SelectContent>
-          <SelectItem value="he" aria-label={t('he')}>{t('he')}</SelectItem>
-          <SelectItem value="en" aria-label={t('en')}>{t('en')}</SelectItem>
+          <SelectItem value="he">{t('he')}</SelectItem>
+          <SelectItem value="en">{t('en')}</SelectItem>
         </SelectContent>
       </Select>
       <TooltipContent dir="ltr">{t(localeStore)}</TooltipContent>

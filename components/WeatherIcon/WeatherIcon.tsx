@@ -44,8 +44,8 @@ export function WeatherIcon({
         sizes={`${size}px`}
         unoptimized={iconSrc.endsWith('.svg')}
         role="img"
-        aria-hidden={!alt}
-        aria-label={alt || undefined}
+        aria-hidden={!alt || alt === 'weather icon'}
+        aria-label={alt && alt !== 'weather icon' ? alt : undefined}
         title={title}
       />
     </div>

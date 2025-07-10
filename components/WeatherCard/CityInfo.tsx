@@ -14,10 +14,11 @@ import { AppLocale } from "@/types/i18n";
 import { motion } from "framer-motion";
 import { Suspense } from "react";
 import { removeParentheses } from "@/lib/utils";
+import ForecastListSkeleton from "../skeleton/ForecastListSkeleton";
 
-const ForecastList = dynamic(() => import('@/components/ForecastList/ForecastList.lazy'), {
+const ForecastList = dynamic(() => import('@/components/ForecastList/ForecastList'), {
   ssr: false,
-  loading: () => <div className="w-full h-64 animate-pulse bg-muted rounded-xl" />,
+  loading: () => <ForecastListSkeleton />,
 });
 
 export default function CityInfo() {
@@ -40,11 +41,6 @@ export default function CityInfo() {
 
   const cityLocale = cityWeather[locale === 'en' ? 'currentEn' : 'currentHe'];
 
-  /**
-   * Refreshes city weather data if needed or forced
-   * Uses the cached fetchWeather function for data retrieval
-   * Shows appropriate toast messages for success/error states
-   */
   const refreshCityIfNeeded = useCallback(async (city: CityWeather, options: { force?: boolean } = {}) => {
     const { force = false } = options;
     const isStale = isCityDataStale(city);
@@ -53,7 +49,6 @@ export default function CityInfo() {
       return;
     }
 
-    // Prevent multiple refreshes
     if (isRefreshing) return;
 
     setIsRefreshing(true);
@@ -76,18 +71,16 @@ export default function CityInfo() {
     }
   }, [cityWeather, showToast, updateCity, refreshCity, isRefreshing, unit]);
 
-  // Auto-refresh weather data if needed
   useEffect(() => {
     if (cityWeather && shouldAutoRefresh(cityWeather)) {
       refreshCityIfNeeded(cityWeather, { force: false });
     }
   }, [cityWeather, refreshCityIfNeeded]);
 
-  // Guard clause for when no city is selected
   if (!cityWeather) return null;
 
   return (
-    <Suspense fallback={<div>Loading...</div>}>
+    <Suspense fallback={<div>Loading...</div>} data-testid="city-info">
       <motion.div
         key={cityWeather.id}
         initial={{ opacity: 0, y: 10 }}
@@ -102,7 +95,7 @@ export default function CityInfo() {
             <div className="flex flex-col items-start justify-between ">
               <div className="flex flex-row items-center justify-between gap-2">
                 <Building2 className="h-6 w-6 shrink-0" />
-                <p className="text-2xl opacity-70">{cityWeather.country[locale]}</p>
+                <p className="text-2xl opacity-90 font-medium">{cityWeather.country[locale]}</p>
                 <div className="text-2xl font-bold flex items-center flex-row gap-2">
                   {removeParentheses(cityWeather.name[locale])}{' '}
                   {(cityLocale.isCurrentLocation || cityWeather.id === autoLocationCityId) && (
@@ -130,13 +123,13 @@ export default function CityInfo() {
                 className="shrink-0"
               />
               <div className="mt-4 text-center">
-                <div className="text-7xl font-light">
+                <div className="text-7xl font-light" data-testid="temperature">
                   {formatTemperatureWithConversion(cityLocale.current.temp, cityLocale.unit, unit)}
                 </div>
-                <div className="text-lg font-medium opacity-80 mt-1">
+                <div className="text-lg font-medium opacity-90 mt-1">
                   {cityLocale.current.desc}
                 </div>
-                <div className="text-sm opacity-70">
+                <div className="text-sm opacity-85">
                   {t('feelsLike')} {formatTemperatureWithConversion(cityLocale.current.feelsLike, cityLocale.unit, unit)}
                 </div>
               </div>
@@ -150,20 +143,21 @@ export default function CityInfo() {
                 onClick={() => refreshCityIfNeeded(cityWeather, { force: true })}
                 title={t('refresh')}
                 disabled={isRefreshing}
-                aria-label="Refresh"
+                aria-label={t('refresh')}
               >
-                <motion.div
+                <motion.span
                   key={isRefreshing ? 'loading' : 'refresh'}
                   initial={{ rotate: -90, opacity: 0 }}
                   animate={{ rotate: 0, opacity: 1 }}
                   transition={{ duration: 0.3 }}
+                  className="inline-flex"
                 >
                   {isRefreshing ? (
-                    <Loader2 size={18} className="animate-spin" />
+                    <Loader2 size={18} className="animate-spin" role="presentation" />
                   ) : (
-                    <RotateCcw size={18} />
+                    <RotateCcw size={18} role="presentation" />
                   )}
-                </motion.div>
+                </motion.span>
               </Button>
               <Button
                 size="icon"
@@ -171,10 +165,10 @@ export default function CityInfo() {
                 onClick={() => removeCity(cityWeather.id)}
                 // disabled={cityWeather.id === autoLocationCityId}
                 title={t('remove')}
-                aria-label="Remove"
+                aria-label={t('remove')}
                 className="text-destructive hover:bg-destructive/10 hover:text-destructive"
               >
-                <Trash size={18} />
+                <Trash size={18}  role="presentation" />
               </Button>
             </div>
             <div className="self-center">
@@ -198,7 +192,7 @@ export default function CityInfo() {
                       <p className="font-bold">{item.value}</p>
                       {item.icon}
                     </div>
-                    <p className="text-sm opacity-70">{item.label}</p>
+                    <p className="text-sm opacity-85">{item.label}</p>
                   </motion.div>
                 ))}
               </div>
@@ -233,9 +227,9 @@ export default function CityInfo() {
                         <span>{time}</span>
                         {icon}
                       </p>
-                      <p className="text-sm opacity-70">{label}</p>
+                      <p className="text-sm opacity-85">{label}</p>
                       {!isSameTimezone(cityLocale.current.timezone, getUserTimezoneOffset()) && (
-                        <span className="ml-2 text-xs opacity-70">
+                        <span className="ml-2 text-xs opacity-85">
                           ({userTime} {t('yourTime')})
                         </span>
                       )}

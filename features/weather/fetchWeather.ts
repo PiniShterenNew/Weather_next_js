@@ -2,7 +2,7 @@
 import { CityWeather } from '@/types/weather';
 import { cache } from 'react';
 
-type FetchWeatherInput = {
+export type FetchWeatherInput = {
   id?: string;
   lat: number;
   lon: number;

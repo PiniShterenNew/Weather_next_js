@@ -49,7 +49,10 @@
     "searching": "Searching...",
     "noRefreshNeeded": "No refresh needed",
     "typeToSearch": "Type to search",
-    "startTyping": "Start typing to search"
+    "startTyping": "Start typing to search",
+    "search": "Search",
+    "clear": "Clear",
+    "loading": "Loading..."
   },
   "popular": {
     "title": "Popular Cities",
@@ -323,6 +326,7 @@
   },
   "settings": {
     "title": "Settings",
+    "description": "Adjust application settings",
     "close": "Close",
     "theme": "Theme",
     "language": "Language",

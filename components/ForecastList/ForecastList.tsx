@@ -19,8 +19,8 @@ export function ForecastListComponent({ forecast, cityUnit, unit }: ForecastList
   const locale = useLocale() as AppLocale;
 
   return (
-    <div className="w-full mt-6">
-      <h3 className="text-lg font-semibold mb-3" role="heading">{t('forecast')}</h3>
+    <div className="w-full mt-6" data-testid="forecast-list">
+      <h3 className="text-lg font-semibold mb-3" role="heading" data-testid="forecast-title">{t('forecast')}</h3>
       <div className="grid grid-cols-5 gap-10">
         {forecast.map((day, index) => (
           <motion.div
@@ -44,8 +44,8 @@ export function ForecastListComponent({ forecast, cityUnit, unit }: ForecastList
               />
               <p className="text-sm capitalize">{t(`weather.conditions.${day.codeId}.main`)}</p>
               <div className="flex flex-row items-center gap-2">
-                <span data-testid="forecast-min" className="text-right opacity-60 text-sm">{formatTemperatureWithConversion(day.min, cityUnit, unit)}</span>
-                <span data-testid="forecast-max" className="text-right text-sm">{formatTemperatureWithConversion(day.max, cityUnit, unit)}</span>
+                <span data-testid="forecast-min" className="text-right text-sm text-gray-600 dark:text-gray-400">{formatTemperatureWithConversion(day.min, cityUnit, unit)}</span>
+                <span data-testid="forecast-max" className="text-right text-sm text-gray-900 dark:text-gray-100">{formatTemperatureWithConversion(day.max, cityUnit, unit)}</span>
               </div>
             </div>
           </motion.div>

@@ -79,12 +79,18 @@ const mockWeatherData = {
 describe('GET /api/weather', () => {
   beforeEach(() => {
     vi.resetAllMocks();
+    vi.resetModules();
+    // Reset each mock explicitly to prevent test pollution
+    (findCityById as any).mockReset();
+    (getCachedWeather as any).mockReset();
+    (getWeatherByCoords as any).mockReset();
+    (setCachedWeather as any).mockReset();
   });
 
   it('returns 400 if required parameters are missing', async () => {
     const request = createRequest({ lat: '32.07' }); // missing lon and id
     const response = await weatherRoute(request);
-    
+
     expect(response.status).toBe(400);
     const data = await response.json();
     expect(data.error).toBe('Missing required parameters: lon, id');
@@ -92,10 +98,10 @@ describe('GET /api/weather', () => {
 
   it('returns 404 if city not found in database', async () => {
     (findCityById as any).mockResolvedValue(null);
-    
+
     const request = createRequest({ lat: '32.07', lon: '34.79', id: 'city:32.1_34.8' });
     const response = await weatherRoute(request);
-    
+
     expect(response.status).toBe(404);
     const data = await response.json();
     expect(data.error).toContain('not found');
@@ -105,10 +111,10 @@ describe('GET /api/weather', () => {
     const cachedData = { ...mockWeatherData, cached: true };
     (findCityById as any).mockResolvedValue(mockCityData);
     (getCachedWeather as any).mockReturnValue(cachedData);
-    
+
     const request = createRequest({ lat: '32.07', lon: '34.79', id: 'city:32.1_34.8' });
     const response = await weatherRoute(request);
-    
+
     expect(response.status).toBe(200);
     const data = await response.json();
     expect(data.cached).toBe(true);
@@ -118,14 +124,18 @@ describe('GET /api/weather', () => {
   it('fetches fresh weather data if not cached', async () => {
     (findCityById as any).mockResolvedValue(mockCityData);
     (getCachedWeather as any).mockReturnValue(null);
-    (getWeatherByCoords as any).mockResolvedValue(mockWeatherData);
+    (getWeatherByCoords as any).mockResolvedValue({
+      he: mockWeatherData.he,
+      en: mockWeatherData.en
+    });
     (setCachedWeather as any).mockResolvedValue(undefined);
-    
+
     const request = createRequest({ lat: '32.07', lon: '34.79', id: 'city:32.1_34.8' });
     const response = await weatherRoute(request);
+
+    const data = await response.json().catch(e => ({ error: `JSON parse error: ${e.message}` }));
     
     expect(response.status).toBe(200);
-    const data = await response.json();
     expect(data.id).toBe('city:32.1_34.8');
     expect(data.currentEn).toBeDefined();
     expect(data.currentHe).toBeDefined();
@@ -142,10 +152,10 @@ describe('GET /api/weather', () => {
     (findCityById as any).mockResolvedValue(mockCityData);
     (getCachedWeather as any).mockReturnValue(null);
     (getWeatherByCoords as any).mockRejectedValue(new Error('API failure'));
-    
+
     const request = createRequest({ lat: '32.07', lon: '34.79', id: 'city:32.1_34.8' });
     const response = await weatherRoute(request);
-    
+
     expect(response.status).toBe(502);
     const data = await response.json();
     expect(data.error).toContain('Weather API error');
@@ -153,10 +163,10 @@ describe('GET /api/weather', () => {
 
   it('returns 500 on unexpected error', async () => {
     (findCityById as any).mockRejectedValue(new Error('Database error'));
-    
+
     const request = createRequest({ lat: '32.07', lon: '34.79', id: 'city:32.1_34.8' });
     const response = await weatherRoute(request);
-    
+
     expect(response.status).toBe(500);
     const data = await response.json();
     expect(data.error).toContain('unexpected error occurred');

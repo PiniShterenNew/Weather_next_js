@@ -2,15 +2,15 @@ import React from 'react';
 import { describe, it, vi, beforeEach, afterEach, expect } from 'vitest';
 import { render, screen } from '@/test/utils/renderWithIntl';
 
-vi.mock('@/components/WeatherList/WeatherList.lazy', () => ({
+vi.mock('@/components/WeatherList/WeatherList', () => ({
     __esModule: true,
     default: () => <div data-testid="weather-list" />,
 }));
-vi.mock('@/components/WeatherCard/CityInfo.lazy', () => ({
+vi.mock('@/components/WeatherCard/CityInfo', () => ({
     __esModule: true,
     default: () => <div data-testid="city-info" />,
 }));
-vi.mock('@/components/EmptyPage/EmptyPage.lazy', () => ({
+vi.mock('@/components/EmptyPage/EmptyPage', () => ({
     __esModule: true,
     default: () => <div data-testid="weather-empty" />,
 }));

@@ -7,8 +7,15 @@ import { AppLocale } from '@/types/i18n';
 import { Star } from 'lucide-react';
 import PopularCities from '../QuickAdd/PopularCities';
 import { getDirection } from '@/lib/intl';
-import AddLocation from '../QuickAdd/AddLocation.lazy';
 import { motion } from 'framer-motion';
+import dynamic from 'next/dynamic';
+import { Skeleton } from '../ui/skeleton';
+
+const AddLocation = dynamic(() => import('@/components/QuickAdd/AddLocation').then((module) => module.default), {
+  loading: () => (
+    <Skeleton className="h-10 w-full" />
+  ),
+});
 
 export default function EmptyPage() {
   const t = useTranslations();
@@ -16,7 +23,7 @@ export default function EmptyPage() {
   const direction = getDirection(locale);
 
   return (
-    <div className="flex flex-col items-center justify-center gap-6 p-6 w-full max-w-full mx-auto">
+    <div className="flex flex-col items-center justify-center gap-6 p-6 w-full max-w-full mx-auto" data-testid="weather-empty">
       <motion.div
         initial={{ opacity: 0, y: -50 }}
         animate={{ opacity: 1, y: 0 }}
@@ -30,7 +37,7 @@ export default function EmptyPage() {
         </div>
 
         <div className="mt-2">
-          <AddLocation type="default" size="lg" />
+          <AddLocation type="default" size="lg" dataTestid="add-location-text" />
         </div>
       </motion.div>
       <div className="w-full mt-4">

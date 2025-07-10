@@ -1,3 +1,4 @@
+import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import LocaleLayout, { generateStaticParams } from '../layout';
 import { AppLocale } from '@/types/i18n';

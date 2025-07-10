@@ -1,3 +1,4 @@
+// app/[locale]/layout.tsx
 import { notFound } from 'next/navigation';
 import { NextIntlClientProvider } from 'next-intl';
 import { setRequestLocale } from 'next-intl/server';
@@ -10,6 +11,7 @@ import LoadingOverlay from '@/components/LoadingOverlay';
 import { notoSans } from '@/styles/fonts';
 import { TooltipProvider } from '@radix-ui/react-tooltip';
 import type { ReactNode } from 'react';
+import '../../styles/globals.css';
 
 // Updated type definition for Next.js 15 - params is now a Promise
 type LayoutProps<T> = {
@@ -63,4 +65,17 @@ export const metadata = {
   title: 'Weather App',
 };
 
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: 'white' },
+    { media: '(prefers-color-scheme: dark)', color: '#171717' },
+  ],
+};
+
+// Optimize page loading
 export const dynamic = 'auto';
+export const preferredRegion = 'auto';
+export const dynamicParams = true;

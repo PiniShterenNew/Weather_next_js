@@ -12,7 +12,7 @@ vi.mock('next-intl', async (importOriginal: () => Promise<typeof import('next-in
   })
 
 const addLocationSpy = vi.fn()
-vi.mock('@/components/QuickAdd/AddLocation.lazy', () => ({
+vi.mock('@/components/QuickAdd/AddLocation', () => ({
     __esModule: true,
     default: (p: any) => {
         addLocationSpy(p)

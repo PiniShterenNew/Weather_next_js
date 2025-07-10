@@ -10,9 +10,10 @@ import { WeatherIcon } from "../WeatherIcon/WeatherIcon";
 type Properties = {
     size: ButtonProperties['size'];
     type: 'icon' | 'default';
+    dataTestid?: string;
 }
 
-export default function AddLocation({ size, type }: Properties) {
+export default function AddLocation({ size, type, dataTestid }: Properties) {
     const { autoLocationCityId, setIsLoading, showToast, addOrReplaceCurrentLocation, unit, locale } = useWeatherStore();
     const t = useTranslations();
     const { setOpen } = useWeatherStore();
@@ -79,27 +80,31 @@ export default function AddLocation({ size, type }: Properties) {
     };
 
     return (
-        <motion.div
-            whileHover="hover"
+        <Button
+            variant="outline"
+            size={size}
+            onClick={handleAddCurrentLocation}
+            title={t('search.currentLocation')}
+            data-testid={dataTestid}
+            aria-label={t('search.currentLocation')}
+            disabled={autoLocationCityId !== undefined}
+            className="shadow-sm rounded-full hover:bg-primary/10 transition-colors"
+            asChild
         >
-            <Button
-                variant="outline"
-                size={size}
-                data-testid="add-location"
-                onClick={handleAddCurrentLocation}
-                title={t('search.currentLocation')}
-                aria-label={t('search.currentLocation')}
-                disabled={autoLocationCityId !== undefined}
-                className="shadow-sm rounded-full hover:bg-primary/10 transition-colors"
+            <motion.button
+                whileHover="hover"
             >
-                <motion.div
+                <motion.span
                     variants={{ hover: { scale: 1.2 } }}
                     transition={{ duration: 0.2 }}
+                    data-testid="location-icon"
+                    role="presentation"
+                    className="inline-flex"
                 >
                     <WeatherIcon icon="location" size={24} />
-                </motion.div>
+                </motion.span>
                 {type !== 'icon' && t('search.addCurrentLocation')}
-            </Button>
-        </motion.div>
+            </motion.button>
+        </Button>
     );
 }

@@ -194,11 +194,12 @@ export default function SearchBar({ onSelect }: SearchBarProps) {
             ref={inputRef}
             type="text"
             value={query}
+            data-testid="city-search-input"
             onFocus={() => setFocused(true)}
             onBlur={() => setFocused(false)}
             onChange={(e) => {
               setQuery(e.target.value);
-              if (!focused) setFocused(true);   // מבטיח שתמיד בפוקוס בזמן כתיבה
+              if (!focused) setFocused(true);
             }}
             onKeyDown={handleKeyDown}
             placeholder={t('search.placeholder')}
@@ -215,22 +216,29 @@ export default function SearchBar({ onSelect }: SearchBarProps) {
             direction === 'ltr' ? 'right-3' : 'left-3'
           )}>
             {loading ? (
-              <Loader2 data-testid="loader-icon" aria-label="loading" className="h-5 w-5 animate-spin text-primary" />
+              <Loader2 className="h-5 w-5 animate-spin text-primary" role="status">
+                <span className="sr-only">{t('search.loading')}</span>
+              </Loader2>
             ) : (
-              <Search aria-label="search" className="h-5 w-5 text-muted-foreground" />
+              <Search className="h-5 w-5 text-muted-foreground">
+                <span className="sr-only">{t('search.search')}</span>
+              </Search>
             )}
           </div>
           {query && (
             <button
+              type="button"
               onClick={clearSearch}
-              aria-label="clear"
               className={cn(
-                "absolute top-1/2 transform -translate-y-1/2 p-1 rounded-full",
-                "hover:bg-muted transition-colors",
-                direction === 'rtl' ? 'left-10' : 'right-10'
+                "absolute top-1/2 -translate-y-1/2 text-muted-foreground",
+                direction === 'ltr' ? 'left-3' : 'right-3'
               )}
+              title={t('search.clear')}
+              aria-label={t('search.clear')}
             >
-              <X aria-label="clear" className="h-4 w-4 text-muted-foreground hover:text-foreground" />
+              <X className="h-4 w-4 text-muted-foreground hover:text-foreground" role="presentation">
+                <span className="sr-only">{t('search.clear')}</span>
+              </X>
             </button>
           )}
         </div>
@@ -242,9 +250,11 @@ export default function SearchBar({ onSelect }: SearchBarProps) {
           className="mt-2 w-full border rounded-lg shadow-lg bg-card/98 backdrop-blur-sm border-border/50 animate-in fade-in-0 zoom-in-95 duration-200">
           <Suspense fallback={
             <div className="p-6 text-center">
-              <Loader2 aria-label="loading" className="h-6 w-6 animate-spin text-primary mx-auto mb-2" />
-              <p aria-label="loading" className="text-sm text-muted-foreground font-medium">
-                {t('loading')}
+              <Loader2 className="h-6 w-6 animate-spin text-primary mx-auto mb-2" role="status">
+                <span className="sr-only">{t('search.loading')}</span>
+              </Loader2>
+              <p className="text-sm text-muted-foreground font-medium">
+                {t('search.searching')}
               </p>
             </div>
           }>

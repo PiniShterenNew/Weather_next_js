@@ -9,6 +9,8 @@ const nextConfig: NextConfig = {
     serverActions: {
       // Server Actions configuration
     },
+    optimizeCss: true, // מיטוב CSS
+    optimizePackageImports: ['next-intl', 'lucide-react', 'framer-motion'],
   },
 
   // Optimize images
@@ -29,6 +31,9 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: false, // Will disable errors during build only
   },
+  
+  // Improve performance
+  poweredByHeader: false, // Remove X-Powered-By header
 
   // Set HTTP Headers
   async headers() {

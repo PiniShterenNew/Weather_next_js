@@ -23,9 +23,10 @@ export default function TemporaryUnitToggle() {
           variant="outline"
           size="icon"
           onClick={toggle}
+          aria-label={unitLabel}
           tabIndex={-1}
           dir="ltr"
-          aria-label={`${t('toggle')} ${unitLabel}`}
+          title={unitLabel}
         >
           {unitLabel}
         </Button>

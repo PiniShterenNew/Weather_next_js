@@ -43,7 +43,7 @@ export default function WeatherList() {
   if (!isClient) return null;
 
   return (
-    <div className="relative w-full max-h-[calc(100vh-6rem)] overflow-y-auto scrollbar-none mx-auto space-y-4 bg" aria-live="polite" data-testid="weather-carousel">
+    <div className="relative w-full max-h-[calc(100vh-6rem)] overflow-y-auto scrollbar-none mx-auto space-y-4 bg" aria-live="polite" data-testid="weather-list">
       <div className="w-full flex flex-col gap-4">
         {cities.map((city, index) => (
           <WeatherListItem

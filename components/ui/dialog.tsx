@@ -3,7 +3,7 @@
 import * as React from "react"
 import * as DialogPrimitive from "@radix-ui/react-dialog"
 import { X } from "lucide-react"
-
+import { HTMLMotionProps, motion } from "framer-motion"
 import { cn } from "@/lib/utils"
 
 const Dialog = DialogPrimitive.Root
@@ -108,6 +108,11 @@ const DialogDescription = React.forwardRef<
 ))
 DialogDescription.displayName = DialogPrimitive.Description.displayName
 
+const MotionButton = React.forwardRef<HTMLButtonElement, HTMLMotionProps<'button'>>(
+  (props, ref) => <motion.button ref={ref} {...props} />
+);
+MotionButton.displayName = 'MotionButton';
+
 export {
   Dialog,
   DialogPortal,
@@ -119,4 +124,5 @@ export {
   DialogFooter,
   DialogTitle,
   DialogDescription,
+  MotionButton,
 }

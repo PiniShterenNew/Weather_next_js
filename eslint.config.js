@@ -20,6 +20,7 @@ export default [
       '*.config.js',
       '*.config.cjs',
       '*.config.mjs',
+      'e2e/**',
     ],
   },
   js.configs.recommended,

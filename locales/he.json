@@ -49,7 +49,10 @@
     "searching": "מחפש...",
     "noRefreshNeeded": "אין צורך ברענון",
     "typeToSearch": "הקלד כדי לחפש",
-    "startTyping": "הקלד כדי להתחיל לחפש"
+    "startTyping": "הקלד כדי להתחיל לחפש",
+    "search": "חפש",
+    "clear": "נקה",
+    "loading": "טוען..."
   },
   "popular": {
     "title": "ערים פופולריות",
@@ -323,6 +326,7 @@
   },
   "settings": {
     "title": "הגדרות",
+    "description": "החלף בין ערכות נושא",
     "close": "סגור",
     "theme": "ערכת נושא",
     "language": "שפה",

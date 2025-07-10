@@ -10,7 +10,7 @@ export default defineConfig({
     environment: 'jsdom',
     coverage: {
       provider: 'v8', // אפשר גם 'c8' אם תעדיף
-      reporter: ['text', 'html', 'json-summary'],
+      reporter: ['text', 'json-summary', 'html'],
       reportsDirectory: './coverage',
       include: ['components/**/*.{ts,tsx}', 'app/**/*.{ts,tsx}'],
       exclude: [
@@ -20,6 +20,7 @@ export default defineConfig({
         'next.config.ts',
         'tailwind.config.ts',
         'vitest.config.ts',
+        'e2e/**/*.{ts,tsx}',
       ],
     },
     deps: {
@@ -30,5 +31,6 @@ export default defineConfig({
       },
     },
     setupFiles: ['./test/setup.ts'],
+    exclude: ['e2e/**', 'node_modules/**', '.next/**'], // הוספת exclude ברמת test
   },
 });

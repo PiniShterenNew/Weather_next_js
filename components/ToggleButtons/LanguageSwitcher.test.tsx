@@ -38,7 +38,6 @@ describe('LanguageSwitcher', () => {
   it('renders current language from store', () => {
     render(<LanguageSwitcher />);
     expect(screen.getByText('en')).toBeInTheDocument();
-    expect(screen.getByRole('combobox')).toHaveAttribute('aria-label', 'en');
   });
 
   it('syncs locale from useLocale on mount', () => {

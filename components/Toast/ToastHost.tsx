@@ -37,7 +37,7 @@ function getToastStyles(type: string) {
 function ToastItem({ id, message, values, type = 'info', duration = 3000 }: {
   id: number;
   message: string;
-  values?: Record<string, any>;
+  values?: Record<string, string | number>;
   type?: string;
   duration?: number;
 }) {
@@ -76,9 +76,10 @@ function ToastItem({ id, message, values, type = 'info', duration = 3000 }: {
       <button
         onClick={() => hideToast(id)}
         aria-label={t('common.close')}
+        title={t('common.close')}
         className="flex-shrink-0 p-1 rounded-md transition-colors hover:bg-black/10 dark:hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-current"
       >
-        <X size={16} />
+        <X size={16} role="presentation" />
       </button>
 
       <div
