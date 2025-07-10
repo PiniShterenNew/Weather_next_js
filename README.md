@@ -4,7 +4,7 @@ A bilingual (Hebrew/English) weather application built with Next.js, providing r
 
 אפליקציית מזג אוויר דו-לשונית (עברית/אנגלית) המבוססת על Next.js, מציגה תחזית מזג אוויר עדכנית עבור ערים נבחרות עם ציון 99/100 במבחני ביצועים של Lighthouse.
 
-![Weather App Screenshot](https://via.placeholder.com/800x450.png?text=Weather+App+Screenshot)
+![Weather App Screenshot](/public/github_pic.png)
 
 ## Features | תכונות
 
