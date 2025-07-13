@@ -1,19 +1,17 @@
-import { NextConfig } from 'next';
 import createNextIntlPlugin from 'next-intl/plugin';
+import withPWA from '@ducanh2912/next-pwa';
 
-const nextConfig: NextConfig = {
-  // Enable React Strict Mode
+const withNextIntl = createNextIntlPlugin();
+
+const nextConfig = {
   reactStrictMode: true,
 
   experimental: {
-    serverActions: {
-      // Server Actions configuration
-    },
-    optimizeCss: true, // מיטוב CSS
+    serverActions: {},
+    optimizeCss: true,
     optimizePackageImports: ['next-intl', 'lucide-react', 'framer-motion'],
   },
 
-  // Optimize images
   images: {
     domains: ['openweathermap.org'],
     formats: ['image/avif', 'image/webp'],
@@ -26,16 +24,14 @@ const nextConfig: NextConfig = {
     ],
   },
 
-  // Configure Compression
   compress: true,
-  typescript: {
-    ignoreBuildErrors: false, // Will disable errors during build only
-  },
-  
-  // Improve performance
-  poweredByHeader: false, // Remove X-Powered-By header
 
-  // Set HTTP Headers
+  typescript: {
+    ignoreBuildErrors: false,
+  },
+
+  poweredByHeader: false,
+
   async headers() {
     return [
       {
@@ -49,8 +45,14 @@ const nextConfig: NextConfig = {
       },
     ];
   },
-};
+} satisfies import('next').NextConfig;
 
-// Use the default path
-const withNextIntl = createNextIntlPlugin();
-export default withNextIntl(nextConfig);
+export default withPWA({
+  dest: 'public',
+  // disable: process.env.NODE_ENV === 'development',
+  register: true,
+  workboxOptions: {
+    skipWaiting: true,
+    clientsClaim: true,
+  },
+})(withNextIntl(nextConfig));

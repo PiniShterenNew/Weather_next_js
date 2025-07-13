@@ -20,7 +20,7 @@ export function ForecastListComponent({ forecast, cityUnit, unit }: ForecastList
 
   return (
     <div className="w-full mt-6" data-testid="forecast-list">
-      <h3 className="text-lg font-semibold mb-3" role="heading" data-testid="forecast-title">{t('forecast')}</h3>
+      <h3 className="text-lg font-semibold mb-3" role="heading" data-testid="forecast-title">{t('forecast.title')}</h3>
       <div className="grid grid-cols-5 gap-10">
         {forecast.map((day, index) => (
           <motion.div

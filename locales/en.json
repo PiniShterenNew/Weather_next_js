@@ -19,7 +19,6 @@
   "sunset": "Sunset",
   "high": "H",
   "low": "L",
-  "forecast": "5-Day Forecast",
   "exampleMessage": "Example message",
   "clickToast": "Click toast",
   "autoTimer": "Auto timer",
@@ -344,5 +343,16 @@
   "history": {
     "title": "Weather History",
     "empty": "No history yet. Add cities to see temperature changes."
+  },
+  "forecast": {
+    "title": "5-Day Forecast",
+    "daily": "Daily Forecast",
+    "hourly": "Hourly Forecast"
+  },
+  "offline": {
+    "title": "You are offline",
+    "message": "Unable to display updated weather data at the moment",
+    "availableData": "Locally stored data will be displayed when available",
+    "refresh": "Check connection"
   }
 }

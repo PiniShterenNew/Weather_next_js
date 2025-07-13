@@ -1,0 +1,47 @@
+{
+  "name": "Weather App | אפליקציית מזג אוויר",
+  "short_name": "Weather | מזג אוויר",
+  "description": "Real-time weather forecasts for selected cities worldwide | תחזיות מזג אוויר בזמן אמת לערים נבחרות ברחבי העולם",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#ffffff",
+  "theme_color": "#171717",
+  "dir": "auto",
+  "lang": "he-IL",
+  "categories": ["weather", "forecast", "utilities"],
+  "icons": [
+    {
+      "src": "/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-384x384.png",
+      "sizes": "384x384",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Add City | הוסף עיר",
+      "short_name": "Add | הוסף",
+      "description": "Add a new city to track | הוסף עיר חדשה למעקב",
+      "url": "/?action=add",
+      "icons": [{ "src": "/icons/add-city.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "Settings | הגדרות",
+      "short_name": "Settings | הגדרות",
+      "description": "Adjust app settings | התאם את הגדרות האפליקציה",
+      "url": "/?action=settings",
+      "icons": [{ "src": "/icons/settings.png", "sizes": "96x96" }]
+    }
+  ]
+}
