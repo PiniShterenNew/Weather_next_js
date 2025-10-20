@@ -1,25 +1,64 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = "file:./dev.db"
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String     @id @default(cuid())
+  clerkId     String     @unique
+  email       String?
+  name        String?
+  preferences Json?
+  userCities  UserCity[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@index([clerkId])
 }
 
 model City {
-  id                    String   @id 
-  lat                   Float
-  lon                   Float
-  cityEn                String
-  cityHe                String
-  countryEn             String
-  countryHe             String
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
+  id         String     @id @default(cuid())
+  lat        Float
+  lon        Float
+  cityEn     String
+  cityHe     String
+  countryEn  String
+  countryHe  String
+  userCities UserCity[]
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
 
   @@unique([lat, lon])
+}
+
+model UserCity {
+  id        String   @id @default(cuid())
+  userId    String
+  cityId    String
+  sortOrder Int      @default(0)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  city      City     @relation(fields: [cityId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, cityId])
+  @@index([userId])
+  @@index([cityId])
+}
+
+model PushSubscription {
+  id        String   @id @default(cuid())
+  userId    String?  // Clerk user ID if available
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([endpoint])
 }

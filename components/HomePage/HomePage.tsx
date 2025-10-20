@@ -1,15 +1,11 @@
 'use client';
 
-import { QuickCityAddModal } from '@/components/QuickAdd/QuickCityAddModal';
-import { useWeatherStore } from '@/stores/useWeatherStore';
-import SettingsModal from '@/components/Settings/SettingsModal';
-import LoadingOverlay from '@/components/LoadingOverlay';
+import { useWeatherStore } from '@/store/useWeatherStore';
 import { Suspense, useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
-import { Skeleton } from '@/components/ui/skeleton';
-import WeatherListSkeleton from '@/components/skeleton/WeatherListSkeleton';
 import CityInfoSkeleton from '../skeleton/CityInfoSkeleton';
 import EmptyPageSkeleton from '../skeleton/EmptyPageSkeleton';
+import { getWeatherBackground, isNightTime } from '@/lib/helpers';
 
 const EmptyPage = dynamic(() => import('@/components/EmptyPage/EmptyPage').then((module) => module.default), {
   loading: () => (
@@ -18,40 +14,35 @@ const EmptyPage = dynamic(() => import('@/components/EmptyPage/EmptyPage').then(
   ssr: false,
 });
 
-const AddLocation = dynamic(() => import('@/components/QuickAdd/AddLocation').then((module) => module.default), {
-  loading: () => (
-    <Skeleton className="h-10 w-full" />
-  ),
-});
 
-const WeatherList = dynamic(() => import('@/components/WeatherList/WeatherList').then((module) => module.default), {
-  loading: () => (
-    <WeatherListSkeleton />
-  ),
-  ssr: false,
-});
 
-const CityInfo = dynamic(() => import('@/components/WeatherCard/CityInfo').then((module) => module.default), {
+const SwipeableWeatherCard = dynamic(() => import('@/components/WeatherCard/SwipeableWeatherCard').then((module) => module.default), {
   loading: () => (
     <CityInfoSkeleton />
   ),
   ssr: false,
 });
 
+const CityPagination = dynamic(() => import('@/components/WeatherCard/CityPagination').then((module) => module.default), {
+  loading: () => null,
+  ssr: false,
+});
+
 
 export default function HomePage() {
   const cities = useWeatherStore((s) => s.cities);
+  const currentIndex = useWeatherStore((s) => s.currentIndex);
   const isLoading = useWeatherStore((s) => s.isLoading);
   const showToast = useWeatherStore((s) => s.showToast);
   const [isInitializing, setIsInitializing] = useState(true);
   const [hasShownSlowNetworkWarning, setHasShownSlowNetworkWarning] = useState(false);
-  const autoLocationCityId = useWeatherStore((s) => s.autoLocationCityId);
 
 
   useEffect(() => {
+    // Faster initialization for better perceived performance
     const initTimer = setTimeout(() => {
       setIsInitializing(false);
-    }, 100);
+    }, 50); // Reduced from 100ms to 50ms
 
     const slowNetworkTimer = setTimeout(() => {
       if ((isInitializing || isLoading) && !hasShownSlowNetworkWarning) {
@@ -62,7 +53,7 @@ export default function HomePage() {
           duration: 8000
         });
       }
-    }, 5000);
+    }, 3000); // Reduced from 5000ms to 3000ms for faster feedback
 
     return () => {
       clearTimeout(initTimer);
@@ -77,36 +68,42 @@ export default function HomePage() {
     }
   }, [isInitializing, isLoading, hasShownSlowNetworkWarning, showToast]);
 
+  // Get background based on current city's weather
+  const currentCity = cities[currentIndex];
+  const weatherCode = currentCity?.currentEn?.current?.codeId || 800;
+  const sunrise = currentCity?.currentEn?.current?.sunrise || 0;
+  const sunset = currentCity?.currentEn?.current?.sunset || 0;
+  const currentTime = Math.floor(Date.now() / 1000);
+  
+  const isNight = isNightTime(currentTime, sunrise, sunset);
+  const backgroundClass = getWeatherBackground(weatherCode, isNight);
+
   return (
-    <main className="min-h-screen w-full px-6 py-4 flex flex-col gap-6">
-      <div className="w-full flex justify-between items-center">
-        <div className="flex gap-2 flex-row">
-          <QuickCityAddModal />
-          {!autoLocationCityId && (
-            <AddLocation size="icon" type="icon" dataTestid="add-location-icon" />
-          )}
-        </div>
-
-        <SettingsModal />
-      </div>
-
-      <div className="w-full flex flex-row gap-6 items-start">
-        {cities.length > 0 && (
+    <div className={`h-full bg-cover bg-center bg-no-repeat transition-all duration-1000 ${backgroundClass}`}>
+      <div className="h-full flex flex-col container mx-auto max-w-sm md:max-w-md lg:max-w-lg xl:max-w-2xl 2xl:max-w-4xl px-2 md:px-4 xl:px-6 pt-2">
+        {isLoading && (
+          <div data-testid="loading-overlay" className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 flex items-center justify-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+          </div>
+        )}
+        {cities.length > 0 ? (
           <>
-            <div className="w-1/4">
-              <WeatherList />
-            </div>
-            <div className="w-3/4 flex flex-col gap-6">
+            {/* Weather Card - Takes remaining space minus pagination */}
+            <div className="flex-1 min-h-0 mb-2" data-testid="weather-list">
               <Suspense>
-                <CityInfo />
+                <SwipeableWeatherCard />
               </Suspense>
             </div>
+            
+            {/* Pagination - Fixed at Bottom */}
+            <div className="flex-shrink-0">
+              <CityPagination />
+            </div>
           </>
+        ) : (
+          <EmptyPage />
         )}
-        {!cities.length && <EmptyPage />}
       </div>
-
-      <LoadingOverlay isLoading={isInitializing || isLoading} />
-    </main>
+    </div>
   );
 }

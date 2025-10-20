@@ -6,6 +6,7 @@ import reactHooks from 'eslint-plugin-react-hooks';
 import tseslint from '@typescript-eslint/eslint-plugin';
 import tsparser from '@typescript-eslint/parser';
 import prettier from 'eslint-config-prettier';
+import nextPlugin from '@next/eslint-plugin-next';
 
 /** @type {import('eslint').Linter.FlatConfig[]} */
 export default [
@@ -21,9 +22,20 @@ export default [
       '*.config.cjs',
       '*.config.mjs',
       'e2e/**',
+      'public/**/*.js',
     ],
   },
   js.configs.recommended,
+  // Next.js plugin rules (Core Web Vitals)
+  {
+    files: ['**/*.{js,jsx,ts,tsx}'],
+    plugins: {
+      '@next/next': nextPlugin,
+    },
+    rules: {
+      ...nextPlugin.configs['core-web-vitals'].rules,
+    },
+  },
   {
     files: ['**/*.ts', '**/*.tsx'],
     languageOptions: {

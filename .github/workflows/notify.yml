@@ -1,0 +1,19 @@
+name: Send Notifications
+
+on:
+  schedule:
+    - cron: "0 * * * *" # כל שעה בדיוק
+  workflow_dispatch:     # מאפשר להריץ גם ידנית
+
+jobs:
+  send-notifications:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call Vercel API to dispatch notifications
+        run: |
+          curl -X POST "http://localhost:3000/api/notifications/dispatch" \
+          -H "Authorization: Bearer ${{ secrets.API_SECRET }}" \
+          -H "Content-Type: application/json"
+
+
+# https://wheather-next-js.vercel.app/api/notifications/dispatch

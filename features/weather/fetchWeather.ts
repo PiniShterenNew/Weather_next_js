@@ -33,16 +33,23 @@ export const fetchWeather = cache(async ({
   country
 }: FetchWeatherInput): Promise<CityWeather> => {
   try {
+    // Create AbortController for timeout handling
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 12000); // 12 second timeout
+
     const response = await fetch(
       `/api/weather?lat=${lat}&lon=${lon}&unit=${unit}${id ? `&id=${id}` : ''}`,
       {
         // Cache for 30 minutes - weather data doesn't change very frequently
-        next: { revalidate: 1800 }
+        next: { revalidate: 1800 },
+        signal: controller.signal
       }
     );
+
+    clearTimeout(timeoutId);
     
     if (!response.ok) {
-      throw new Error('Failed to fetch weather');
+      throw new Error(`Failed to fetch weather: ${response.status}`);
     }
 
     const data = await response.json();
@@ -53,7 +60,10 @@ export const fetchWeather = cache(async ({
       ...(name && { name }),
       ...(country && { country })
     };
-  } catch {
-    throw new Error('Failed to fetch weather data');
+  } catch (error) {
+    if (error instanceof Error && error.name === 'AbortError') {
+      throw new Error('Weather fetch timeout');
+    }
+    throw new Error(`Failed to fetch weather data: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 });

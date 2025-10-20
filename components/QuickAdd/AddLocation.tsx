@@ -1,11 +1,14 @@
-import { useWeatherStore } from "@/stores/useWeatherStore";
+import { useWeatherStore } from "@/store/useWeatherStore";
 import { Button, ButtonProperties } from "../ui/button";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
+import { useRouter, usePathname } from "@/i18n/navigation";
 import { TemporaryUnit } from "@/types/ui";
 import { fetchReverse } from "@/features/weather/fetchReverse";
 import { fetchWeather } from "@/features/weather";
 import { motion } from "framer-motion";
 import { WeatherIcon } from "../WeatherIcon/WeatherIcon";
+import { getDirection } from "@/lib/intl";
+import { AppLocale } from "@/types/i18n";
 
 type Properties = {
     size: ButtonProperties['size'];
@@ -14,15 +17,21 @@ type Properties = {
 }
 
 export default function AddLocation({ size, type, dataTestid }: Properties) {
-    const { autoLocationCityId, setIsLoading, showToast, addOrReplaceCurrentLocation, unit, locale } = useWeatherStore();
+    const { cities, setIsLoading, showToast, addOrReplaceCurrentLocation, unit, locale } = useWeatherStore();
+    const router = useRouter();
+    const pathname = usePathname();
     const t = useTranslations();
     const { setOpen } = useWeatherStore();
+    const currentLocale = useLocale() as AppLocale;
+    const direction = getDirection(currentLocale);
+    const isAddCityPage = pathname === '/add-city';
 
     function getCurrentPositionAsync(): Promise<GeolocationPosition> {
         return new Promise((resolve, reject) => {
             navigator.geolocation.getCurrentPosition(resolve, reject, {
-                enableHighAccuracy: false,
-                timeout: 10_000,
+                enableHighAccuracy: false, // Faster, less accurate
+                maximumAge: 60000, // Use cached position if less than 1 minute old
+                timeout: 5000, // Reduced from 10 seconds to 5 seconds
             });
         });
     }
@@ -72,6 +81,11 @@ export default function AddLocation({ size, type, dataTestid }: Properties) {
                 values: { name: completeWeatherData.name[locale] },
             });
 
+            // Navigate to home page if on add-city page
+            if (isAddCityPage) {
+                router.push('/');
+            }
+
         } catch {
             showToast({ message: 'errors.fetchLocationWeather', type: 'error' });
         } finally {
@@ -87,8 +101,9 @@ export default function AddLocation({ size, type, dataTestid }: Properties) {
             title={t('search.currentLocation')}
             data-testid={dataTestid}
             aria-label={t('search.currentLocation')}
-            disabled={autoLocationCityId !== undefined}
+            disabled={cities.some(city => city.isCurrentLocation === true)}
             className="shadow-sm rounded-full hover:bg-primary/10 transition-colors"
+            dir={direction}
             asChild
         >
             <motion.button

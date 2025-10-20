@@ -11,7 +11,7 @@ import { cache } from 'react';
  * @param lang - Language code (he/en)
  * @returns Promise with array of city suggestions
  */
-export const fetchSuggestions = cache(async (
+const fetchSuggestionsImpl = cache(async (
   query: string, 
   lang: AppLocale = 'he'
 ): Promise<CitySuggestion[]> => {
@@ -36,3 +36,6 @@ export const fetchSuggestions = cache(async (
     return [];
   }
 });
+
+export default fetchSuggestionsImpl;
+export { fetchSuggestionsImpl as fetchSuggestions };

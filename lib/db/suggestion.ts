@@ -18,23 +18,47 @@ export async function findCityById(id: string): Promise<FullCityEntryServer | nu
 }
 
 export async function findCitiesByQuery(query: string): Promise<FullCityEntryServer[]> {
-  const cities = await prisma.city.findMany({
+  const cleanQuery = query.trim();
+  
+  // Search for cities that start with the query (case insensitive)
+  const results = await prisma.city.findMany({
     where: {
       OR: [
-        { cityHe: { contains: query } },
-        { cityEn: { contains: query } },
+        { cityHe: { startsWith: cleanQuery, mode: 'insensitive' } },
+        { cityEn: { startsWith: cleanQuery, mode: 'insensitive' } },
       ],
     },
-    take: 5,
+    // Prioritize exact matches and sort by relevance
+    orderBy: [
+      // First, prioritize exact name matches
+      { cityEn: 'asc' },
+      { cityHe: 'asc' },
+      // Then by country to group similar cities
+      { countryEn: 'asc' },
+    ],
+    take: 8,
   });
 
-  return cities.map((c) => ({
-    id: c.id,
-    lat: c.lat,
-    lon: c.lon,
-    city: { en: c.cityEn, he: c.cityHe },
-    country: { en: c.countryEn, he: c.countryHe },
-  }));
+  // Remove duplicates based on coordinates (same city, different names)
+  const uniqueResults = new Map<string, typeof results[0]>();
+  
+  for (const city of results) {
+    const coordKey = `${city.lat.toFixed(1)},${city.lon.toFixed(1)}`;
+    if (!uniqueResults.has(coordKey)) {
+      uniqueResults.set(coordKey, city);
+    }
+  }
+
+  // Convert to output format and limit to 5 results
+  return Array.from(uniqueResults.values())
+    .slice(0, 5)
+    .map((c) => ({
+      id: c.id,
+      lat: c.lat,
+      lon: c.lon,
+      city: { en: c.cityEn, he: c.cityHe },
+      country: { en: c.countryEn, he: c.countryHe },
+    }));
 }
 
 export async function saveCityToDatabase(city: {
@@ -44,8 +68,17 @@ export async function saveCityToDatabase(city: {
   city: { en: string; he: string };
   country: { en: string; he: string };
 }): Promise<FullCityEntryServer> {
-  const saved = await prisma.city.create({
-    data: {
+  const saved = await prisma.city.upsert({
+    where: { id: city.id },
+    update: {
+      lat: city.lat,
+      lon: city.lon,
+      cityEn: city.city.en,
+      cityHe: city.city.he,
+      countryEn: city.country.en,
+      countryHe: city.country.he,
+    },
+    create: {
       id: city.id,
       lat: city.lat,
       lon: city.lon,

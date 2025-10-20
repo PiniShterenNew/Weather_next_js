@@ -23,6 +23,7 @@ export interface OpenWeatherForecastItem {
     deg: number;
   };
   visibility: number;
+  pop?: number; // Probability of precipitation (0-1)
   sys?: {
     pod: string;
   };
@@ -45,4 +46,23 @@ export interface GeoAPIResult {
     offset_STD: string;
   };
   result_type?: string;
+}
+
+// OneCall API response types
+export interface OneCallResponse {
+  current?: {
+    uvi?: number; // UV Index
+    // Other fields from OneCall API
+    temp?: number;
+    feels_like?: number;
+    humidity?: number;
+    wind_speed?: number;
+    wind_deg?: number;
+    pressure?: number;
+    visibility?: number;
+    clouds?: number;
+    sunrise?: number;
+    sunset?: number;
+    timezone?: number;
+  };
 }
