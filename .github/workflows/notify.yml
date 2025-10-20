@@ -11,7 +11,7 @@ jobs:
     steps:
       - name: Call Vercel API to dispatch notifications
         run: |
-          curl -X POST "http://localhost:3000/api/notifications/dispatch" \
+          curl -X POST "https://wheather-next-js.vercel.app/api/notifications/dispatch" \
           -H "Authorization: Bearer ${{ secrets.API_SECRET }}" \
           -H "Content-Type: application/json"
 
