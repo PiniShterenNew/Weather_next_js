@@ -1,13 +1,31 @@
 // app/api/weather/route.ts
 // /api/weather?lat=43.6511&lon=-79.3832&name=undefined&country=undefined&unit=metric
+
+export const runtime = 'nodejs';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { getWeatherByCoords } from '@/lib/helpers';
 import { CityWeather } from '@/types/weather';
 import { getCachedWeather, getCacheStats, setCachedWeather } from '@/lib/weatherCache';
 import { findCityById } from '@/lib/db/suggestion';
 import { logger, NotFoundError, ExternalApiError } from '@/lib/errors';
+import { findMatchingLimiter, getErrorMessage, getRequestIP } from '@/lib/simple-rate-limiter';
 
 export async function GET(request: NextRequest) {
+  // Apply rate limiting
+  const ip = getRequestIP(request);
+  const limiter = findMatchingLimiter('/api/weather');
+  
+  try {
+    await limiter.consume(ip);
+  } catch {
+    const locale = request.nextUrl.pathname.includes('/en') ? 'en' : 'he';
+    return NextResponse.json(
+      { error: getErrorMessage(locale) },
+      { status: 429, headers: { 'Retry-After': '60' } }
+    );
+  }
+
   const { searchParams } = new URL(request.url);
   const lat = searchParams.get('lat');
   const lon = searchParams.get('lon');
@@ -48,16 +66,16 @@ export async function GET(request: NextRequest) {
     // Fetch from external API
     try {
       const { he, en } = await getWeatherByCoords({
-        lat: existing.lat,
-        lon: existing.lon,
+        lat: parseFloat(lat),
+        lon: parseFloat(lon),
         name: existing.city,
         country: existing.country
       });
 
       const result: CityWeather = {
         id: existing.id,
-        lat: existing.lat,
-        lon: existing.lon,
+        lat: parseFloat(lat),
+        lon: parseFloat(lon),
         name: existing.city,
         country: existing.country,
         currentHe: he,

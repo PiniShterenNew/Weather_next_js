@@ -1,7 +1,7 @@
 'use client';
 
 import { weatherIconMapLight, weatherIconMapDark } from '@/lib/weatherIconMap';
-import { useWeatherStore } from '@/stores/useWeatherStore';
+import { useWeatherStore } from '@/store/useWeatherStore';
 import Image from 'next/image';
 
 type Properties = {
@@ -25,9 +25,8 @@ export function WeatherIcon({
 }: Properties) {
   const theme = useWeatherStore((s) => s.theme);
 
-  const basePath = `/${theme === 'dark' ? 'dark' : 'light'}`;
   const iconSrc = icon
-    ? `${basePath}/${icon}.svg`
+    ? `/weather-icons/${theme === 'dark' ? 'dark' : 'light'}/${icon}.svg`
     : (theme === 'dark' ? weatherIconMapDark[code || ''] : weatherIconMapLight[code || '']) ||
       (theme === 'dark' ? weatherIconMapDark.default : weatherIconMapLight.default);
 

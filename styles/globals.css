@@ -3,6 +3,7 @@
 @tailwind utilities;
 
 @theme inline {
+  --color-background_page: var(--background_page);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-sans);
@@ -10,34 +11,82 @@
 
 @layer base {
   :root {
-    --font-sans: var(--font-sans);
+    --font-sans: var(--font-sans), -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Arial', sans-serif;
 
-    --background_page: 0 0% 96%;
-    --background: 210 25% 97%;
-    --foreground: 210 15% 15%;
+    /* brand (blue) */
+    --brand-50: 210 100% 97%;
+    --brand-100: 210 95% 92%;
+    --brand-200: 210 95% 85%;
+    --brand-300: 210 92% 75%;
+    --brand-400: 210 88% 65%;
+    --brand-500: 210 83% 53%;
+    --brand-600: 210 75% 46%;
+    --brand-700: 210 70% 39%;
+    --brand-800: 210 65% 32%;
+    --brand-900: 210 60% 25%;
+
+    /* surfaces */
+    --bg-page: 0 0% 100%;
+    --bg: 0 0% 100%;
+    --fg: 222 84% 5%;
     --card: 0 0% 100%;
-    --card-foreground: 220 15% 15%;
-    --popover: 210 20% 98%;
-    --popover-foreground: 210 15% 15%;
-    --primary: 210 90% 40%;
-    --primary-foreground: 210 20% 98%;
-    --secondary: 210 15% 92%;
-    --secondary-foreground: 210 15% 18%;
-    --muted: 210 15% 94%;
-    --muted-foreground: 210 10% 40%;
-    --accent: 200 80% 88%;
-    --accent-foreground: 210 20% 18%;
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 210 20% 98%;
-    --border: 210 15% 87%;
-    --input: 210 15% 90%;
-    --ring: 210 90% 45%;
-    --chart-1: 200 85% 65%;
-    --chart-2: 170 70% 50%;
-    --chart-3: 45 85% 70%;
+    --card-fg: 222 84% 5%;
+    --muted: 215 16% 90%;
+    --muted-fg: 215 16% 35%;
+    --border: 214 32% 91%;
+    --ring: var(--brand-500);
+
+    /* states */
+    --success: 142 76% 36%;
+    --warning: 38 92% 50%;
+    --danger: 0 84% 60%;
+
+    /* shape & motion */
+    --radius: 16px;
+    --shadow-1: 0 1px 2px hsl(0 0% 0%/0.06);
+    --shadow-2: 0 8px 24px hsl(220 40% 2%/0.08);
+    --shadow-floating: 0 8px 30px rgb(0 0 0 / 0.12);
+    --shadow-elevated: 0 10px 40px rgb(0 0 0 / 0.15);
+    
+    /* Weather gradients */
+    --gradient-clear-day: linear-gradient(to bottom, #4A90E2, #87CEEB, #B0E0E6);
+    --gradient-clear-night: linear-gradient(to bottom, #0B1026, #1B2A4E, #2D3E5F);
+    --gradient-cloudy-day: linear-gradient(to bottom, #7C8B9E, #A8B8C8, #C9D6DF);
+    --gradient-cloudy-night: linear-gradient(to bottom, #1B2530, #2C3E50, #4A5D6F);
+    --gradient-rainy-day: linear-gradient(to bottom, #5F7A95, #6B8CAE, #7FA5C7);
+    --gradient-rainy-night: linear-gradient(to bottom, #1E2A3A, #34495E, #4B6584);
+    --gradient-snowy-day: linear-gradient(to bottom, #D4E4F7, #E8F4F8, #F0F8FF);
+    --gradient-snowy-night: linear-gradient(to bottom, #2C3E50, #34495E, #5D6D7E);
+    --gradient-foggy-day: linear-gradient(to bottom, #B8C5D6, #CFD8DC, #ECEFF1);
+    --gradient-foggy-night: linear-gradient(to bottom, #263238, #37474F, #546E7A);
+    
+    /* Temperature gradients for city cards */
+    --grad-hot: linear-gradient(135deg, #FFB75E 0%, #ED8F03 100%);
+    --grad-warm: linear-gradient(135deg, #FFA751 0%, #FFE259 100%);
+    --grad-mild: linear-gradient(135deg, #56CCF2 0%, #2F80ED 100%);
+    --grad-cool: linear-gradient(135deg, #6DD5FA 0%, #2980B9 100%);
+    --grad-cold: linear-gradient(135deg, #00C6FB 0%, #005BEA 100%);
+
+    /* legacy compatibility */
+    --background_page: var(--bg-page);
+    --background: var(--bg);
+    --foreground: var(--fg);
+    --card-foreground: var(--card-fg);
+    --muted-foreground: var(--muted-fg);
+    --primary: var(--brand-500);
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222 84% 5%;
+    --accent: 188 94% 43%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: var(--danger);
+    --destructive-foreground: 210 40% 98%;
+    --input: 214 32% 91%;
+    --chart-1: var(--brand-500);
+    --chart-2: 188 94% 43%;
+    --chart-3: 45 93% 47%;
     --chart-4: 30 80% 65%;
     --chart-5: 260 75% 65%;
-    --radius: 0.5rem;
   }
 
   /* html[lang='he'] {
@@ -45,40 +94,410 @@
   } */
 
   .dark {
-    --background_page: 220 15% 8%;
-    --background: 220 15% 8%;
-    --foreground: 210 20% 92%;
-    --card: 220 10% 14%;
-    --card-foreground: 210 15% 85%;
-    --popover: 220 15% 10%;
-    --popover-foreground: 210 20% 92%;
-    --primary: 200 80% 60%;
-    --primary-foreground: 220 15% 8%;
-    --secondary: 220 10% 18%;
-    --secondary-foreground: 210 20% 92%;
-    --muted: 220 10% 16%;
-    --muted-foreground: 210 15% 75%;  
-    --accent: 200 70% 25%;
-    --accent-foreground: 210 20% 92%;
+    --bg-page: 222 13% 10%;
+    --bg: 222 13% 12%;
+    --fg: 0 0% 98%;
+    --card: 222 13% 14%;
+    --card-fg: 0 0% 98%;
+    --muted: 220 9% 22%;
+    --muted-fg: 220 9% 70%;
+    --border: 220 9% 22%;
+    --ring: var(--brand-400);
+
+    /* legacy compatibility */
+    --background_page: var(--bg-page);
+    --background: var(--bg);
+    --foreground: var(--fg);
+    --card-foreground: var(--card-fg);
+    --muted-foreground: var(--muted-fg);
+    --primary: var(--brand-400);
+    --primary-foreground: 222 84% 5%;
+    --secondary: 217 32% 17%;
+    --secondary-foreground: 210 40% 98%;
+    --accent: 188 94% 43%;
+    --accent-foreground: 222 84% 5%;
     --destructive: 0 75% 55%;
-    --destructive-foreground: 210 20% 92%;
-    --border: 220 10% 20%;
-    --input: 220 10% 18%;
-    --ring: 200 80% 60%;
-    --chart-1: 200 70% 55%;
-    --chart-2: 170 60% 45%;
-    --chart-3: 45 75% 60%;
-    --chart-4: 30 70% 55%;
-    --chart-5: 260 65% 55%;
+    --destructive-foreground: 210 40% 98%;
+    --input: 217 32% 17%;
+    --ring: var(--brand-400);
+    --chart-1: var(--brand-400);
+    --chart-2: 188 94% 43%;
+    --chart-3: 45 93% 47%;
+    --chart-4: 30 80% 65%;
+    --chart-5: 260 75% 65%;
   }
 }
 
 @layer base {
   * {
-    @apply border-border;
+    @apply !border-border m-0 p-0;
+  }
+
+  html {
+    scroll-behavior: smooth;
   }
 
   body {
-    @apply bg-background_page text-foreground font-sans;
+    @apply font-sans text-foreground bg-card md:bg-background_page;
+    font-feature-settings: "rlig" 1, "calt" 1;
+    /* Optimized line-height for Hebrew */
+    line-height: 1.6;
+    /* Prevent scroll chaining on mobile */
+    overscroll-behavior: contain;
+  }
+
+  /* Typography Scale - Mobile-first, Hebrew-optimized */
+  .display {
+    @apply text-[32px] font-bold;
+    line-height: 1.2;
+  }
+
+  h1 {
+    @apply text-2xl font-bold;
+    line-height: 1.3;
+  }
+
+  h2 {
+    @apply text-xl font-semibold;
+    line-height: 1.35;
+  }
+
+  h3 {
+    @apply text-lg font-semibold;
+    line-height: 1.4;
+  }
+
+  .body {
+    @apply text-base font-normal;
+    line-height: 1.6;
+  }
+
+  .caption {
+    @apply text-sm font-normal;
+    line-height: 1.5;
+  }
+
+  /* Mobile-specific scaling - 20% larger text and buttons */
+  @media (max-width: 767px) {
+    /* Increase base font sizes by 20% */
+    body {
+      font-size: 1.05rem;
+    }
+
+    .display {
+      font-size: 2.4rem;
+    }
+
+    h1 {
+      font-size: 1.8rem;
+    }
+
+    h2 {
+      font-size: 1.5rem;
+    }
+
+    h3 {
+      font-size: 1.32rem;
+    }
+
+    p, span, div {
+      font-size: 1.05rem;
+    }
+
+    .text-xs {
+      font-size: 0.84rem;
+    }
+
+    .text-sm {
+      font-size: 0.98rem;
+    }
+
+    .text-base {
+      font-size: 1.05rem;
+    }
+
+    .text-lg {
+      font-size: 1.26rem;
+    }
+
+    .text-xl {
+      font-size: 1.44rem;
+    }
+
+    .text-2xl {
+      font-size: 1.8rem;
+    }
+
+    .text-3xl {
+      font-size: 2.16rem;
+    }
+
+    .text-4xl {
+      font-size: 2.64rem;
+    }
+
+    .text-5xl {
+      font-size: 3.6rem;
+    }
+
+    /* Increase button sizes */
+    button, .button, [role="button"] {
+      padding-top: 0.6rem;
+      padding-bottom: 0.6rem;
+      padding-left: 1.08rem;
+      padding-right: 1.08rem;
+      font-size: 1.05rem;
+    }
+
+    /* Icon buttons */
+    button[class*="icon"], button.h-8 {
+      width: 2.4rem;
+      height: 2.4rem;
+    }
+
+    button[class*="icon"] svg, button.h-8 svg {
+      width: 1.2rem;
+      height: 1.2rem;
+    }
+  }
+
+  /* Hebrew-specific line-height adjustments */
+  [dir="rtl"] body,
+  [dir="rtl"] .body {
+    line-height: 1.7;
+  }
+
+  [dir="rtl"] h1,
+  [dir="rtl"] h2,
+  [dir="rtl"] h3 {
+    line-height: 1.5;
+  }
+
+  /* Numbers with tabular-nums */
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Weather specific typography */
+  .weather-temp {
+    @apply text-6xl font-light tracking-tight tabular-nums;
+  }
+
+  .weather-temp-small {
+    @apply text-4xl font-light tracking-tight tabular-nums;
+  }
+
+  .weather-description {
+    @apply text-lg font-medium text-muted-foreground;
+  }
+
+  .weather-details {
+    @apply text-sm font-medium tabular-nums;
+  }
+
+  .weather-label {
+    @apply text-xs font-semibold uppercase tracking-wider text-muted-foreground;
+  }
+}
+
+@layer utilities {
+
+  /* Skeleton shimmer */
+  .skeleton-shimmer {
+    background: linear-gradient(90deg, 
+      hsl(var(--muted)) 25%, 
+      hsl(var(--muted) / 0.5) 50%, 
+      hsl(var(--muted)) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1400ms linear infinite;
+  }
+
+  @keyframes shimmer {
+    0% {
+      background-position: -200% 0;
+    }
+    100% {
+      background-position: 200% 0;
+    }
+  }
+
+  /* Focus ring for accessibility - WCAG 2.2 compliant */
+  .focus-ring {
+    @apply outline-none focus-visible:ring-2 focus-visible:ring-brand-500;
+  }
+
+  /* Focus ring on light backgrounds */
+  .focus-ring:focus-visible {
+    ring-offset-width: 2px;
+    ring-offset-color: hsl(var(--bg-page));
+  }
+
+  /* Focus ring on dark backgrounds */
+  .dark .focus-ring:focus-visible {
+    ring-offset-width: 1px;
+    ring-offset-color: hsl(var(--bg-page));
+  }
+
+  /* Hover states - only on devices that support hover */
+  @media (hover: hover) {
+    .motion-hover {
+      transition: transform 200ms ease-out;
+    }
+
+    .motion-hover:hover {
+      transform: scale(1.02);
+    }
+  }
+
+  /* Touch feedback for mobile */
+  @media (hover: none) {
+    .motion-hover:active {
+      transform: scale(0.98);
+      transition: transform 100ms ease-out;
+    }
+  }
+
+  /* Loading animation */
+  .loading-pulse {
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.5;
+    }
+  }
+
+  /* Refresh button rotation */
+  .refresh-rotate {
+    animation: rotate 1s linear infinite;
+  }
+
+  @keyframes rotate {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+
+  /* Toast positioning fix */
+  .toast-container {
+    top: 0.5rem !important;
+    margin-top: 0rem !important;
+  }
+
+  /* Glassmorphism utilities */
+  .glass-light {
+    @apply bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm;
+  }
+
+  .glass-dark {
+    @apply bg-gray-700/70 dark:bg-gray-900/70 backdrop-blur-sm;
+  }
+
+  .glass-card {
+    @apply bg-white/70 dark:bg-gray-800/70 backdrop-blur-md;
+  }
+
+  .glass-header {
+    @apply bg-white/70 dark:bg-gray-700/70 backdrop-blur-sm;
+  }
+
+  .glass-footer {
+    @apply bg-white/70 dark:bg-gray-800/70 backdrop-blur-md border-t border-gray-200 dark:border-gray-700;
+  }
+
+  /* Background overlay for content */
+  .glass-overlay {
+    @apply bg-black/10 dark:bg-black/30;
+  }
+
+  /* Micro-animations */
+
+
+  /* Hover effects */
+  .hover-lift {
+    transition: transform 0.2s ease-out;
+  }
+
+  @media (hover: hover) {
+    .hover-lift:hover {
+      transform: translateY(-1px);
+    }
+  }
+
+  .hover-scale {
+    transition: transform 0.2s ease-out;
+  }
+
+  @media (hover: hover) {
+    .hover-scale:hover {
+      transform: scale(1.05);
+    }
+  }
+
+  /* Press effect for mobile */
+  @media (hover: none) {
+    .hover-lift:active,
+    .hover-scale:active {
+      transform: scale(0.98);
+      transition: transform 0.1s ease-out;
+    }
+  }
+
+  /* Smooth scrolling utilities */
+  .scroll-smooth {
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Hide scrollbar but keep functionality */
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  /* Custom scrollbar styling */
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: hsl(var(--muted) / 0.3);
+    border-radius: 3px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: hsl(var(--muted-fg) / 0.5);
+    border-radius: 3px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-fg) / 0.7);
+  }
+
+  /* Prevent swipe conflict - hide forecast scrollbars */
+  .forecast-scroll {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .forecast-scroll::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Prevent overscroll bounce on mobile */
+  .overscroll-contain {
+    overscroll-behavior: contain;
   }
 }

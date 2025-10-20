@@ -5,8 +5,9 @@ import { CityWeather } from '@/types/weather';
  * Time constants for cache management
  */
 const THREE_HOURS_IN_MS = 3 * 60 * 60 * 1000;
-const MAX_CACHE_SIZE = 100;
-const CLEANUP_INTERVAL_MS = 15 * 60 * 1000;
+const ONE_HOUR_IN_MS = 60 * 60 * 1000; // Faster refresh for better UX
+const MAX_CACHE_SIZE = 150; // Increased cache size
+const CLEANUP_INTERVAL_MS = 10 * 60 * 1000; // More frequent cleanup
 
 /**
  * In-memory storage for weather cache
@@ -32,10 +33,14 @@ function cleanupCache(): void {
 
   lastCleanupTime = now;
 
-  // Remove expired entries (older than 3 hours)
+  // Remove expired entries (older than 3 hours, but prefer 1 hour for better UX)
   Object.keys(weatherCache).forEach(id => {
     const entry = weatherCache[id];
-    if (now - entry.timestamp > THREE_HOURS_IN_MS) {
+    const age = now - entry.timestamp;
+    // Remove entries older than 3 hours, or 1 hour if cache is getting full
+    const shouldRemove = age > THREE_HOURS_IN_MS || 
+                        (Object.keys(weatherCache).length > MAX_CACHE_SIZE * 0.8 && age > ONE_HOUR_IN_MS);
+    if (shouldRemove) {
       delete weatherCache[id];
     }
   });
@@ -67,8 +72,15 @@ export function getCachedWeather(id: string): CityWeather | null {
   const entry = weatherCache[id];
   if (!entry) return null;
 
-  const isFresh = Date.now() - entry.timestamp < THREE_HOURS_IN_MS;
-  return isFresh ? entry.data : null;
+  const age = Date.now() - entry.timestamp;
+  // Consider fresh if less than 3 hours
+  const isFresh = age < THREE_HOURS_IN_MS;
+  
+  // Return data if fresh
+  if (isFresh) {
+    return entry.data;
+  }
+  return null;
 }
 
 /**

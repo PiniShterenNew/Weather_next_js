@@ -1,7 +1,19 @@
 {
+  "app": {
+    "title": "Weather App"
+  },
   "loading": "Loading...",
   "refresh": "Refresh",
   "remove": "Remove",
+  "navigation": {
+    "cities": "Cities",
+    "add": "Add City",
+    "location": "Location",
+    "settings": "Settings",
+    "weather": "Weather",
+    "profile": "Profile",
+    "back": "Back"
+  },
   "yourTime": "Your Time",
   "prev": "Previous",
   "next": "Next",
@@ -15,6 +27,7 @@
   "visibility": "Visibility",
   "clouds": "Clouds",
   "uvIndex": "UV Index",
+  "rainProbability": "Rain Chance",
   "sunrise": "Sunrise",
   "sunset": "Sunset",
   "high": "H",
@@ -34,6 +47,14 @@
   },
   "search": {
     "placeholder": "Search for a city",
+    "recentSearches": "Recent Searches",
+    "addNewCity": "Add New City",
+    "addNewCityDescription": "Search for a city or use your current location",
+    "useCurrentLocation": "Use Current Location",
+    "categories": {
+      "popular": "Popular Cities",
+      "nearby": "Nearby Cities"
+    },
     "currentLocation": "Use current location",
     "addCurrentLocation": "Add current location",
     "quickAdd": "Quick Add",
@@ -51,7 +72,8 @@
     "startTyping": "Start typing to search",
     "search": "Search",
     "clear": "Clear",
-    "loading": "Loading..."
+    "loading": "Loading...",
+    "localTime": "Local"
   },
   "popular": {
     "title": "Popular Cities",
@@ -67,10 +89,6 @@
       "berlin": "Berlin",
       "moscow": "Moscow"
     }
-  },
-  "common": {
-    "close": "Close",
-    "title": "Common"
   },
   "unit": {
     "celsius": "°C",
@@ -308,31 +326,72 @@
     "lastUpdated": "Last updated {time} ago"
   },
   "toasts": {
-    "added": "City added",
-    "refreshed": "City refreshed",
-    "exists": "City already exists",
+    "added": "City {city} added successfully",
+    "refreshed": "City {city} refreshed",
+    "exists": "City {city} already exists in the list",
     "error": "Something went wrong",
-    "locationAdded": "Added {name} based on your location.",
-    "maxCities": "You can only add {maxCities} cities.",
-    "slowNetwork": "It seems like the internet connection is slow. Please check your network connection or try moving to a different location.",
-    "slowNetworkShort": "Slow internet connection detected. Please check your network."
+    "locationAdded": "Added {name} based on your location",
+    "maxCities": "You can only add {maxCities} cities",
+    "slowNetwork": "It seems like the internet connection is slow. Please check your network connection or try moving to a different location",
+    "slowNetworkShort": "Slow internet connection detected. Please check your network",
+    "removed": "City {city} removed",
+    "fetchWeather": "Error loading weather data",
+    "cityDeleted": "City {city} deleted",
+    "cityRestored": "City {city} restored",
+    "cannotDeleteCurrentLocation": "Cannot delete current location"
+  },
+  "common": {
+    "close": "Close",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "save": "Save",
+    "undo": "Undo",
+    "edit": "Edit",
+    "delete": "Delete",
+    "loadMore": "Load More"
   },
   "errors": {
     "fetchWeather": "Could not fetch weather.",
+    "networkError": "Network error. Please check your connection and try again.",
     "geolocationNotSupported": "Geolocation is not supported by your browser.",
     "fetchLocationWeather": "Could not fetch weather for your current location.",
-    "geolocationDenied": "Geolocation access was denied. Please enable it in your browser settings."
+    "geolocationDenied": "Geolocation access was denied. Please enable it in your browser settings.",
+    "rateLimit": "Rate limit exceeded. Please try again later.",
+    "rateLimitDetailed": "You've made too many requests. Please wait a moment before trying again."
   },
   "settings": {
     "title": "Settings",
-    "description": "Adjust application settings",
+    "description": "Manage your preferences and app settings",
     "close": "Close",
     "theme": "Theme",
     "language": "Language",
-    "unit": "Unit"
+    "languageDescription": "Choose your preferred language",
+    "themeDescription": "Choose light, dark, or system theme",
+    "unit": "Unit",
+    "temperatureUnit": "Temperature Unit",
+    "temperatureUnitDescription": "Choose Celsius or Fahrenheit",
+    "dataManagement": "Data Management",
+    "clearCache": "Clear Cache",
+    "clearCacheDescription": "Clear all locally cached data",
+    "clearCacheTitle": "Clear Cache",
+    "confirmClearCache": "Are you sure you want to clear all locally stored data? This will remove all cached information.",
+    "clear": "Clear",
+    "resetStore": "Reset All Data",
+    "resetStoreDescription": "Reset all settings and cities to default",
+    "resetStoreTitle": "Complete Reset",
+    "confirmReset": "Are you sure you want to reset all data? This will delete all your preferences, cities, and settings. This action cannot be undone.",
+    "reset": "Reset",
+    "cacheCleared": "Cache cleared successfully",
+    "storeReset": "All data has been reset",
+    "account": "Account",
+    "signOutDescription": "Sign out of your account",
+    "accountDetails": "Account Details",
+    "unitChanged": "Temperature unit changed to {unit}",
+    "languageChanged": "Language changed to {language}",
+    "themeChanged": "Theme changed to {theme}"
   },
   "language": {
-    "he": "Hebrew",
+    "he": "עברית",
     "en": "English"
   },
   "theme": {
@@ -354,5 +413,132 @@
     "message": "Unable to display updated weather data at the moment",
     "availableData": "Locally stored data will be displayed when available",
     "refresh": "Check connection"
+  },
+  "cities": {
+    "empty": {
+      "title": "No cities added",
+      "description": "Add your first city to start seeing weather information",
+      "addFirstCity": "Add first city"
+    },
+    "savedCities": "My Cities",
+    "viewWeather": "View weather for",
+    "compactView": "Compact View",
+    "searchPlaceholder": "Search your cities",
+    "currentLocation": "Current Location",
+    "nowShowing": "Now Showing",
+    "swipeToDelete": "Swipe to delete",
+    "cityDeleted": "{city} deleted",
+    "available": "available"
+  },
+  "auth": {
+    "signIn": "Sign In",
+    "signOut": "Sign Out",
+    "signUp": "Sign Up",
+    "signInWithGoogle": "Sign in with Google",
+    "signInWithApple": "Sign in with Apple",
+    "signUpWithGoogle": "Sign up with Google",
+    "signUpWithApple": "Sign up with Apple",
+    "loginDescription": "Sign in to save your preferences and access them from any device",
+    "signUpDescription": "Create an account to save your weather preferences across devices",
+    "termsAgreement": "By signing in, you agree to our Terms of Service and Privacy Policy",
+    "profile": "Profile",
+    "profileDescription": "Manage your account information",
+    "user": "User",
+    "name": "Name",
+    "email": "Email",
+    "notProvided": "Not provided",
+    "password": "Password",
+    "firstName": "First Name",
+    "lastName": "Last Name",
+    "emailPlaceholder": "your.email@example.com",
+    "passwordPlaceholder": "Enter your password",
+    "firstNamePlaceholder": "John",
+    "lastNamePlaceholder": "Doe",
+    "orContinueWith": "or continue with email",
+    "signInError": "Sign in failed. Please check your credentials.",
+    "signUpError": "Sign up failed. Please try again.",
+    "signingIn": "Signing in...",
+    "signingUp": "Creating account...",
+    "noAccount": "Don't have an account?",
+    "haveAccount": "Already have an account?",
+    "verifyEmail": "Verify your email",
+    "verifyEmailDescription": "We sent a verification code to your email",
+    "verificationCode": "Verification Code",
+    "verify": "Verify",
+    "verifying": "Verifying...",
+    "verificationError": "Invalid verification code. Please try again.",
+    "backToSignUp": "Back to sign up",
+    "passwordRequirements": "At least 8 characters",
+    "completingSignIn": "Completing sign in...",
+    "forgotPassword": "Forgot Password?",
+    "forgotPasswordDescription": "Enter your email and we'll send you a reset code",
+    "sendResetCode": "Send Reset Code",
+    "resetPassword": "Reset Password",
+    "resetPasswordError": "Failed to reset password. Please try again.",
+    "enterCodeAndNewPassword": "Enter the code we sent and your new password",
+    "newPassword": "New Password",
+    "resetting": "Resetting...",
+    "sending": "Sending...",
+    "backToEmail": "Back to email",
+    "backToSignIn": "Back to sign in",
+    "passwordResetSuccess": "Password Reset Successfully",
+    "passwordResetSuccessDescription": "Your password has been updated. You can now sign in with your new password."
+  },
+  "swipe": {
+    "nextCity": "Next city",
+    "prevCity": "Previous city",
+    "hint": "Swipe left or right to navigate between cities"
+  },
+  "profile": {
+    "memberSince": "Member since",
+    "changeImage": "Change profile picture",
+    "removeImage": "Remove image",
+    "removeImageTitle": "Remove Profile Picture",
+    "confirmRemoveImage": "Are you sure you want to remove your profile picture? This will restore the default image.",
+    "imageUpdated": "Profile picture updated successfully",
+    "imageRemoved": "Profile picture removed successfully",
+    "imageUploadError": "Error uploading profile picture",
+    "imageRemoveError": "Error removing profile picture",
+    "invalidFileType": "Invalid file type. Please upload an image",
+    "fileTooLarge": "File too large. Maximum size: 5MB"
+  },
+  "onboarding": {
+    "title": "Welcome to the Weather App",
+    "subtitle": "Add cities, get forecasts, and work offline.",
+    "features": {
+      "addCities": "Add Cities",
+      "getForecasts": "Get Forecasts", 
+      "worksOffline": "Works Offline"
+    },
+    "cta": "Get Started",
+    "resetWelcome": "Reset Welcome Screen",
+    "resetWelcomeDescription": "Show the welcome screen again on next app launch"
+  },
+  "about": {
+    "title": "About",
+    "appName": "Weather App",
+    "version": "Version",
+    "technologies": "Technologies",
+    "techList": "Next.js, TypeScript, TailwindCSS, Zustand, next-intl, PWA",
+    "credits": "Credits",
+    "weatherProvider": "Weather data provided by OpenWeatherMap",
+    "icons": "Icons by Lucide React",
+    "developer": "Developer",
+    "repository": "Repository"
+  },
+  "notifications": {
+    "title": "Daily Notifications",
+    "description": "Notifications are sent twice daily (at 08:00 and 20:00)",
+    "enableDescription": "Get weather updates for your main city",
+    "enable": "Enable Daily Notifications",
+    "sampleMessage": "Good morning! {city}: {temp}°C, {desc}. Winds {windDir} {wind} km/h.",
+    "permissionDenied": "Notification permission denied",
+    "permissionDeniedDescription": "To receive weather notifications, please enable notifications in your browser settings",
+    "openSettings": "Open Browser Settings",
+    "noCities": "No cities added",
+    "noCitiesDescription": "Add at least one city to receive weather notifications",
+    "enabled": "Notifications enabled",
+    "disabled": "Notifications disabled",
+    "permissionGranted": "Notification permission granted"
   }
 }

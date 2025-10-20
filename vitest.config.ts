@@ -30,7 +30,12 @@ export default defineConfig({
         },
       },
     },
-    setupFiles: ['./test/setup.ts'],
+    server: {
+      deps: {
+        external: ['next/navigation'],
+      },
+    },
+    setupFiles: ['./tests/setup.ts'],
     exclude: ['e2e/**', 'node_modules/**', '.next/**'], // הוספת exclude ברמת test
   },
 });

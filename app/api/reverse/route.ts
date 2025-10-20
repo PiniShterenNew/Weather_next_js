@@ -1,11 +1,29 @@
+export const runtime = 'nodejs';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { getLocationForDB } from '@/lib/helpers';
 import { AppLocale } from '@/types/i18n';
 import { findCityById, saveCityToDatabase } from '@/lib/db/suggestion';
 import { getCityId } from '@/lib/utils';
 import { logger, ValidationError, ExternalApiError } from '@/lib/errors';
+import { findMatchingLimiter, getErrorMessage, getRequestIP } from '@/lib/simple-rate-limiter';
 
 export async function GET(request: NextRequest) {
+  // Apply rate limiting
+  const ip = getRequestIP(request);
+  const limiter = findMatchingLimiter('/api/reverse');
+  
+  try {
+    await limiter.consume(ip);
+  } catch {
+    const { searchParams } = new URL(request.url);
+    const lang = (searchParams.get('lang') || 'he') as AppLocale;
+    return NextResponse.json(
+      { error: getErrorMessage(lang) },
+      { status: 429, headers: { 'Retry-After': '60' } }
+    );
+  }
+
   const { searchParams } = new URL(request.url);
   const lat = searchParams.get('lat');
   const lon = searchParams.get('lon');

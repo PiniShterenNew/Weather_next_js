@@ -15,10 +15,12 @@ export interface WeatherStore {
   locale: AppLocale;
   open: boolean;
   maxCities: number;
+  isAuthenticated: boolean;
+  isSyncing: boolean;
 }
 
 export interface WeatherStoreActions {
-  addCity: (_city: CityWeather) => void;
+  addCity: (_city: CityWeather) => boolean;
   addOrReplaceCurrentLocation: (_city: CityWeather) => void;
   updateCity: (_city: CityWeather) => void;
   removeCity: (_id: string) => void;
@@ -36,4 +38,7 @@ export interface WeatherStoreActions {
   getUserTimezoneOffset: () => number; 
   resetStore: () => void;
   setOpen: (_open: boolean) => void;
+  setIsAuthenticated: (_isAuthenticated: boolean) => void;
+  syncWithServer: () => Promise<void>;
+  loadUserPreferences: (forceLoad?: boolean) => Promise<void>;
 }

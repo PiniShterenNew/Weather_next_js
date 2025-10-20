@@ -1,0 +1,70 @@
+---
+description: >
+  כל הקוד חייב להיות מאורגן לפי Feature-Based Architecture:
+  features/<featureName>/{components,api,store,tests,types.ts}
+globs:
+  - "app/**"
+  - "components/**"
+  - "features/**"
+alwaysApply: true
+---
+
+description: >
+  אין קובץ מעל 300 שורות. יש לפצל קומפוננטות גדולות לתת־קומפוננטות.
+globs:
+  - "**/*.tsx"
+  - "**/*.ts"
+alwaysApply: true
+---
+
+description: >
+  שמות קבצים:
+  - קומפוננטות (TSX) בפורמט PascalCase
+  - Utility/Hooks/Stores בפורמט camelCase
+  - בדיקות בשם <FileName>.test.tsx
+globs:
+  - "**/*.tsx"
+  - "**/*.ts"
+alwaysApply: true
+---
+
+description: >
+  Skeleton components יישבו צמוד לרכיב שלהם ולא בתיקייה נפרדת.
+globs:
+  - "components/**"
+  - "features/**"
+alwaysApply: true
+---
+
+description: >
+  כל API route יעבור דרך service + Zod validation לפני שימוש.
+globs:
+  - "app/api/**"
+  - "features/**/api/**"
+alwaysApply: true
+---
+
+description: >
+  כל קומפוננטה חייבת לקבל props עם interface ברור (TypeScript).
+globs:
+  - "components/**"
+  - "features/**/components/**"
+alwaysApply: true
+---
+
+description: >
+  בדיקות יאורגנו תחת tests/unit/<featureName> ו-tests/e2e/<featureName>,
+  עם שמות תואמים לקובץ המקורי.
+globs:
+  - "tests/**"
+  - "e2e/**"
+alwaysApply: true
+---
+
+description: >
+  UI Tokens (צבעים, טיפוגרפיה, spacing) יגיעו מ-config/tokens.ts בלבד.
+globs:
+  - "styles/**"
+  - "config/**"
+alwaysApply: true
+---

@@ -3,10 +3,11 @@
 import { formatDate, formatTemperatureWithConversion } from '@/lib/helpers';
 import { AppLocale } from '@/types/i18n';
 import type { WeatherForecastItem } from '@/types/weather';
-import { useLocale, useTranslations } from 'next-intl';
+import { useLocale } from 'next-intl';
 import { WeatherIcon } from '../WeatherIcon/WeatherIcon';
 import { TemporaryUnit } from '@/types/ui';
 import { motion } from 'framer-motion';
+import { Wind, Droplets, Cloud } from 'lucide-react';
 
 export interface ForecastListProperties {
   forecast: WeatherForecastItem[];
@@ -14,46 +15,89 @@ export interface ForecastListProperties {
   unit: TemporaryUnit;
 }
 
-export function ForecastListComponent({ forecast, cityUnit, unit }: ForecastListProperties) {
-  const t = useTranslations();
+export default function ForecastList({ forecast, cityUnit, unit }: ForecastListProperties) {
   const locale = useLocale() as AppLocale;
 
   return (
-    <div className="w-full mt-6" data-testid="forecast-list">
-      <h3 className="text-lg font-semibold mb-3" role="heading" data-testid="forecast-title">{t('forecast.title')}</h3>
-      <div className="grid grid-cols-5 gap-10">
-        {forecast.map((day, index) => (
-          <motion.div
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 0.4 }}
-            key={index}
-            data-testid="forecast-item"
-            className="flex items-center bg-background_page flex-col justify-center p-2 gap-2 rounded-lg transition-colors"
-          >
-            <span className="w-24 text-sm font-medium text-center" data-testid="forecast-date">{formatDate(day.date, locale)}</span>
-            <div className="flex flex-col items-center justify-center gap-2">
-              <WeatherIcon
-                code={day.icon}
-                icon={null}
-                alt={day.desc}
-                size={32}
-                title={day.desc}
-                className="shrink-0"
-                priority={index < 3}
-              />
-              <p className="text-sm capitalize">{t(`weather.conditions.${day.codeId}.main`)}</p>
-              <div className="flex flex-row items-center gap-2">
-                <span data-testid="forecast-min" className="text-right text-sm text-gray-600 dark:text-gray-400">{formatTemperatureWithConversion(day.min, cityUnit, unit)}</span>
-                <span data-testid="forecast-max" className="text-right text-sm text-gray-900 dark:text-gray-100">{formatTemperatureWithConversion(day.max, cityUnit, unit)}</span>
+    <div className="animate-fade-in" data-testid="forecast-list">
+      <h3 className="text-lg font-semibold text-gray-900 dark:text-white/90 mb-3" data-testid="forecast-title">
+        {locale === 'he' ? 'תחזית 5 ימים' : '5-Day Forecast'}
+      </h3>
+      <div className="flex flex-col gap-3">
+        {forecast.map((day, index) => {
+          const tempDiff = day.max - day.min;
+          const isWarming = tempDiff > 10;
+          const isCooling = tempDiff < 5;
+          
+          return (
+            <motion.div
+              key={index}
+              data-testid="forecast-item"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.05, duration: 0.3 }}
+              className="w-full"
+            >
+              <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl rounded-2xl p-4 transition-all hover-lift border border-gray-200/50 dark:border-gray-700/50">
+                {/* שורה עליונה - תאריך, אייקון וטמפרטורות */}
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-4 flex-1">
+                    <p className="text-sm font-semibold text-foreground min-w-[80px]" data-testid="forecast-date">
+                      {formatDate(day.date / 1000, locale)}
+                    </p>
+                    
+                    <div className="flex items-center gap-2">
+                      <WeatherIcon
+                        code={day.icon}
+                        icon={null}
+                        alt={day.desc}
+                        size={40}
+                        title={day.desc}
+                        className="text-brand-500 dark:text-brand-400"
+                        priority={index < 3}
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className={`flex items-center gap-4 ${locale === 'he' ? 'flex-row-reverse' : 'flex-row'}`}>
+                    <div className={`text-xl font-bold tabular-nums ${isWarming ? 'text-red-500 dark:text-orange-400' : 'text-foreground'}`} data-testid="forecast-max">
+                      {formatTemperatureWithConversion(day.max, cityUnit, unit)}
+                    </div>
+                    <div className={`text-base font-medium tabular-nums ${isCooling ? 'text-blue-500 dark:text-blue-400' : 'text-gray-500 dark:text-gray-400'}`} data-testid="forecast-min">
+                      {formatTemperatureWithConversion(day.min, cityUnit, unit)}
+                    </div>
+                  </div>
+                </div>
+
+                {/* שורה תחתונה - מידע נוסף */}
+                {(day.wind !== undefined || day.humidity !== undefined || day.clouds !== undefined) && (
+                  <div className="flex items-center gap-4 text-xs text-gray-600 dark:text-gray-400">
+                    {day.wind !== undefined && (
+                      <div className="flex items-center gap-1">
+                        <Wind className="h-3 w-3" />
+                        <span>{day.wind} km/h</span>
+                      </div>
+                    )}
+                    {day.humidity !== undefined && (
+                      <div className="flex items-center gap-1">
+                        <Droplets className="h-3 w-3" />
+                        <span>{day.humidity}%</span>
+                      </div>
+                    )}
+                    {day.clouds !== undefined && (
+                      <div className="flex items-center gap-1">
+                        <Cloud className="h-3 w-3" />
+                        <span>{day.clouds}%</span>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
-            </div>
-          </motion.div>
-        ))}
+            </motion.div>
+          );
+        })}
       </div>
     </div>
   );
 }
 
-// ייצוא ברירת המחדל לצורך תאימות לאחור
-export default ForecastListComponent;

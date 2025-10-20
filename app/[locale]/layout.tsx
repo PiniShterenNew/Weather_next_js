@@ -2,17 +2,22 @@
 import { notFound } from 'next/navigation';
 import { NextIntlClientProvider } from 'next-intl';
 import { setRequestLocale } from 'next-intl/server';
+import { ClerkProvider } from '@clerk/nextjs';
+import { heIL, enUS } from '@clerk/localizations';
 import { AppLocale } from '@/types/i18n';
 import { routing } from '@/i18n/routing';
 import { getDirection } from '@/lib/intl';
 import { ThemeAndDirectionProvider } from '@/providers/ThemeAndDirectionProvider';
-import ToastHost from '@/components/Toast/ToastHost';
-import LoadingOverlay from '@/components/LoadingOverlay';
+import { ToastHost } from '@/features/ui';
+import { LoadingOverlay } from '@/features/ui';
 import { notoSans } from '@/styles/fonts';
 import { TooltipProvider } from '@radix-ui/react-tooltip';
 import type { ReactNode } from 'react';
 import '../../styles/globals.css';
 import OfflineFallback from '@/components/OfflineFallback/OfflineFallback.lazy';
+import PersistentLayout from '@/components/Layout/PersistentLayout';
+import AuthSync from '@/components/Auth/AuthSync';
+import NotificationHandler from '@/components/NotificationHandler';
 
 // Updated type definition for Next.js 15 - params is now a Promise
 type LayoutProps<T> = {
@@ -23,46 +28,67 @@ type LayoutProps<T> = {
 export default async function LocaleLayout({
   children,
   params,
-}: LayoutProps<{ locale: AppLocale }>) {
+}: LayoutProps<{ locale: string }>) {
   // Await the params since they're now asynchronous in Next.js 15
   const { locale } = await params;
 
-  if (!locale || !routing.locales.includes(locale)) {
+  if (!locale || !routing.locales.includes(locale as AppLocale)) {
     notFound();
   }
 
-  setRequestLocale(locale);
+  // Type assertion to AppLocale since we've validated it's in routing.locales
+  const appLocale = locale as AppLocale;
+  setRequestLocale(appLocale);
 
   let messages;
   try {
-    const localeModule = await import(`@/locales/${locale}.json`);
+    const localeModule = await import(`@/locales/${appLocale}.json`);
     messages = localeModule.default;
   } catch {
     notFound();
   }
 
-  const direction = getDirection(locale);
+  const direction = getDirection(appLocale);
+  const clerkLocalization = appLocale === 'he' ? heIL : enUS;
 
   return (
-    <html lang={locale} dir={direction}>
-      <head>
-        <link rel="manifest" href="/manifest.json" />
-        <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="apple-mobile-web-app-title" content={locale === 'he' ? "אפליקציית מזג אוויר" : "Weather App"} />
-        <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
-      </head>
-      <body className={`${notoSans.variable} antialiased`}>
-        <NextIntlClientProvider locale={locale} messages={messages}>
-          <ThemeAndDirectionProvider locale={locale}>
-            <LoadingOverlay />
-            <ToastHost />
-            <OfflineFallback />
-            <TooltipProvider>{children}</TooltipProvider>
-          </ThemeAndDirectionProvider>
-        </NextIntlClientProvider>
-      </body>
-    </html>
+    <ClerkProvider localization={clerkLocalization}>
+      <html lang={appLocale} dir={direction}>
+        <head>
+          <link rel="manifest" href="/manifest.json" />
+          <meta name="apple-mobile-web-app-capable" content="yes" />
+          <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+          <meta name="apple-mobile-web-app-title" content={appLocale === 'he' ? "אפליקציית מזג אוויר" : "Weather App"} />
+          <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
+          
+          {/* Preload critical resources */}
+          <link rel="preload" as="image" href="/weather-icons/light/01d.svg" />
+          <link rel="preload" as="image" href="/weather-icons/light/01n.svg" />
+          <link rel="preload" as="image" href="/weather-icons/light/02d.svg" />
+          <link rel="preload" as="image" href="/weather-icons/light/02n.svg" />
+          <link rel="preload" as="image" href="/weather-icons/light/03d.svg" />
+          <link rel="preload" as="image" href="/weather-icons/light/03n.svg" />
+          <link rel="preload" as="image" href="/weather-icons/light/04d.svg" />
+          <link rel="preload" as="image" href="/weather-icons/light/04n.svg" />
+          
+          {/* Preload fonts handled by Next.js font optimization */}
+        </head>
+        <body className={`${notoSans.variable} antialiased`}>
+          <NextIntlClientProvider locale={appLocale} messages={messages}>
+            <ThemeAndDirectionProvider locale={appLocale}>
+              <AuthSync />
+              <NotificationHandler />
+              <LoadingOverlay />
+              <OfflineFallback />
+              <TooltipProvider>
+                <PersistentLayout>{children}</PersistentLayout>
+              </TooltipProvider>
+              <ToastHost />
+            </ThemeAndDirectionProvider>
+          </NextIntlClientProvider>
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }
 

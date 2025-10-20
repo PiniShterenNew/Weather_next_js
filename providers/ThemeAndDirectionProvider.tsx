@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { useEffect } from 'react';
-import { useWeatherStore } from '@/stores/useWeatherStore';
+import { useWeatherStore } from '@/store/useWeatherStore';
 
 /**
  * Provider component for theme and text direction

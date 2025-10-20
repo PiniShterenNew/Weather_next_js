@@ -4,7 +4,8 @@
 import { useTranslations } from 'next-intl';
 import { useLocale } from 'next-intl';
 import { AppLocale } from '@/types/i18n';
-import { Star } from 'lucide-react';
+import { Star, Cloud } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
 import PopularCities from '../QuickAdd/PopularCities';
 import { getDirection } from '@/lib/intl';
 import { motion } from 'framer-motion';
@@ -23,38 +24,62 @@ export default function EmptyPage() {
   const direction = getDirection(locale);
 
   return (
-    <div className="flex flex-col items-center justify-center gap-6 p-6 w-full max-w-full mx-auto" data-testid="weather-empty">
+    <div className="flex flex-col items-center justify-center gap-8 p-6 w-full max-w-2xl mx-auto" data-testid="weather-empty">
       <motion.div
-        initial={{ opacity: 0, y: -50 }}
+        initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: 50 }}
-        transition={{ duration: 0.3 }}
-        className="flex-1 flex flex-col items-center justify-center gap-6"
+        exit={{ opacity: 0, y: 20 }}
+        transition={{ duration: 0.4, ease: "easeOut" }}
+        className="flex-1 flex flex-col items-center justify-center gap-8"
       >
-        <div className="text-center space-y-3">
-          <h1 className="text-6xl font-semibold text-primary/90">{t('empty')}</h1>
-          <p className="text-4xl text-muted-foreground">{t('emptyDescription')}</p>
-        </div>
+        {/* Main Empty State */}
+        <Card className="w-full max-w-md">
+          <CardContent className="p-8 text-center">
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.2, duration: 0.3 }}
+              className="mb-6"
+            >
+              <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-brand-100 dark:bg-brand-900/20 flex items-center justify-center">
+                <Cloud className="h-10 w-10 text-brand-500" />
+              </div>
+            </motion.div>
+            
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3, duration: 0.3 }}
+              className="space-y-4"
+            >
+              <h1 className="text-2xl font-bold text-foreground">{t('empty')}</h1>
+              <p className="text-muted-foreground leading-relaxed">{t('emptyDescription')}</p>
+              
+              <div className="mt-6">
+                <AddLocation type="default" size="lg" dataTestid="add-location" />
+              </div>
+            </motion.div>
+          </CardContent>
+        </Card>
 
-        <div className="mt-2">
-          <AddLocation type="default" size="lg" dataTestid="add-location-text" />
-        </div>
-      </motion.div>
-      <div className="w-full mt-4">
+        {/* Popular Cities Section */}
         <motion.div
-          initial={{ opacity: 0, x: 50 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: -50 }}
-          transition={{ duration: 0.3 }}
-          className="flex-1"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4, duration: 0.3 }}
+          className="w-full"
         >
-          <h2 className="text-lg font-semibold mb-3 text-center flex items-center justify-center gap-2">
-            <Star className="h-4 w-4 text-primary" />
-            {t('popular.title')}
-          </h2>
-          <PopularCities direction={direction} color={"primary"} />
+          <Card>
+            <CardContent className="p-6">
+              <h2 className="text-lg font-semibold mb-4 text-center flex items-center justify-center gap-2">
+                <Star className="h-5 w-5 text-brand-500" />
+                {t('popular.title')}
+              </h2>
+              <PopularCities direction={direction} _color="primary" />
+            </CardContent>
+          </Card>
         </motion.div>
-      </div>
+      </motion.div>
     </div>
   );
 }

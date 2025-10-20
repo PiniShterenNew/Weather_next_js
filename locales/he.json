@@ -1,7 +1,19 @@
 {
+  "app": {
+    "title": "אפליקציית מזג אוויר"
+  },
   "loading": "טוען...",
   "refresh": "רענן",
   "remove": "הסר",
+  "navigation": {
+    "cities": "ערים",
+    "add": "הוסף עיר",
+    "location": "מיקום",
+    "settings": "הגדרות",
+    "weather": "מזג אוויר",
+    "profile": "פרופיל",
+    "back": "חזור"
+  },
   "yourTime": "הזמן שלך",
   "prev": "הקודם",
   "next": "הבא",
@@ -15,6 +27,7 @@
   "visibility": "ראות",
   "clouds": "עננות",
   "uvIndex": "מדד קרינה",
+  "rainProbability": "הסתברות גשם",
   "sunrise": "זריחה",
   "sunset": "שקיעה",
   "high": "גבוה",
@@ -34,6 +47,14 @@
   },
   "search": {
     "placeholder": "חפש עיר",
+    "recentSearches": "חיפושים אחרונים",
+    "addNewCity": "הוסף עיר חדשה",
+    "addNewCityDescription": "חפש עיר או השתמש במיקום הנוכחי",
+    "useCurrentLocation": "השתמש במיקום הנוכחי",
+    "categories": {
+      "popular": "ערים פופולריות",
+      "nearby": "ערים קרובות"
+    },
     "currentLocation": "השתמש במיקום הנוכחי",
     "addCurrentLocation": "הוסף את המיקום הנוכחי",
     "quickAdd": "הוספה מהירה",
@@ -51,7 +72,8 @@
     "startTyping": "הקלד כדי להתחיל לחפש",
     "search": "חפש",
     "clear": "נקה",
-    "loading": "טוען..."
+    "loading": "טוען...",
+    "localTime": "מקומי"
   },
   "popular": {
     "title": "ערים פופולריות",
@@ -67,10 +89,6 @@
       "berlin": "ברלין",
       "moscow": "מוסקבה"
     }
-  },
-  "common": {
-    "close": "סגור",
-    "title": "כללי"
   },
   "unit": {
     "celsius": "°C",
@@ -308,32 +326,74 @@
     "lastUpdated": "עודכן לפני {time}"
   },
   "toasts": {
-    "added": "העיר נוספה",
-    "refreshed": "העיר עודכנה",
-    "exists": "העיר כבר קיימת",
+    "added": "העיר {city} נוספה בהצלחה",
+    "refreshed": "העיר {city} עודכנה",
+    "exists": "העיר {city} כבר קיימת ברשימה",
     "error": "משהו השתבש",
-    "locationAdded": "הוספת {name} לפי מיקום הנוכחי.",
-    "maxCities": "ניתן להוסיף עד {maxCities} ערים.",
-    "slowNetwork": "נראה שחיבור האינטרנט איטי. אנא בדוק את חיבור הרשת שלך או נסה לעבור למקום אחר.",
-    "slowNetworkShort": "זוהה חיבור אינטרנט איטי. אנא בדוק את הרשת שלך."
+    "locationAdded": "הוספת {name} לפי מיקום הנוכחי",
+    "maxCities": "ניתן להוסיף עד {maxCities} ערים",
+    "slowNetwork": "נראה שחיבור האינטרנט איטי. אנא בדוק את חיבור הרשת שלך או נסה לעבור למקום אחר",
+    "slowNetworkShort": "זוהה חיבור אינטרנט איטי. אנא בדוק את הרשת שלך",
+    "removed": "העיר {city} הוסרה",
+    "fetchWeather": "שגיאה בטעינת נתוני מזג האוויר",
+    "cityDeleted": "העיר {city} נמחקה",
+    "cityRestored": "העיר {city} שוחזרה",
+    "cannotDeleteCurrentLocation": "לא ניתן למחוק את המיקום הנוכחי"
+  },
+  "common": {
+    "close": "סגור",
+    "title": "כללי",
+    "loadMore": "טען עוד",
+    "cancel": "ביטול",
+    "confirm": "אישור",
+    "save": "שמור",
+    "undo": "בטל",
+    "edit": "ערוך",
+    "delete": "מחק"
   },
   "errors": {
     "fetchWeather": "לא ניתן למשוך את מזג האוויר.",
+    "networkError": "שגיאת רשת. אנא בדוק את החיבור שלך ונסה שוב.",
     "geolocationNotSupported": "דפדפן זה אינו תומך במיקום גיאוגרפי.",
     "fetchLocationWeather": "לא ניתן למשוך את מזג האוויר למיקומך הנוכחי.",
-    "geolocationDenied": "הגישה למיקום נדחתה. אנא אפשר זאת בהגדרות הדפדפן."
+    "geolocationDenied": "הגישה למיקום נדחתה. אנא אפשר זאת בהגדרות הדפדפן.",
+    "rateLimit": "הגעת למגבלת הבקשות. אנא נסה שוב מאוחר יותר.",
+    "rateLimitDetailed": "ביצעת יותר מדי בקשות. אנא המתן מספר רגעים לפני שתנסה שוב."
   },
   "settings": {
     "title": "הגדרות",
-    "description": "החלף בין ערכות נושא",
+    "description": "נהל את ההעדפות והגדרות האפליקציה שלך",
     "close": "סגור",
     "theme": "ערכת נושא",
     "language": "שפה",
-    "unit": "יחידות"
+    "languageDescription": "בחר את השפה המועדפת עליך",
+    "themeDescription": "בחר בין מצב בהיר, כהה או מערכת",
+    "unit": "יחידות",
+    "temperatureUnit": "יחידת טמפרטורה",
+    "temperatureUnitDescription": "בחר צלזיוס או פרנהייט",
+    "dataManagement": "ניהול נתונים",
+    "clearCache": "נקה מטמון",
+    "clearCacheDescription": "נקה את כל הנתונים השמורים מקומית",
+    "clearCacheTitle": "ניקוי מטמון",
+    "confirmClearCache": "האם אתה בטוח שברצונך לנקות את כל הנתונים השמורים מקומית? פעולה זו תמחק את כל הנתונים השמורים במטמון.",
+    "clear": "נקה",
+    "resetStore": "אפס את כל הנתונים",
+    "resetStoreDescription": "אפס את כל ההגדרות והערים לברירת מחדל",
+    "resetStoreTitle": "איפוס מלא",
+    "confirmReset": "האם אתה בטוח שברצונך לאפס את כל הנתונים? פעולה זו תמחק את כל העדפות, ערים והגדרות שלך ולא ניתן לבטל אותה.",
+    "reset": "אפס",
+    "cacheCleared": "המטמון נוקה בהצלחה",
+    "storeReset": "כל הנתונים אופסו",
+    "account": "חשבון",
+    "signOutDescription": "התנתק מהחשבון שלך",
+    "accountDetails": "פרטי חשבון",
+    "unitChanged": "יחידת הטמפרטורה שונתה ל-{unit}",
+    "languageChanged": "השפה שונתה ל-{language}",
+    "themeChanged": "ערכת הנושא שונתה ל-{theme}"
   },
   "language": {
     "he": "עברית",
-    "en": "אנגלית"
+    "en": "English"
   },
   "theme": {
     "light": "בהיר",
@@ -354,5 +414,132 @@
     "message": "לא ניתן להציג נתוני מזג אוויר עדכניים כרגע",
     "availableData": "נתונים שנשמרו מקומית יוצגו כאשר הם זמינים",
     "refresh": "בדוק חיבור שוב"
+  },
+  "cities": {
+    "empty": {
+      "title": "אין ערים נוספות",
+      "description": "הוסף את העיר הראשונה שלך כדי להתחיל לראות מזג אוויר",
+      "addFirstCity": "הוסף עיר ראשונה"
+    },
+    "savedCities": "הערים שלי",
+    "viewWeather": "הצג מזג אוויר עבור",
+    "compactView": "תצוגה קומפקטית",
+    "searchPlaceholder": "חפש בערים שלך",
+    "currentLocation": "מיקום נוכחי",
+    "nowShowing": "מוצג כעת",
+    "swipeToDelete": "גרור למחיקה",
+    "cityDeleted": "העיר {city} נמחקה",
+    "available": "זמינות"
+  },
+  "auth": {
+    "signIn": "התחבר",
+    "signOut": "התנתק",
+    "signUp": "הירשם",
+    "signInWithGoogle": "התחבר עם Google",
+    "signInWithApple": "התחבר עם Apple",
+    "signUpWithGoogle": "הירשם עם Google",
+    "signUpWithApple": "הירשם עם Apple",
+    "loginDescription": "התחבר כדי לשמור את ההעדפות שלך ולגשת אליהן מכל מכשיר",
+    "signUpDescription": "צור חשבון כדי לשמור את העדפות מזג האוויר שלך בכל מכשיר",
+    "termsAgreement": "בהתחברות, אתה מסכים לתנאי השימוש ולמדיניות הפרטיות שלנו",
+    "profile": "פרופיל",
+    "profileDescription": "נהל את פרטי החשבון שלך",
+    "user": "משתמש",
+    "name": "שם",
+    "email": "אימייל",
+    "notProvided": "לא סופק",
+    "password": "סיסמה",
+    "firstName": "שם פרטי",
+    "lastName": "שם משפחה",
+    "emailPlaceholder": "your.email@example.com",
+    "passwordPlaceholder": "הזן את הסיסמה שלך",
+    "firstNamePlaceholder": "ישראל",
+    "lastNamePlaceholder": "ישראלי",
+    "orContinueWith": "או המשך עם אימייל",
+    "signInError": "ההתחברות נכשלה. אנא בדוק את פרטי ההתחברות.",
+    "signUpError": "ההרשמה נכשלה. אנא נסה שוב.",
+    "signingIn": "מתחבר...",
+    "signingUp": "יוצר חשבון...",
+    "noAccount": "אין לך חשבון?",
+    "haveAccount": "כבר יש לך חשבון?",
+    "verifyEmail": "אמת את האימייל שלך",
+    "verifyEmailDescription": "שלחנו קוד אימות לאימייל שלך",
+    "verificationCode": "קוד אימות",
+    "verify": "אמת",
+    "verifying": "מאמת...",
+    "verificationError": "קוד אימות שגוי. אנא נסה שוב.",
+    "backToSignUp": "חזור להרשמה",
+    "passwordRequirements": "לפחות 8 תווים",
+    "completingSignIn": "משלים התחברות...",
+    "forgotPassword": "שכחת סיסמה?",
+    "forgotPasswordDescription": "הזן את האימייל שלך ונשלח לך קוד איפוס",
+    "sendResetCode": "שלח קוד איפוס",
+    "resetPassword": "אפס סיסמה",
+    "resetPasswordError": "איפוס הסיסמה נכשל. אנא נסה שוב.",
+    "enterCodeAndNewPassword": "הזן את הקוד ששלחנו והסיסמה החדשה שלך",
+    "newPassword": "סיסמה חדשה",
+    "resetting": "מאפס...",
+    "sending": "שולח...",
+    "backToEmail": "חזור לאימייל",
+    "backToSignIn": "חזור להתחברות",
+    "passwordResetSuccess": "הסיסמה אופסה בהצלחה",
+    "passwordResetSuccessDescription": "הסיסמה שלך עודכנה. כעת תוכל להתחבר עם הסיסמה החדשה."
+  },
+  "swipe": {
+    "nextCity": "עיר הבאה",
+    "prevCity": "עיר קודמת",
+    "hint": "החלק שמאלה או ימינה כדי לנווט בין ערים"
+  },
+  "profile": {
+    "memberSince": "חבר מאז",
+    "changeImage": "שנה תמונת פרופיל",
+    "removeImage": "הסר תמונה",
+    "removeImageTitle": "הסרת תמונת פרופיל",
+    "confirmRemoveImage": "האם אתה בטוח שברצונך להסיר את תמונת הפרופיל שלך? פעולה זו תחזיר את תמונת ברירת המחדל.",
+    "imageUpdated": "תמונת הפרופיל עודכנה בהצלחה",
+    "imageRemoved": "תמונת הפרופיל הוסרה בהצלחה",
+    "imageUploadError": "שגיאה בהעלאת תמונת הפרופיל",
+    "imageRemoveError": "שגיאה בהסרת תמונת הפרופיל",
+    "invalidFileType": "סוג קובץ לא תקין. אנא העלה תמונה",
+    "fileTooLarge": "הקובץ גדול מדי. גודל מקסימלי: 5MB"
+  },
+  "onboarding": {
+    "title": "ברוך הבא לאפליקציית מזג האוויר",
+    "subtitle": "הוסף ערים, קבל תחזיות, ועבוד גם אופליין.",
+    "features": {
+      "addCities": "הוסף ערים",
+      "getForecasts": "קבל תחזיות",
+      "worksOffline": "עובד אופליין"
+    },
+    "cta": "התחל",
+    "resetWelcome": "אפס מסך פתיחה",
+    "resetWelcomeDescription": "הצג את מסך הפתיחה שוב בפעם הבאה שתפתח את האפליקציה"
+  },
+  "about": {
+    "title": "אודות",
+    "appName": "אפליקציית מזג אוויר",
+    "version": "גרסה",
+    "technologies": "טכנולוגיות",
+    "techList": "Next.js, TypeScript, TailwindCSS, Zustand, next-intl, PWA",
+    "credits": "קרדיטים",
+    "weatherProvider": "נתוני מזג אוויר מסופקים על ידי OpenWeatherMap",
+    "icons": "אייקונים מאת Lucide React",
+    "developer": "מפתח",
+    "repository": "מאגר קוד"
+  },
+  "notifications": {
+    "title": "התראות יומיות",
+    "description": "ההתראות נשלחות פעמיים ביום (ב-08:00 וב-20:00)",
+    "enableDescription": "קבל עדכוני מזג אוויר עבור העיר הראשית שלך",
+    "enable": "הפעל התראות יומיות",
+    "sampleMessage": "בוקר טוב! {city}: {temp}°C, {desc}. רוחות {windDir} {wind} קמ״ש.",
+    "permissionDenied": "הרשאת התראות נדחתה",
+    "permissionDeniedDescription": "כדי לקבל התראות מזג אוויר, אנא הפעל התראות בהגדרות הדפדפן שלך",
+    "openSettings": "פתח הגדרות דפדפן",
+    "noCities": "אין ערים נוספות",
+    "noCitiesDescription": "הוסף לפחות עיר אחת כדי לקבל התראות מזג אוויר",
+    "enabled": "התראות מופעלות",
+    "disabled": "התראות מושבתות",
+    "permissionGranted": "הרשאת התראות אושרה"
   }
 }
