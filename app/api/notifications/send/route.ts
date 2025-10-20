@@ -128,6 +128,9 @@ async function handleNotificationSend(request: NextRequest, timeOfDay: string = 
           icon: '/icons/icon-192x192.png',
           badge: '/icons/icon-192x192.png',
           tag: `weather-${city.cityEn.toLowerCase().replace(/\s+/g, '-')}`,
+          requireInteraction: true, // FORCE NOTIFICATION TO SHOW - EVEN WHEN BROWSER IS ACTIVE
+          silent: false,
+          vibrate: [200, 100, 200],
           data: {
             city: city.cityEn,
             temperature: weatherData.main.temp,
