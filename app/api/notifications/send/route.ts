@@ -12,7 +12,7 @@ webpush.setVapidDetails(
 
 // Fixed notification times are now hardcoded: 08:00 for morning, 20:00 for evening
 
-async function handleNotificationSend(request: NextRequest, timeOfDay: string = 'morning', forceSend: boolean = false) {
+async function handleNotificationSend(request: NextRequest, timeOfDay: string = 'morning', _forceSend: boolean = false) {
   try {
     // Clean up invalid user subscriptions first
     await cleanupInvalidUserSubscriptions();
@@ -226,7 +226,6 @@ async function handleNotificationSend(request: NextRequest, timeOfDay: string = 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const timeOfDay = searchParams.get('timeOfDay') || 'morning';
-  const forceSend = searchParams.get('force') === 'true';
   
   // Determine time of day based on current hour if not specified
   let finalTimeOfDay = timeOfDay;
@@ -236,14 +235,14 @@ export async function GET(request: NextRequest) {
     finalTimeOfDay = hour >= 12 ? 'evening' : 'morning';
   }
   
-  return handleNotificationSend(request, finalTimeOfDay, forceSend);
+  return handleNotificationSend(request, finalTimeOfDay, false);
 }
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { timeOfDay = 'morning', forceSend = false } = body;
-    return handleNotificationSend(request, timeOfDay, forceSend);
+    const { timeOfDay = 'morning' } = body;
+    return handleNotificationSend(request, timeOfDay, false);
   } catch {
     // If JSON parsing fails, default to morning
     return handleNotificationSend(request, 'morning', false);
