@@ -11,11 +11,18 @@ const intlMiddleware = createMiddleware({
 export default clerkMiddleware(async (auth, request) => {
   const pathname = new URL(request.url).pathname;
 
-  // Skip i18n middleware for API routes
+  // API routes should NEVER go through intl middleware
   if (pathname.startsWith('/api/')) {
-    // Only run Clerk authentication for API routes
+    const publicApiRoutes = ['/api/weather', '/api/suggest', '/api/reverse', '/api/location/check'];
+    const isPublicApi = publicApiRoutes.some(route => pathname.startsWith(route));
+    
+    if (isPublicApi) {
+      return; // No middleware processing for public API
+    }
+    
+    // Protected API routes
     await auth.protect();
-    return;
+    return; // No intl middleware
   }
 
   // Check if route is public (auth pages)
@@ -44,7 +51,6 @@ export default clerkMiddleware(async (auth, request) => {
 
 export const config = {
   matcher: [
-    '/((?!_next|.*\\..*|favicon.ico).*)',
-    '/api/(.*)',
+    '/((?!_next|.*\\..*).*)', // Include API routes but handle them separately
   ],
 };

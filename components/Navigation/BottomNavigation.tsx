@@ -14,7 +14,7 @@ export default function BottomNavigation() {
   };
 
   return (
-    <footer className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-md animate-slide-up">
+    <footer className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] animate-slide-up">
       <div className="bg-white/70 dark:bg-[#0d1117]/70 rounded-full shadow-md border border-white/10 backdrop-blur-md">
         <div className="flex justify-around items-center h-16 px-4">
           {/* Add City Button - Left (RTL: Right) */}

@@ -46,9 +46,9 @@ export default function SwipeableCityCard({
   const containerRef = useRef<HTMLDivElement>(null);
 
   const cityName = city.name[locale] || city.name.en;
-  const currentTemp = city.currentEn?.current?.temp;
-  const weatherCode = city.currentEn?.current?.codeId || 800;
-  const weatherIcon = city.currentEn?.current?.icon || '01d';
+  const currentTemp = city.current?.temp;
+  const weatherCode = city.current?.codeId || 800;
+  const weatherIcon = city.current?.icon || '01d';
   const isCurrentLocation = city.id === autoLocationCityId;
   const isActiveCity = index === currentIndex;
 

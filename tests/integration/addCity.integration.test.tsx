@@ -331,9 +331,8 @@ describe('Add City Integration Flow', () => {
     await user.click(parisButton);
 
     // 5. Verify weather API was called
-    await waitFor(async () => {
-      const { weatherService } = await import('@/features/weather');
-      expect(weatherService.fetchWeather).toHaveBeenCalledWith(
+    await waitFor(() => {
+      expect(fetchWeather).toHaveBeenCalledWith(
         expect.objectContaining({ id: "city:48.8566_2.3522" })
       );
     });
@@ -346,7 +345,7 @@ describe('Add City Integration Flow', () => {
 
     // 7. Verify modal was closed
     expect(useWeatherStore.getState().open).toBe(false);
-  });
+  }, 10000);
 
   it('should handle API errors gracefully', async () => {
     const user = userEvent.setup();

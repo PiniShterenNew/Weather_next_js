@@ -384,7 +384,12 @@ async function fetchGeoapify(query: string, lang: 'he' | 'en') {
 
   // Increase limit and expand search types for better results
   const url = `https://api.geoapify.com/v1/geocode/autocomplete?text=${encodeURIComponent(query)}&limit=10&type=city&lang=${lang}&format=json&apiKey=${GEOAPIFY_KEY}`;
-  const res = await fetch(url);
+  const res = await fetch(url, {
+    headers: {
+      'Content-Type': 'application/json; charset=utf-8',
+      'Accept': 'application/json; charset=utf-8',
+    },
+  });
   
   if (!res.ok) {
     const errorText = await res.text();
@@ -588,7 +593,12 @@ export async function getCityInfoByCoords(
   const GEOAPIFY_KEY = process.env.GEOAPIFY_KEY as string;
   const url = `https://api.geoapify.com/v1/geocode/reverse?lat=${lat}&lon=${lon}&lang=${lang}&type=city&format=json&apiKey=${GEOAPIFY_KEY}`;
 
-  const response = await fetch(url);
+  const response = await fetch(url, {
+    headers: {
+      'Content-Type': 'application/json; charset=utf-8',
+      'Accept': 'application/json; charset=utf-8',
+    },
+  });
   if (!response.ok) throw new Error('Geoapify reverse-geocode failed');
 
   const json = await response.json();

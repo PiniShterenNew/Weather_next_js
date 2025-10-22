@@ -101,6 +101,7 @@ describe('HomePage', () => {
     });
 
     it('triggers slow network warning toast after 5s if still loading', () => {
+        mockStore.isLoading = true;
         render(<HomePage />);
         vi.advanceTimersByTime(5000);
         expect(mockStore.showToast).toHaveBeenCalledWith({
@@ -111,6 +112,7 @@ describe('HomePage', () => {
     });
 
     it('does not trigger toast again after loading completes', () => {
+        mockStore.isLoading = true;
         render(<HomePage />);
         vi.advanceTimersByTime(5100);
         mockStore.isLoading = false;

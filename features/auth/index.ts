@@ -19,7 +19,7 @@ export { default as ProfilePage } from './pages/ProfilePage';
 export { useAuthStore } from './store/useAuthStore';
 
 // Services
-export { syncUserToDatabase, loadUserPreferences, saveUserPreferences } from './services/userSyncService';
+export { saveUserPreferences } from './services/userSyncService.js';
 
 // Types
 export type {

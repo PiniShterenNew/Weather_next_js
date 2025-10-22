@@ -22,12 +22,13 @@ export function usePushNotifications() {
 
   useEffect(() => {
     // Check if push notifications are supported
-    const isSupported = 'Notification' in window && 'serviceWorker' in navigator && 'PushManager' in window;
+    const isSupported = 'Notification' in window && 'serviceWorker' in navigator && 'PushManager' in window && 
+                       typeof Notification !== 'undefined';
     
     setState(prev => ({
       ...prev,
       isSupported,
-      permission: isSupported ? Notification.permission : 'denied',
+      permission: isSupported && Notification ? Notification.permission : 'denied',
     }));
 
     // Check if already subscribed

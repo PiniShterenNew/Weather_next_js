@@ -27,8 +27,11 @@ describe('fetchWeather', () => {
     })
 
     expect(fetch).toHaveBeenCalledWith(
-      '/api/weather?lat=32.07&lon=34.79&unit=metric&id=123',
-      { next: { revalidate: 1800 } },
+      '/api/weather?lat=32.07&lon=34.79&unit=metric&id=123', 
+      expect.objectContaining({ 
+        next: { revalidate: 1800 },
+        signal: expect.any(AbortSignal)
+      })
     )
     expect(result).toEqual(expect.objectContaining(mockData))
   })

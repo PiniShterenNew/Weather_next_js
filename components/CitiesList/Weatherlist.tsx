@@ -60,7 +60,7 @@ export default function WeatherList() {
             <WeatherListItem
               ref={(el) => { itemRefs.current[index] = el; }}
               key={city.id}
-              cityCurrent={city['currentEn']}
+              cityCurrent={city}
               city={city}
               onClick={() => {
                 setCurrentIndex(index);

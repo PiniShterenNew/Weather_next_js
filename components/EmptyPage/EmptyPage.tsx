@@ -24,7 +24,7 @@ export default function EmptyPage() {
   const direction = getDirection(locale);
 
   return (
-    <div className="flex flex-col items-center justify-center gap-8 p-6 w-full max-w-2xl mx-auto" data-testid="weather-empty">
+    <div className="flex flex-col items-center justify-center gap-8 p-6 w-full mx-auto" data-testid="weather-empty">
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -33,7 +33,7 @@ export default function EmptyPage() {
         className="flex-1 flex flex-col items-center justify-center gap-8"
       >
         {/* Main Empty State */}
-        <Card className="w-full max-w-md">
+        <Card className="w-full">
           <CardContent className="p-8 text-center">
             <motion.div
               initial={{ scale: 0.8, opacity: 0 }}

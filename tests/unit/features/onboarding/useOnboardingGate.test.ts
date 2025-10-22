@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { renderHook, act } from '@testing-library/react';
+import { renderHook, act, waitFor } from '@testing-library/react';
 import { useOnboardingGate } from '@/features/onboarding/hooks/useOnboardingGate';
 
 // Mock Next.js router
@@ -81,7 +81,10 @@ describe('useOnboardingGate', () => {
     expect(mockPush).not.toHaveBeenCalled();
   });
 
-  it('should mark welcome as seen', () => {
+  it('should mark welcome as seen', async () => {
+    // Mock localStorage to return '1' after setItem is called
+    localStorageMock.getItem.mockReturnValue('1');
+    
     const { result } = renderHook(() => useOnboardingGate());
 
     act(() => {
@@ -89,7 +92,11 @@ describe('useOnboardingGate', () => {
     });
 
     expect(localStorageMock.setItem).toHaveBeenCalledWith('hasSeenWelcome', '1');
-    expect(result.current.shouldShowWelcome).toBe(false);
+    
+    // Wait for state update
+    await waitFor(() => {
+      expect(result.current.shouldShowWelcome).toBe(false);
+    });
   });
 
   it('should reset welcome', () => {

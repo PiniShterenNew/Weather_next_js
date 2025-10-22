@@ -16,8 +16,9 @@ import type { ReactNode } from 'react';
 import '../../styles/globals.css';
 import OfflineFallback from '@/components/OfflineFallback/OfflineFallback.lazy';
 import PersistentLayout from '@/components/Layout/PersistentLayout';
-import AuthSync from '@/components/Auth/AuthSync';
 import NotificationHandler from '@/components/NotificationHandler';
+import LocationTracker from '@/components/Location/LocationTracker';
+import LocationChangeDialog from '@/components/Location/LocationChangeDialog';
 
 // Updated type definition for Next.js 15 - params is now a Promise
 type LayoutProps<T> = {
@@ -76,8 +77,9 @@ export default async function LocaleLayout({
         <body className={`${notoSans.variable} antialiased`}>
           <NextIntlClientProvider locale={appLocale} messages={messages}>
             <ThemeAndDirectionProvider locale={appLocale}>
-              <AuthSync />
               <NotificationHandler />
+              <LocationTracker />
+              <LocationChangeDialog />
               <LoadingOverlay />
               <OfflineFallback />
               <TooltipProvider>

@@ -1,17 +1,16 @@
 'use client';
 
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
 import type { WeatherStore, WeatherStoreActions } from '@/types/store';
 import { isCityExists } from '@/lib/helpers';
 import { CityWeather } from '@/types/weather';
 import { ToastMessage } from '@/types/ui';
+import { locationService } from '@/features/location/services/locationService';
 
 let toastIdCounter = 0;
 
 export const useWeatherStore = create<WeatherStore & WeatherStoreActions>()(
-  persist(
-    (set, get) => ({
+  (set, get) => ({
       cities: [],
       currentIndex: 0,
       unit: 'metric',
@@ -24,6 +23,14 @@ export const useWeatherStore = create<WeatherStore & WeatherStoreActions>()(
       userTimezoneOffset: -new Date().getTimezoneOffset() * 60,
       open: false,
       maxCities: 15,
+      currentLocationData: undefined,
+      locationTrackingEnabled: false,
+      locationChangeDialog: {
+        isOpen: false,
+        oldCity: undefined,
+        newCity: undefined,
+        distance: undefined,
+      },
       setOpen: (open) => set({ open }),
       addCity: (city) => {
         if (get().cities.length >= get().maxCities) {
@@ -43,10 +50,14 @@ export const useWeatherStore = create<WeatherStore & WeatherStoreActions>()(
           });
           return false;
         }
-        set((state) => ({
-          cities: [...state.cities, city],
-          currentIndex: state.cities.length
-        }));
+        set((state) => {
+          // Remove any duplicates before adding
+          const filteredCities = state.cities.filter((c) => c.id !== city.id);
+          return {
+            cities: [...filteredCities, city],
+            currentIndex: filteredCities.length
+          };
+        });
         
         // Sync to server after adding city
         if (get().isAuthenticated) {
@@ -67,9 +78,10 @@ export const useWeatherStore = create<WeatherStore & WeatherStoreActions>()(
             return state;
           }
 
-          const filteredCities = state.autoLocationCityId
-            ? state.cities.filter((c) => c.id !== state.autoLocationCityId)
-            : state.cities;
+          // Remove any existing current location city and any duplicates
+          const filteredCities = state.cities.filter((c) => 
+            c.id !== state.autoLocationCityId && c.id !== city.id
+          );
 
           const updatedCity: CityWeather = {
             ...city,
@@ -239,13 +251,85 @@ export const useWeatherStore = create<WeatherStore & WeatherStoreActions>()(
         }
         return;
       },
-    }),
-    {
-      name: 'weather-store',
-      partialize: (state) =>
-        Object.fromEntries(
-          Object.entries(state).filter(([key]) => !['isLoading'].includes(key))
-        ) as WeatherStore,
-    },
-  ),
+
+      updateCurrentLocation: (lat, lon, cityId) => {
+        set({
+          currentLocationData: {
+            lat,
+            lon,
+            cityId,
+            lastChecked: Date.now(),
+          },
+        });
+      },
+
+      setLocationTrackingEnabled: (enabled) => {
+        set({ locationTrackingEnabled: enabled });
+      },
+
+      showLocationChangeDialog: (oldCity, newCity, distance) => {
+        set({
+          locationChangeDialog: {
+            isOpen: true,
+            oldCity,
+            newCity,
+            distance,
+          },
+        });
+      },
+
+      hideLocationChangeDialog: () => {
+        set({
+          locationChangeDialog: {
+            isOpen: false,
+            oldCity: undefined,
+            newCity: undefined,
+            distance: undefined,
+          },
+        });
+      },
+
+      handleLocationChange: async (keepOldCity, oldCityId, newCity) => {
+        try {
+          if (keepOldCity) {
+            // Keep the old city in the cities list
+            // The old city should already be in the list, so we just add the new one
+            get().addOrReplaceCurrentLocation(newCity);
+          } else {
+            // Remove the old city and add the new one
+            get().removeCity(oldCityId);
+            get().addOrReplaceCurrentLocation(newCity);
+          }
+
+          // Update current location data
+          get().updateCurrentLocation(newCity.lat, newCity.lon, newCity.id);
+
+          // Show success toast
+          get().showToast({
+            message: 'location.locationUpdated',
+            type: 'success',
+            values: { city: newCity.name[get().locale] },
+          });
+        } catch (error) {
+          // eslint-disable-next-line no-console
+          console.error('Error handling location change:', error);
+          get().showToast({
+            message: 'location.locationCheckFailed',
+            type: 'error',
+          });
+        }
+      },
+
+      sendLocationChangeNotification: async (oldCityName: string, newCityName: string, locale: string) => {
+        try {
+          await locationService.sendLocationChangeNotification({
+            oldCityName,
+            newCityName,
+            locale: locale as 'he' | 'en',
+          });
+        } catch {
+          // console.error('Error sending location change notification:', error);
+        }
+      },
+    })
 );

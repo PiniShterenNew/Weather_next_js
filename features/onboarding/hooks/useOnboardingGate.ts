@@ -10,10 +10,16 @@ import { useRouter } from 'next/navigation';
 export function useOnboardingGate() {
   const [shouldShowWelcome, setShouldShowWelcome] = useState<boolean | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isClient, setIsClient] = useState(false);
   const router = useRouter();
 
+  // Track client-side hydration
   useEffect(() => {
-    if (typeof window === 'undefined') return;
+    setIsClient(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isClient) return;
 
     const hasSeenWelcome = window.localStorage.getItem('hasSeenWelcome');
     const shouldShow = hasSeenWelcome !== '1';
@@ -25,7 +31,7 @@ export function useOnboardingGate() {
     if (shouldShow && window.location.pathname !== '/welcome') {
       router.push('/welcome');
     }
-  }, [router]);
+  }, [router, isClient]);
 
   const markWelcomeAsSeen = () => {
     if (typeof window !== 'undefined') {
@@ -42,8 +48,8 @@ export function useOnboardingGate() {
   };
 
   return {
-    shouldShowWelcome,
-    isLoading,
+    shouldShowWelcome: isClient ? shouldShowWelcome : null,
+    isLoading: !isClient || isLoading,
     markWelcomeAsSeen,
     resetWelcome,
   };

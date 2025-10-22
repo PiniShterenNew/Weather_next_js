@@ -12,7 +12,9 @@ export default function CityInfo() {
   
   const { locale, cityLocale } = useWeatherLocale(cityWeather);
 
-  if (!cityWeather || !cityLocale) return null;
+  if (!cityWeather || !cityLocale) {
+    return <WeatherCardSkeleton />;
+  }
 
   return (
     <Suspense fallback={<WeatherCardSkeleton />} data-testid="city-info">
@@ -27,7 +29,7 @@ export default function CityInfo() {
       >
         <WeatherCardContent
           cityWeather={cityWeather}
-          cityLocale={cityLocale}
+          cityLocale={cityWeather}
           locale={locale}
         />
       </motion.div>

@@ -29,28 +29,34 @@ export default function NotificationsCard() {
     enabled: false,
     permissionGranted: false,
   });
+  const [isClient, setIsClient] = useState(false);
+
+  // Track client-side hydration
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   useEffect(() => {
+    if (!isClient) return;
+
     // Load settings from localStorage
-    if (typeof window !== 'undefined') {
-      const savedSettings = window.localStorage.getItem('notificationSettings');
-      if (savedSettings) {
-        const parsedSettings = JSON.parse(savedSettings);
-        setSettings({
-          enabled: parsedSettings.enabled || false,
-          permissionGranted: parsedSettings.permissionGranted || false,
-        });
-      }
-      
-      // Check notification permission
-      if ('Notification' in window) {
-        setSettings(prev => ({
-          ...prev,
-          permissionGranted: Notification.permission === 'granted'
-        }));
-      }
+    const savedSettings = window.localStorage.getItem('notificationSettings');
+    if (savedSettings) {
+      const parsedSettings = JSON.parse(savedSettings);
+      setSettings({
+        enabled: parsedSettings.enabled || false,
+        permissionGranted: parsedSettings.permissionGranted || false,
+      });
     }
-  }, []);
+    
+    // Check notification permission
+    if ('Notification' in window) {
+      setSettings(prev => ({
+        ...prev,
+        permissionGranted: Notification.permission === 'granted'
+      }));
+    }
+  }, [isClient]);
 
   // Load notification preferences from database when user is available
   // Note: The preferences are already loaded via useUserSync hook,
@@ -298,22 +304,22 @@ export default function NotificationsCard() {
                 {t('enable')}
               </h3>
               <p className="text-sm text-neutral-600 dark:text-white/60">
-                {settings.permissionGranted 
+                {!isClient ? t('loading') : settings.permissionGranted 
                   ? (hasCities ? t('enableDescription') : t('noCitiesDescription'))
                   : t('permissionDeniedDescription')
                 }
               </p>
             </div>
             <Switch
-              checked={settings.enabled && settings.permissionGranted && hasCities}
+              checked={isClient ? (settings.enabled && settings.permissionGranted && hasCities) : false}
               onCheckedChange={toggleNotifications}
-              disabled={!hasCities}
+              disabled={!hasCities || !isClient}
               isRTL={isRTL}
             />
           </div>
 
           {/* Permission denied state */}
-          {!settings.permissionGranted && hasCities && (
+          {isClient && !settings.permissionGranted && hasCities && (
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}

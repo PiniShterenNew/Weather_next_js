@@ -32,7 +32,7 @@ const Switch = React.forwardRef<
       style={isRTL ? { 
         transformOrigin: 'right center',
         // Ensure smooth animation for RTL
-        ...(props as any)?.style 
+        ...(props as React.HTMLAttributes<HTMLButtonElement>)?.style 
       } : undefined}
     />
   </SwitchPrimitives.Root>

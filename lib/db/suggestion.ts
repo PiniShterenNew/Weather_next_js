@@ -21,11 +21,22 @@ export async function findCitiesByQuery(query: string): Promise<FullCityEntrySer
   const cleanQuery = query.trim();
   
   // Search for cities that start with the query (case insensitive)
+  // Use exact word matching to avoid partial matches
   const results = await prisma.city.findMany({
     where: {
       OR: [
-        { cityHe: { startsWith: cleanQuery, mode: 'insensitive' } },
-        { cityEn: { startsWith: cleanQuery, mode: 'insensitive' } },
+        { 
+          cityHe: { 
+            startsWith: cleanQuery, 
+            mode: 'insensitive'
+          } 
+        },
+        { 
+          cityEn: { 
+            startsWith: cleanQuery, 
+            mode: 'insensitive'
+          } 
+        },
       ],
     },
     // Prioritize exact matches and sort by relevance

@@ -62,7 +62,7 @@ export function ConfirmDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl border-2 border-white/20 dark:border-gray-700/50 rounded-2xl shadow-2xl p-6">
+      <DialogContent className="w-[calc(100vw-2rem)] sm:w-[calc(100vw-3rem)] max-w-none bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl border-2 border-white/20 dark:border-gray-700/50 rounded-2xl shadow-2xl p-4 sm:p-6">
         <DialogHeader>
           <motion.div
             initial={{ scale: 0 }}
