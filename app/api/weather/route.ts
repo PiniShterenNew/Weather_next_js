@@ -1,14 +1,10 @@
 // app/api/weather/route.ts
-// /api/weather?lat=43.6511&lon=-79.3832&name=undefined&country=undefined&unit=metric
+// /api/weather?lat=43.6511&lon=-79.3832&id=city:43.65_-79.38&lang=he
 
 export const runtime = 'nodejs';
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getWeatherByCoords } from '@/lib/helpers';
-import { CityWeather } from '@/types/weather';
-import { getCachedWeather, getCacheStats, setCachedWeather } from '@/lib/weatherCache';
-import { findCityById } from '@/lib/db/suggestion';
-import { logger, NotFoundError, ExternalApiError } from '@/lib/errors';
+import { getWeatherCached } from '@/lib/server/weather';
 import { findMatchingLimiter, getErrorMessage, getRequestIP } from '@/lib/simple-rate-limiter';
 
 export async function GET(request: NextRequest) {
@@ -30,6 +26,7 @@ export async function GET(request: NextRequest) {
   const lat = searchParams.get('lat');
   const lon = searchParams.get('lon');
   const id = searchParams.get('id');
+  const lang = searchParams.get('lang') as 'he' | 'en' || 'he';
 
   // Input validation
   if (!lat || !lon || !id) {
@@ -38,7 +35,6 @@ export async function GET(request: NextRequest) {
     if (!lon) missingParams.push('lon');
     if (!id) missingParams.push('id');
 
-    logger.warn(`Weather API called with missing parameters: ${missingParams.join(', ')}`);
     return NextResponse.json(
       { error: `Missing required parameters: ${missingParams.join(', ')}` },
       { status: 400 }
@@ -46,70 +42,26 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const existing = await findCityById(id);
+    const weather = await getWeatherCached(
+      id,
+      parseFloat(lat),
+      parseFloat(lon),
+      lang
+    );
 
-    if (!existing) {
-      logger.warn(`City not found in database with ID: ${id}`);
-      throw new NotFoundError(`City with ID ${id}`);
-    }
-
-    logger.info(`Fetching weather for city: ${existing.city.en} (${existing.id})`);
-
-    const cachedWeather = getCachedWeather(existing.id);
-    if (cachedWeather) {
-      logger.debug(`Cache hit for city ID: ${existing.id}, returning cached data`);
-      return NextResponse.json(cachedWeather);
-    }
-
-    logger.debug(`Cache miss for city ID: ${existing.id}, fetching from API`);
-
-    // Fetch from external API
-    try {
-      const { he, en } = await getWeatherByCoords({
-        lat: parseFloat(lat),
-        lon: parseFloat(lon),
-        name: existing.city,
-        country: existing.country
-      });
-
-      const result: CityWeather = {
-        id: existing.id,
-        lat: parseFloat(lat),
-        lon: parseFloat(lon),
-        name: existing.city,
-        country: existing.country,
-        currentHe: he,
-        currentEn: en,
-        lastUpdated: Date.now()
-      };
-
-      // Save to cache
-      await setCachedWeather(result);
-
-      // Log cache stats occasionally
-      if (Math.random() < 0.1) { // Log only ~10% of the time to avoid excessive logging
-        const stats = getCacheStats();
-        logger.debug(`Weather cache stats: ${stats.size} entries, oldest: ${stats.oldestEntry}ms`);
-      }
-
-      return NextResponse.json(result);
-    } catch (weatherError: unknown) {
-      const message = weatherError instanceof Error ? weatherError.message : 'Unknown error';
-      logger.error(`Weather API error for ${existing.id}`, weatherError as Error);
-      throw new ExternalApiError('Weather', message);
-    }
-  } catch (error: unknown) {
-    // Handle different error types
-    if (error instanceof NotFoundError) {
-      return NextResponse.json({ error: error.message }, { status: error.statusCode });
-    } else if (error instanceof ExternalApiError) {
-      return NextResponse.json({ error: error.message }, { status: error.statusCode });
-    } else {
-      logger.error('Unexpected error in weather API', error as Error);
+    if (!weather) {
       return NextResponse.json(
-        { error: 'An unexpected error occurred while fetching weather data' },
-        { status: 500 }
+        { error: 'Weather data not available' },
+        { status: 404 }
       );
     }
+
+    return NextResponse.json(weather);
+  } catch {
+    // console.error('Weather API error:', error);
+    return NextResponse.json(
+      { error: 'An unexpected error occurred while fetching weather data' },
+      { status: 500 }
+    );
   }
 }

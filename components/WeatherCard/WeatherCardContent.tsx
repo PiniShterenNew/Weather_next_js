@@ -38,7 +38,7 @@ export function WeatherCardContent({ cityWeather, locale, cityLocale }: WeatherC
       style={{ touchAction: 'pan-y' }}
     >
       <div className="flex flex-col gap-4 p-4 md:p-6 xl:p-8 pb-6 md:pb-8 xl:pb-10">
-        {/* Header */}
+        {/* Header - Always at top, same for mobile and desktop */}
         <div 
           className="flex-shrink-0" 
           data-drag-handle
@@ -53,31 +53,39 @@ export function WeatherCardContent({ cityWeather, locale, cityLocale }: WeatherC
           />
         </div>
 
-        {/* Weather Details */}
+        {/* Weather Details - Always after header */}
         <WeatherDetails cityLocale={cityLocale} _locale={locale} />
 
-        {/* Hourly Forecast */}
-        {cityLocale.hourly && cityLocale.hourly.length > 0 && (
-          <HourlyForecast 
-            hourly={cityLocale.hourly} 
-            cityUnit={cityLocale.unit} 
-            unit={unit} 
-          />
-        )}
+        {/* Content below - Responsive layout */}
+        <div className="flex flex-col lg:grid lg:grid-cols-2 lg:gap-6 gap-4">
+          {/* Left Column - Hourly Forecast */}
+          <div className="flex flex-col gap-4">
+            {/* Hourly Forecast */}
+            {cityWeather.hourly && cityWeather.hourly.length > 0 && (
+              <HourlyForecast 
+                hourly={cityWeather.hourly} 
+                cityUnit={cityWeather.unit} 
+                unit={unit} 
+              />
+            )}
 
-        {/* Last Updated */}
-        <div className="text-center">
-          <p className="text-xs text-gray-600 dark:text-white/50" aria-live="polite">
-            {t('lastUpdated')} <span dir="ltr">{formatTimeWithOffset(cityWeather.lastUpdated / 1000, cityLocale.current.timezone)}</span>
-          </p>
+            {/* Last Updated */}
+            <div className="text-center">
+              <p className="text-xs text-gray-600 dark:text-white/50" aria-live="polite">
+                {t('lastUpdated')} <span dir="ltr">{formatTimeWithOffset(cityWeather.lastUpdated / 1000, cityLocale.current.timezone)}</span>
+              </p>
+            </div>
+          </div>
+
+          {/* Right Column - Daily Forecast */}
+          <div className="flex flex-col gap-4">
+            <ForecastList 
+              cityUnit={cityWeather.unit} 
+              forecast={cityWeather.forecast} 
+              unit={unit} 
+            />
+          </div>
         </div>
-
-        {/* Daily Forecast */}
-        <ForecastList 
-          cityUnit={cityLocale.unit} 
-          forecast={cityLocale.forecast} 
-          unit={unit} 
-        />
       </div>
     </div>
   );

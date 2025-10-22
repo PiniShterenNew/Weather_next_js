@@ -25,7 +25,7 @@ export function useCityRefresh() {
         id: city.id,
         lat: city.lat,
         lon: city.lon,
-        unit: city.currentEn.unit,
+        unit: city.unit,
       });
 
       updateCity({ ...freshData, lastUpdated: Date.now() });

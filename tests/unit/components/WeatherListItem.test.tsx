@@ -42,7 +42,7 @@ const renderItem = () =>
     <WeatherListItem
       ref={() => {}}
       city={cityWeather}
-      cityCurrent={cityWeather.currentEn}
+      cityCurrent={cityWeather}
       isCurrentIndex={false}
     />,
   )
@@ -52,7 +52,7 @@ describe('WeatherListItem', () => {
     renderItem()
     expect(screen.getByText(/New York/i)).toBeInTheDocument()
     expect(screen.getByText(/United States/i)).toBeInTheDocument()
-     expect(screen.getByText('20')).toBeInTheDocument()
+     expect(screen.getByText('19')).toBeInTheDocument()
   })
 
   it('renders location icon when city is current location', () => {
@@ -66,7 +66,7 @@ describe('WeatherListItem', () => {
       <WeatherListItem
         ref={() => {}}
         city={cityWeather}
-        cityCurrent={cityWeather.currentEn}
+        cityCurrent={cityWeather}
         isCurrentIndex={false}
         onClick={handleClick}
       />,
@@ -78,8 +78,8 @@ describe('WeatherListItem', () => {
   it('displays humidity, wind and visibility metrics', () => {
     renderItem()
     const root = screen.getByRole('button')
-    expect(within(root).getByText(/60%/)).toBeInTheDocument()
-     expect(within(root).getByText('3.5')).toBeInTheDocument()
+    expect(within(root).getByText(/65%/)).toBeInTheDocument()
+     expect(within(root).getByText('12.5')).toBeInTheDocument()
      expect(within(root).getByText('10')).toBeInTheDocument()
   })
 })

@@ -60,14 +60,16 @@ export interface CityWeatherCurrent {
 }
 
 export interface CityWeather{
-  currentEn: CityWeatherCurrent;
-  currentHe: CityWeatherCurrent;
+  current: WeatherCurrent;
+  forecast: WeatherForecastItem[];
+  hourly: WeatherHourlyItem[];
   name: BilingualName;
   country: BilingualName;
   id: string;
   lat: number;
   lon: number;
   lastUpdated: number;
+  unit: 'metric';
   isCurrentLocation?: boolean; 
 }
   

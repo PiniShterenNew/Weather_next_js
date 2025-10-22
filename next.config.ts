@@ -13,13 +13,23 @@ const nextConfig = {
   },
 
   images: {
-    domains: ['openweathermap.org'],
+    domains: ['openweathermap.org', 'img.clerk.com', 'images.clerk.dev'],
     formats: ['image/avif', 'image/webp'],
     remotePatterns: [
       {
         protocol: 'https',
         hostname: 'openweathermap.org',
         pathname: '/img/wn/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'img.clerk.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'images.clerk.dev',
+        pathname: '/**',
       },
     ],
   },
@@ -55,5 +65,24 @@ export default withPWA({
   workboxOptions: {
     skipWaiting: true,
     clientsClaim: true,
+    // Cache only assets and app shell, not weather data
+    runtimeCaching: [
+      {
+        urlPattern: /^https:\/\/api\.openweathermap\.org\/.*/i,
+        handler: 'NetworkOnly', // Don't cache weather API responses
+        options: {
+          backgroundSync: {
+            name: 'weather-sync',
+            options: {
+              maxRetentionTime: 24 * 60 // 24 hours
+            }
+          }
+        }
+      },
+      {
+        urlPattern: /^\/api\/weather/,
+        handler: 'NetworkOnly', // Don't cache weather API responses
+      }
+    ]
   },
 })(withNextIntl(nextConfig));

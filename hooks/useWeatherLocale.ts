@@ -5,7 +5,7 @@ import { CityWeather } from "@/types/weather";
 export function useWeatherLocale(cityWeather?: CityWeather) {
   const locale = useLocale() as AppLocale;
   
-  const cityLocale = cityWeather?.[locale === 'en' ? 'currentEn' : 'currentHe'];
+  const cityLocale = cityWeather?.current;
   
   return {
     locale,

@@ -28,7 +28,7 @@ export function useAutoRefreshWeather() {
             id: city.id,
             lat: city.lat,
             lon: city.lon,
-            unit: city.currentEn?.unit || 'metric',
+            unit: city.unit || 'metric',
           });
 
           updateCity({ ...freshData, lastUpdated: Date.now() });

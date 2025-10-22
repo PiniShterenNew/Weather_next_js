@@ -114,6 +114,8 @@ describe('notifyFormat', () => {
       main: {
         temp: 25,
         feels_like: 27,
+        temp_min: 20,
+        temp_max: 30,
         humidity: 60,
         pressure: 1013,
       },
@@ -129,6 +131,15 @@ describe('notifyFormat', () => {
         speed: 12,
         deg: 315,
       },
+      clouds: {
+        all: 0,
+      },
+      visibility: 10000,
+      sys: {
+        sunrise: 1640995200,
+        sunset: 1641034800,
+      },
+      timezone: -18000,
       name: 'Tel Aviv',
     };
 

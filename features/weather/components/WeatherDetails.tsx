@@ -17,8 +17,8 @@ export default function WeatherDetails({ cityLocale, _locale }: WeatherDetailsPr
 
   return (
     <div className="w-full" data-testid="temperature">
-      {/* Weather cards - 2 per row */}
-      <div className="grid grid-cols-2 gap-3">
+      {/* Weather cards - 2 per row on mobile, 3 per row on desktop */}
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
         {/* Humidity */}
         <div className="text-center p-4 rounded-2xl bg-blue-50/80 dark:bg-white/10 hover-lift transition-all animate-fade-in flex flex-col gap-2 items-center border border-blue-200/50 dark:border-white/5">
           <Droplets className="text-lg text-blue-500 dark:text-blue-400" />
@@ -94,7 +94,7 @@ export default function WeatherDetails({ cityLocale, _locale }: WeatherDetailsPr
       <div className="w-full h-px bg-gradient-to-r from-transparent via-gray-300 dark:via-white/20 to-transparent my-4"></div>
       
       {/* Sunrise and Sunset */}
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 lg:grid-cols-2 gap-3">
         <div className="text-center p-4 rounded-2xl bg-yellow-50/80 dark:bg-white/10 hover-lift transition-all animate-fade-in flex flex-col gap-2 items-center border border-yellow-200/50 dark:border-white/5" role="region" aria-label="Sunrise time">
           <Sunrise className="text-lg text-orange-400 dark:text-orange-300" aria-hidden="true" />
           <p className="text-xl font-semibold tabular-nums text-gray-900 dark:text-white/90" dir="ltr">

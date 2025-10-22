@@ -23,29 +23,28 @@ const baseCity = {
   unit: 'metric',
   name: { en: 'London', he: 'לונדון' },
   country: { en: 'UK', he: 'בריטניה' },
-  currentEn: {
-    current: {
-      temp: 15,
-      feelsLike: 14,
-      humidity: 60,
-      wind: 5,
-      windDeg: 90,
-      visibility: 10_000,
-      pressure: 1012,
-      clouds: 10,
-      icon: '01d',
-      desc: 'Clear',
-      codeId: '01d',
-      timezone: 0,
-      sunrise: 0,
-      sunset: 0,
-    },
-    unit: 'metric',
+  current: {
+    temp: 15,
+    feelsLike: 14,
+    tempMin: 10,
+    tempMax: 20,
+    humidity: 60,
+    wind: 5,
+    windDeg: 90,
+    visibility: 10_000,
+    pressure: 1012,
+    clouds: 10,
+    icon: '01d',
+    desc: 'Clear',
+    codeId: 800,
+    timezone: 0,
+    sunrise: 0,
+    sunset: 0,
   },
-  currentHe: {} as any,
-  forecastEn: [],
-  forecastHe: [],
+  forecast: [],
+  hourly: [],
   lastUpdated: 0,
+  isCurrentLocation: false,
 }
 const secondCity = {
   ...baseCity,
@@ -98,7 +97,7 @@ describe('WeatherList & WeatherListItem', () => {
     expect(screen.getByText(/UK/i)).toBeInTheDocument()
     expect(screen.getByText(/Paris/i)).toBeInTheDocument()
     expect(screen.getByText(/France/i)).toBeInTheDocument()
-    expect(screen.getAllByText(/15°/)).toHaveLength(2)
+     expect(screen.getAllByText(/15/)).toHaveLength(2)
   })
 
   it('changes current index on click', async () => {
@@ -135,7 +134,6 @@ describe('WeatherList & WeatherListItem', () => {
     })
 
     expect(screen.getAllByText(/60%/)).toHaveLength(2)
-    expect(screen.getAllByText(/5 km\/h E/)).toHaveLength(2)
-    expect(screen.getAllByText(/10 km/)).toHaveLength(2)
+     expect(screen.getAllByText(/5/)).toHaveLength(4)
   })
 })

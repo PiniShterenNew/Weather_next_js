@@ -4,15 +4,11 @@ import { Thermometer } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { useUser } from '@clerk/nextjs';
+import UserAvatar from '@/components/ui/UserAvatar';
 
 export default function Header() {
   const t = useTranslations();
-  const { user } = useUser();
   const router = useRouter();
-
-  // Get first letter of name for fallback
-  const firstLetter = user?.firstName?.charAt(0) || user?.username?.charAt(0) || 'U';
 
   return (
     <header className="fixed top-0 left-0 right-0 h-16 flex items-center justify-between px-4 bg-white/60 dark:bg-[#0d1117]/60 backdrop-blur-md shadow-sm border-b border-white/10 z-50">
@@ -29,23 +25,11 @@ export default function Header() {
       </div>
 
       {/* Right side - User profile circle */}
-      <button
+      <UserAvatar
         onClick={() => router.push('/profile')}
-        className="w-10 h-10 rounded-full overflow-hidden border border-gray-300 dark:border-white/10 hover:border-gray-400 dark:hover:border-white/20 p-0 transition-all duration-200 bg-gray-100 dark:bg-white/10 shrink-0"
-        aria-label={t('navigation.profile')}
-      >
-        {user?.imageUrl ? (
-          <img
-            src={user?.imageUrl}
-            alt={user?.fullName || 'User'}
-            className="w-10 h-10 object-cover object-center rounded-full"
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center text-gray-900 dark:text-white font-semibold text-xs">
-            {firstLetter}
-          </div>
-        )}
-      </button>
+        size="md"
+        className="hover:scale-105 transition-transform duration-200"
+      />
     </header>
   );
 }

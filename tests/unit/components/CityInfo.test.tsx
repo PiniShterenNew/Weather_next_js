@@ -22,10 +22,10 @@ beforeEach(() => {
     fetchWeather: vi.fn(async () => cityWeather),
     WeatherDetails: () => (
       <div data-testid="weather-details">
-        <span>{cityWeather.currentEn.current.humidity}%</span>
+        <span>{cityWeather.current.humidity}%</span>
         <span>km/h E</span>
-        <span>{cityWeather.currentEn.current.pressure} hPa</span>
-        <span>{cityWeather.currentEn.current.visibility} m</span>
+        <span>{cityWeather.current.pressure} hPa</span>
+        <span>{cityWeather.current.visibility} m</span>
       </div>
     ),
     WeatherTimeNow: () => <div data-testid="weather-time-now" />,
@@ -92,10 +92,10 @@ describe('CityInfo', () => {
   })
 
   it('displays main weather metrics', async () => {
-    const humidity = `${cityWeather.currentEn.current.humidity}%`
+    const humidity = `${cityWeather.current.humidity}%`
     const wind = /km\/h E/
-    const pressure = new RegExp(`${cityWeather.currentEn.current.pressure} hPa`)
-    const visibility = new RegExp(`${cityWeather.currentEn.current.visibility} m`)
+    const pressure = new RegExp(`${cityWeather.current.pressure} hPa`)
+    const visibility = new RegExp(`${cityWeather.current.visibility} m`)
 
     const { default: CityInfo } = await import('@/components/WeatherCard/CityInfo')
     render(<CityInfo />)

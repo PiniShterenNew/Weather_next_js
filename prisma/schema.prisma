@@ -14,6 +14,7 @@ model User {
   name        String?
   preferences Json?
   userCities  UserCity[]
+  currentLocation UserCurrentLocation?
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
 
@@ -29,6 +30,7 @@ model City {
   countryEn  String
   countryHe  String
   userCities UserCity[]
+  currentLocations UserCurrentLocation[]
   createdAt  DateTime   @default(now())
   updatedAt  DateTime   @updatedAt
 
@@ -61,4 +63,29 @@ model PushSubscription {
 
   @@index([userId])
   @@index([endpoint])
+}
+
+model UserCurrentLocation {
+  id            String   @id @default(cuid())
+  userId        String   @unique
+  cityId        String
+  lat           Float
+  lon           Float
+  lastCheckedAt DateTime @default(now())
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  city City @relation(fields: [cityId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([cityId])
+}
+
+model WeatherCache {
+  cityId    String   @id
+  payload   Json
+  updatedAt DateTime @updatedAt
+
+  @@index([updatedAt])
 }

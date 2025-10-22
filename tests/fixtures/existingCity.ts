@@ -8,93 +8,46 @@ export const existingCity: CityWeather = {
   lat: 40.7128,
   lon: -74.006,
   lastUpdated: Date.now(),
+  unit: 'metric',
   isCurrentLocation: false,
 
-  currentEn: {
-    lat: 40.7128,
-    lon: -74.006,
-    unit: 'metric',
-    lastUpdated: Date.now(),
-    isCurrentLocation: false,
-    current: {
-      codeId: 800,
-      temp: 20,
-      feelsLike: 19,
-      tempMin: 18,
-      tempMax: 22,
-      desc: 'Clear sky',
-      icon: '01d',
-      humidity: 60,
-      wind: 3.5,
-      windDeg: 180,
-      pressure: 1013,
-      visibility: 10000,
-      clouds: 0,
-      sunrise: 1710112800,
-      sunset: 1710159600,
-      timezone: -14400
-    },
-    forecast: [
-      {
-        date: Date.now() + 86_400_000,
-        min: 18,
-        max: 26,
-        icon: '01d',
-        desc: 'Sunny',
-        codeId: 800
-      },
-      {
-        date: Date.now() + 2 * 86_400_000,
-        min: 19,
-        max: 27,
-        icon: '02d',
-        desc: 'Partly cloudy',
-        codeId: 801
-      }
-    ]
+  current: {
+    codeId: 800,
+    temp: 22,
+    feelsLike: 24,
+    tempMin: 18,
+    tempMax: 26,
+    desc: 'Clear',
+    icon: '01d',
+    humidity: 65,
+    wind: 12.5,
+    windDeg: 180,
+    pressure: 1013,
+    visibility: 10000,
+    clouds: 0,
+    sunrise: 1640995200,
+    sunset: 1641034800,
+    timezone: -18000
   },
-
-  currentHe: {
-    lat: 40.7128,
-    lon: -74.006,
-    unit: 'metric',
-    lastUpdated: Date.now(),
-    isCurrentLocation: false,
-    current: {
-      codeId: 800,
-      temp: 20,
-      feelsLike: 19,
-      tempMin: 18,
-      tempMax: 22,
-      desc: 'שמיים בהירים',
+  forecast: [
+    {
+      date: Date.now() + 86_400_000,
+      min: 18,
+      max: 26,
       icon: '01d',
-      humidity: 60,
-      wind: 3.5,
-      windDeg: 180,
-      pressure: 1013,
-      visibility: 10000,
-      clouds: 0,
-      sunrise: 1710112800,
-      sunset: 1710159600,
-      timezone: -14400
-    },
-    forecast: [
-      {
-        date: Date.now() + 86_400_000,
-        min: 18,
-        max: 26,
-        icon: '01d',
-        desc: 'שמשי',
-        codeId: 800
-      },
-      {
-        date: Date.now() + 2 * 86_400_000,
-        min: 19,
-        max: 27,
-        icon: '02d',
-        desc: 'מעונן חלקית',
-        codeId: 801
-      }
-    ]
-  }
+      desc: 'Sunny',
+      codeId: 800
+    }
+  ],
+  hourly: [
+    {
+      time: Date.now(),
+      temp: 22,
+      icon: '01d',
+      desc: 'Clear',
+      codeId: 800,
+      wind: 12.5,
+      humidity: 65
+    }
+  ]
 };

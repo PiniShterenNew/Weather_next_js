@@ -1,6 +1,7 @@
 import { CityWeather, CityWeatherCurrent } from './weather';
 import { TemporaryUnit as TemporaryUnit, ThemeMode, Direction, ToastMessage } from './ui';
 import { AppLocale } from './i18n';
+import { CurrentLocationData } from './location';
 
 export interface WeatherStore {
   cities: CityWeather[]; 
@@ -17,6 +18,14 @@ export interface WeatherStore {
   maxCities: number;
   isAuthenticated: boolean;
   isSyncing: boolean;
+  currentLocationData?: CurrentLocationData;
+  locationTrackingEnabled: boolean;
+  locationChangeDialog: {
+    isOpen: boolean;
+    oldCity?: { name: { en: string; he: string }; country: { en: string; he: string } };
+    newCity?: { name: { en: string; he: string }; country: { en: string; he: string } };
+    distance?: number;
+  };
 }
 
 export interface WeatherStoreActions {
@@ -41,4 +50,9 @@ export interface WeatherStoreActions {
   setIsAuthenticated: (_isAuthenticated: boolean) => void;
   syncWithServer: () => Promise<void>;
   loadUserPreferences: (forceLoad?: boolean) => Promise<void>;
+  updateCurrentLocation: (lat: number, lon: number, cityId: string) => void;
+  setLocationTrackingEnabled: (enabled: boolean) => void;
+  showLocationChangeDialog: (oldCity: { name: { en: string; he: string }; country: { en: string; he: string } }, newCity: { name: { en: string; he: string }; country: { en: string; he: string } }, distance: number) => void;
+  hideLocationChangeDialog: () => void;
+  handleLocationChange: (keepOldCity: boolean, oldCityId: string, newCity: CityWeather) => void;
 }

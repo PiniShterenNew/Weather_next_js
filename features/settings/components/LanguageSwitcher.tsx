@@ -1,7 +1,7 @@
 'use client';
 
 import { usePathname, useRouter } from 'next/navigation';
-import { useLayoutEffect, useTransition } from 'react';
+import { useLayoutEffect, useTransition, useState, useEffect } from 'react';
 import { useWeatherStore } from '@/store/useWeatherStore';
 import {
   Select,
@@ -21,6 +21,12 @@ export default function LanguageSwitcher() {
   const router = useRouter();
   const pathname = usePathname();
   const [, startTransition] = useTransition();
+  const [isClient, setIsClient] = useState(false);
+
+  // Track client-side hydration
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const handleLocaleChange = (newLocale: 'he' | 'en') => {
     if (newLocale === localeStore) return;
@@ -34,15 +40,17 @@ export default function LanguageSwitcher() {
   };
 
   useLayoutEffect(() => {
-    setLocale(locale as AppLocale);
-  }, [locale, setLocale]);
+    if (isClient) {
+      setLocale(locale as AppLocale);
+    }
+  }, [locale, setLocale, isClient]);
 
   return (
     <div className="relative">
-      <Select value={localeStore} onValueChange={handleLocaleChange}>
+      <Select value={isClient ? localeStore : locale} onValueChange={handleLocaleChange}>
         <SelectTrigger className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl border border-gray-200/50 dark:border-gray-700/50 rounded-xl h-10 px-4 w-auto min-w-[90px] flex items-center justify-center text-sm font-medium hover-scale transition-all duration-200">
           <SelectValue>
-            {localeStore === 'he' ? t('he') : t('en')}
+            {isClient ? (localeStore === 'he' ? t('he') : t('en')) : (locale === 'he' ? t('he') : t('en'))}
           </SelectValue>
         </SelectTrigger>
         <SelectContent className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl border border-gray-200/50 dark:border-gray-700/50 rounded-xl animate-slide-up">

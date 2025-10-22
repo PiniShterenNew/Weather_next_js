@@ -2,14 +2,14 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { usePushNotifications } from '@/features/notifications/hooks/usePushNotifications';
 
+// Mock the registerForPushNotifications function
+vi.mock('@/features/notifications/sw/registerPush', () => ({
+  registerForPushNotifications: vi.fn(),
+  unregisterFromPushNotifications: vi.fn(),
+}));
+
 // Mock fetch
 global.fetch = vi.fn();
-
-// Mock service worker
-const mockServiceWorker = {
-  getRegistration: vi.fn(),
-  register: vi.fn(),
-};
 
 const mockPushManager = {
   getSubscription: vi.fn(),
@@ -18,6 +18,15 @@ const mockPushManager = {
 
 const mockRegistration = {
   pushManager: mockPushManager,
+  active: {
+    postMessage: vi.fn(),
+  },
+};
+
+// Mock service worker
+const mockServiceWorker = {
+  getRegistration: vi.fn().mockResolvedValue(mockRegistration),
+  register: vi.fn().mockResolvedValue(mockRegistration),
 };
 
 // Mock Notification API
@@ -28,6 +37,12 @@ const mockNotification = {
 
 Object.defineProperty(global, 'Notification', {
   value: mockNotification,
+  writable: true,
+});
+
+// Mock navigator.serviceWorker
+Object.defineProperty(navigator, 'serviceWorker', {
+  value: mockServiceWorker,
   writable: true,
 });
 
@@ -47,6 +62,24 @@ describe('usePushNotifications', () => {
   });
 
   it('should initialize with correct default state', () => {
+    // Mock Notification support
+    Object.defineProperty(global, 'Notification', {
+      value: mockNotification,
+      writable: true,
+    });
+    
+    // Mock window.Notification
+    Object.defineProperty(window, 'Notification', {
+      value: mockNotification,
+      writable: true,
+    });
+    
+    // Mock PushManager
+    Object.defineProperty(window, 'PushManager', {
+      value: {},
+      writable: true,
+    });
+    
     const { result } = renderHook(() => usePushNotifications());
 
     expect(result.current.isSupported).toBe(true);
@@ -57,11 +90,9 @@ describe('usePushNotifications', () => {
   });
 
   it('should handle unsupported browsers', () => {
-    // Mock unsupported browser
-    Object.defineProperty(global, 'Notification', {
-      value: undefined,
-      writable: true,
-    });
+    // Mock unsupported browser - set Notification to undefined
+    (global as any).Notification = undefined;
+    (window as any).Notification = undefined;
 
     const { result } = renderHook(() => usePushNotifications());
 
@@ -70,6 +101,24 @@ describe('usePushNotifications', () => {
   });
 
   it('should check subscription status on mount', async () => {
+    // Mock Notification support
+    Object.defineProperty(global, 'Notification', {
+      value: mockNotification,
+      writable: true,
+    });
+    
+    // Mock window.Notification
+    Object.defineProperty(window, 'Notification', {
+      value: mockNotification,
+      writable: true,
+    });
+    
+    // Mock PushManager
+    Object.defineProperty(window, 'PushManager', {
+      value: {},
+      writable: true,
+    });
+    
     mockServiceWorker.getRegistration.mockResolvedValue(mockRegistration);
     mockPushManager.getSubscription.mockResolvedValue({ endpoint: 'test-endpoint' });
 
@@ -84,6 +133,24 @@ describe('usePushNotifications', () => {
   });
 
   it('should request permission successfully', async () => {
+    // Mock Notification support
+    Object.defineProperty(global, 'Notification', {
+      value: mockNotification,
+      writable: true,
+    });
+    
+    // Mock window.Notification
+    Object.defineProperty(window, 'Notification', {
+      value: mockNotification,
+      writable: true,
+    });
+    
+    // Mock PushManager
+    Object.defineProperty(window, 'PushManager', {
+      value: {},
+      writable: true,
+    });
+    
     mockNotification.requestPermission.mockResolvedValue('granted');
 
     const { result } = renderHook(() => usePushNotifications());
@@ -98,6 +165,24 @@ describe('usePushNotifications', () => {
   });
 
   it('should subscribe successfully', async () => {
+    // Mock Notification support
+    Object.defineProperty(global, 'Notification', {
+      value: mockNotification,
+      writable: true,
+    });
+    
+    // Mock window.Notification
+    Object.defineProperty(window, 'Notification', {
+      value: mockNotification,
+      writable: true,
+    });
+    
+    // Mock PushManager
+    Object.defineProperty(window, 'PushManager', {
+      value: {},
+      writable: true,
+    });
+    
     const mockSubscription = {
       endpoint: 'test-endpoint',
       keys: {
@@ -106,8 +191,10 @@ describe('usePushNotifications', () => {
       },
     };
 
-    mockServiceWorker.getRegistration.mockResolvedValue(mockRegistration);
-    mockPushManager.subscribe.mockResolvedValue(mockSubscription);
+    // Mock registerForPushNotifications
+    const { registerForPushNotifications } = await import('@/features/notifications/sw/registerPush');
+    (registerForPushNotifications as any).mockResolvedValue(mockSubscription);
+
     (global.fetch as any).mockResolvedValue({
       ok: true,
       json: () => Promise.resolve({ success: true }),
@@ -127,7 +214,27 @@ describe('usePushNotifications', () => {
   });
 
   it('should handle subscription failure', async () => {
-    mockServiceWorker.getRegistration.mockRejectedValue(new Error('Service worker error'));
+    // Mock Notification support
+    Object.defineProperty(global, 'Notification', {
+      value: mockNotification,
+      writable: true,
+    });
+    
+    // Mock window.Notification
+    Object.defineProperty(window, 'Notification', {
+      value: mockNotification,
+      writable: true,
+    });
+    
+    // Mock PushManager
+    Object.defineProperty(window, 'PushManager', {
+      value: {},
+      writable: true,
+    });
+    
+    // Mock registerForPushNotifications to fail
+    const { registerForPushNotifications } = await import('@/features/notifications/sw/registerPush');
+    (registerForPushNotifications as any).mockRejectedValue(new Error('Service worker error'));
 
     const { result } = renderHook(() => usePushNotifications());
 
@@ -142,22 +249,34 @@ describe('usePushNotifications', () => {
   });
 
   it('should unsubscribe successfully', async () => {
-    mockServiceWorker.getRegistration.mockResolvedValue(mockRegistration);
-    mockPushManager.getSubscription.mockResolvedValue({ 
-      endpoint: 'test-endpoint',
-      unsubscribe: vi.fn().mockResolvedValue(true)
+    // Mock Notification support
+    Object.defineProperty(global, 'Notification', {
+      value: mockNotification,
+      writable: true,
     });
+    
+    // Mock window.Notification
+    Object.defineProperty(window, 'Notification', {
+      value: mockNotification,
+      writable: true,
+    });
+    
+    // Mock PushManager
+    Object.defineProperty(window, 'PushManager', {
+      value: {},
+      writable: true,
+    });
+    
+    // Mock unregisterFromPushNotifications
+    const { unregisterFromPushNotifications } = await import('@/features/notifications/sw/registerPush');
+    (unregisterFromPushNotifications as any).mockResolvedValue(true);
+    
     (global.fetch as any).mockResolvedValue({
       ok: true,
       json: () => Promise.resolve({ success: true }),
     });
 
     const { result } = renderHook(() => usePushNotifications());
-
-    // First subscribe
-    await act(async () => {
-      await result.current.subscribe('test-user-id');
-    });
 
     // Then unsubscribe
     let success: boolean;
@@ -170,7 +289,27 @@ describe('usePushNotifications', () => {
   });
 
   it('should handle unsubscribe failure', async () => {
-    mockServiceWorker.getRegistration.mockRejectedValue(new Error('Unsubscribe error'));
+    // Mock Notification support
+    Object.defineProperty(global, 'Notification', {
+      value: mockNotification,
+      writable: true,
+    });
+    
+    // Mock window.Notification
+    Object.defineProperty(window, 'Notification', {
+      value: mockNotification,
+      writable: true,
+    });
+    
+    // Mock PushManager
+    Object.defineProperty(window, 'PushManager', {
+      value: {},
+      writable: true,
+    });
+    
+    // Mock unregisterFromPushNotifications to fail
+    const { unregisterFromPushNotifications } = await import('@/features/notifications/sw/registerPush');
+    (unregisterFromPushNotifications as any).mockRejectedValue(new Error('Unsubscribe error'));
 
     const { result } = renderHook(() => usePushNotifications());
 

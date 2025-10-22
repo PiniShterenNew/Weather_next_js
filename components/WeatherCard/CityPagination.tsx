@@ -27,7 +27,7 @@ export default function CityPagination() {
         
         return (
           <button
-            key={city.id}
+            key={`${city.id}-${index}`}
             onClick={() => setCurrentIndex(index)}
             className="relative focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 rounded-full p-1"
             aria-label={`Go to ${city.name[useWeatherStore.getState().locale]}`}

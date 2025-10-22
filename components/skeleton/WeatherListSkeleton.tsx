@@ -7,27 +7,53 @@ const WeatherListSkeleton = () => {
                 {Array.from({ length: 4 }).map((_, index) => (
                     <div
                         key={index}
-                        className="w-full p-4 bg-card rounded-xl flex flex-col gap-3 border border-border shadow-md animate-pulse"
+                        className="group relative w-full rounded-2xl flex flex-col gap-4 overflow-hidden min-h-touch-target-comfortable shadow-lg border border-white/20 dark:border-gray-700/50"
                     >
-                        <div className="flex items-center justify-between">
-                            <div className="flex flex-col items-start justify-center gap-2">
-                                <Skeleton className="w-20 h-4" />
-                                <Skeleton className="w-16 h-3" />
+                        {/* Gradient background layer */}
+                        <div className="absolute inset-0 opacity-30 dark:opacity-20 bg-gradient-to-br from-blue-400 to-purple-500" />
+                        
+                        {/* White/Dark overlay */}
+                        <div className="absolute inset-0 backdrop-blur-xl bg-white/90 dark:bg-gray-800/90" />
+                        
+                        {/* Main content with padding */}
+                        <div className="relative p-5 flex flex-col gap-3">
+                            {/* Header: City name and country */}
+                            <div className="flex justify-between items-start">
+                                <div className="flex flex-col gap-0.5">
+                                    <Skeleton className="w-24 h-5" />
+                                    <Skeleton className="w-16 h-3" />
+                                </div>
+                                
+                                {/* Weather Icon */}
+                                <div className="flex-shrink-0">
+                                    <Skeleton className="w-9 h-9 rounded-full" />
+                                </div>
                             </div>
-                            <div className="text-right">
-                                <Skeleton className="w-12 h-8 mb-1" />
+
+                            {/* Temperature - Large and prominent */}
+                            <div className="flex items-baseline gap-2">
+                                <Skeleton className="w-20 h-12" />
+                                <Skeleton className="w-6 h-8" />
                             </div>
-                        </div>
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center justify-center gap-3">
-                                <Skeleton className="w-8 h-8" />
-                                <Skeleton className="w-12 h-3" />
+
+                            {/* Condition description */}
+                            <Skeleton className="w-32 h-4" />
+
+                            {/* Metrics row */}
+                            <div className="flex items-center justify-between gap-3 pt-3 border-t border-gray-200/50 dark:border-gray-700/50">
+                                <div className="flex items-center gap-1.5">
+                                    <Skeleton className="w-4 h-4 rounded" />
+                                    <Skeleton className="w-8 h-3" />
+                                </div>
+                                <div className="flex items-center gap-1.5">
+                                    <Skeleton className="w-4 h-4 rounded" />
+                                    <Skeleton className="w-8 h-3" />
+                                </div>
+                                <div className="flex items-center gap-1.5">
+                                    <Skeleton className="w-4 h-4 rounded" />
+                                    <Skeleton className="w-8 h-3" />
+                                </div>
                             </div>
-                        </div>
-                        <div className="flex items-center justify-between gap-3">
-                            <Skeleton className="w-24 h-4" />
-                            <Skeleton className="w-24 h-4" />
-                            <Skeleton className="w-24 h-4" />
                         </div>
                     </div>
                 ))}

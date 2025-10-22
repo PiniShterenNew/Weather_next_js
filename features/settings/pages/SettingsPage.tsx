@@ -8,7 +8,7 @@ import { Card } from '@/components/ui/card';
 import { LanguageSwitcher, ThemeSwitcher, TemperatureUnitToggle } from '@/features/settings';
 import { useWeatherStore } from '@/store/useWeatherStore';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useOnboardingGate } from '@/features/onboarding';
 import NotificationsCard from '@/features/notifications/settings/NotificationsCard';
@@ -26,6 +26,12 @@ export default function SettingsPage({ isAuthenticated = false, onSignOut }: Set
   const [showClearCacheDialog, setShowClearCacheDialog] = useState(false);
   const [showResetWelcomeDialog, setShowResetWelcomeDialog] = useState(false);
   const { resetWelcome, shouldShowWelcome } = useOnboardingGate();
+  const [isClient, setIsClient] = useState(false);
+
+  // Track client-side hydration
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const handleClearCacheConfirm = () => {
     if (typeof window !== 'undefined') {
@@ -59,7 +65,7 @@ export default function SettingsPage({ isAuthenticated = false, onSignOut }: Set
 
   return (
     <div className="!max-h-[calc(100vh-10rem)] overflow-y-auto overflow-x-hidden scroll-smooth scrollbar-none bg-gradient-to-b from-blue-50 to-white dark:from-[#0d1117] dark:to-[#1b1f24]">
-      <div className="flex flex-col space-y-6 px-4 sm:px-6 pt-6 max-w-md mx-auto">
+      <div className="flex flex-col space-y-6 px-4 sm:px-6 pt-6 w-full">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -251,7 +257,7 @@ export default function SettingsPage({ isAuthenticated = false, onSignOut }: Set
               variant="outline"
               size="md"
               onClick={() => setShowResetWelcomeDialog(true)}
-              disabled={shouldShowWelcome === true}
+              disabled={isClient ? shouldShowWelcome === true : false}
               className="gap-2 w-full"
             >
               <RotateCcw className="h-4 w-4" />

@@ -1,18 +1,11 @@
 'use client';
 
 import { useWeatherStore } from '@/store/useWeatherStore';
-import { Suspense, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
 import CityInfoSkeleton from '../skeleton/CityInfoSkeleton';
-import EmptyPageSkeleton from '../skeleton/EmptyPageSkeleton';
+import EmptyPage from '../EmptyPage/EmptyPage';
 import { getWeatherBackground, isNightTime } from '@/lib/helpers';
-
-const EmptyPage = dynamic(() => import('@/components/EmptyPage/EmptyPage').then((module) => module.default), {
-  loading: () => (
-    <EmptyPageSkeleton />
-  ),
-  ssr: false,
-});
 
 
 
@@ -30,57 +23,67 @@ const CityPagination = dynamic(() => import('@/components/WeatherCard/CityPagina
 
 
 export default function HomePage() {
+  const [isHydrated, setIsHydrated] = useState(false);
+  const [hasShownSlowNetworkWarning, setHasShownSlowNetworkWarning] = useState(false);
+  
+  useEffect(() => {
+    setIsHydrated(true);
+  }, []);
+
   const cities = useWeatherStore((s) => s.cities);
   const currentIndex = useWeatherStore((s) => s.currentIndex);
   const isLoading = useWeatherStore((s) => s.isLoading);
   const showToast = useWeatherStore((s) => s.showToast);
-  const [isInitializing, setIsInitializing] = useState(true);
-  const [hasShownSlowNetworkWarning, setHasShownSlowNetworkWarning] = useState(false);
 
-
+  // Slow network warning logic
   useEffect(() => {
-    // Faster initialization for better perceived performance
-    const initTimer = setTimeout(() => {
-      setIsInitializing(false);
-    }, 50); // Reduced from 100ms to 50ms
+    if (!isLoading) {
+      setHasShownSlowNetworkWarning(false);
+      return;
+    }
 
     const slowNetworkTimer = setTimeout(() => {
-      if ((isInitializing || isLoading) && !hasShownSlowNetworkWarning) {
+      if (isLoading && !hasShownSlowNetworkWarning) {
         setHasShownSlowNetworkWarning(true);
         showToast({
           message: 'toasts.slowNetwork',
           type: 'warning',
-          duration: 8000
+          duration: 8000,
         });
       }
-    }, 3000); // Reduced from 5000ms to 3000ms for faster feedback
+    }, 5000);
 
     return () => {
-      clearTimeout(initTimer);
       clearTimeout(slowNetworkTimer);
     };
-  }, [hasShownSlowNetworkWarning, isInitializing, isLoading, showToast]);
-
-
-  useEffect(() => {
-    if (!isInitializing && !isLoading) {
-      setHasShownSlowNetworkWarning(false);
-    }
-  }, [isInitializing, isLoading, hasShownSlowNetworkWarning, showToast]);
+  }, [isLoading, hasShownSlowNetworkWarning, showToast]);
 
   // Get background based on current city's weather
   const currentCity = cities[currentIndex];
-  const weatherCode = currentCity?.currentEn?.current?.codeId || 800;
-  const sunrise = currentCity?.currentEn?.current?.sunrise || 0;
-  const sunset = currentCity?.currentEn?.current?.sunset || 0;
+  const weatherCode = currentCity?.current?.codeId || 800;
+  const sunrise = currentCity?.current?.sunrise || 0;
+  const sunset = currentCity?.current?.sunset || 0;
   const currentTime = Math.floor(Date.now() / 1000);
   
   const isNight = isNightTime(currentTime, sunrise, sunset);
   const backgroundClass = getWeatherBackground(weatherCode, isNight);
 
+  // Show loading state until component is mounted to prevent hydration mismatch
+  if (!isHydrated) {
+    return (
+      <div className="h-full bg-gradient-to-br from-slate-800 to-slate-900">
+        <div className="h-full flex flex-col w-full px-2 md:px-4 xl:px-6 pt-2">
+          <div className="flex-1 flex items-center justify-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={`h-full bg-cover bg-center bg-no-repeat transition-all duration-1000 ${backgroundClass}`}>
-      <div className="h-full flex flex-col container mx-auto max-w-sm md:max-w-md lg:max-w-lg xl:max-w-2xl 2xl:max-w-4xl px-2 md:px-4 xl:px-6 pt-2">
+      <div className="h-full flex flex-col w-full px-2 md:px-4 xl:px-6 pt-2">
         {isLoading && (
           <div data-testid="loading-overlay" className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 flex items-center justify-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
@@ -90,9 +93,7 @@ export default function HomePage() {
           <>
             {/* Weather Card - Takes remaining space minus pagination */}
             <div className="flex-1 min-h-0 mb-2" data-testid="weather-list">
-              <Suspense>
-                <SwipeableWeatherCard />
-              </Suspense>
+              <SwipeableWeatherCard />
             </div>
             
             {/* Pagination - Fixed at Bottom */}
@@ -101,7 +102,9 @@ export default function HomePage() {
             </div>
           </>
         ) : (
-          <EmptyPage />
+          <div className="flex-1 flex items-center justify-center">
+            <EmptyPage />
+          </div>
         )}
       </div>
     </div>
