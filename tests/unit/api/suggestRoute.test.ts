@@ -34,9 +34,24 @@ vi.mock('@/lib/errors', () => ({
   },
 }));
 
+const mockLimiter = { consume: vi.fn() };
+
+vi.mock('@/lib/simple-rate-limiter', () => ({
+  findMatchingLimiter: vi.fn(() => mockLimiter),
+  getRequestIP: vi.fn(() => '127.0.0.1'),
+  getErrorMessage: vi.fn(() => 'Too many requests'),
+}));
+
+vi.mock('@clerk/nextjs/server', () => ({
+  auth: vi.fn(),
+}));
+
 import { getSuggestionsForDB } from '@/lib/helpers';
 import { findCitiesByQuery, saveCityToDatabase } from '@/lib/db/suggestion';
 import { FullCityEntryServer } from '@/types/cache';
+import { auth } from '@clerk/nextjs/server';
+
+const mockedAuth = auth as unknown as ReturnType<typeof vi.fn>;
 
 function createRequest(query: string = '', lang: string = 'he') {
   const url = new URL('http://localhost/api/suggest');
@@ -64,7 +79,12 @@ const mockCitiesData = [
 
 describe('GET /api/suggest', () => {
   beforeEach(() => {
-    vi.resetAllMocks();
+    vi.clearAllMocks();
+    mockLimiter.consume.mockResolvedValue(undefined);
+    mockedAuth.mockResolvedValue({
+      userId: 'user_123',
+      getToken: vi.fn().mockResolvedValue('token'),
+    });
   });
 
   it('returns empty array if query is missing', async () => {

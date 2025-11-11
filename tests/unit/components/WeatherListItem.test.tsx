@@ -1,6 +1,6 @@
 import { render, screen, fireEvent, within } from '@/tests/utils/renderWithIntl'
 import { vi } from 'vitest'
-import WeatherListItem from '@/components/CitiesList/WeatherListItem'
+import WeatherListItem from '@/features/cities/components/WeatherListItem'
 import { cityWeather } from '@/tests/fixtures/cityWeather'
 
 vi.mock('next-intl', async importOriginal => {
@@ -71,13 +71,13 @@ describe('WeatherListItem', () => {
         onClick={handleClick}
       />,
     )
-    fireEvent.click(screen.getByRole('button'))
+    fireEvent.click(screen.getByRole('listitem'))
     expect(handleClick).toHaveBeenCalled()
   })
 
   it('displays humidity, wind and visibility metrics', () => {
     renderItem()
-    const root = screen.getByRole('button')
+    const root = screen.getByRole('listitem')
     expect(within(root).getByText(/65%/)).toBeInTheDocument()
      expect(within(root).getByText('12.5')).toBeInTheDocument()
      expect(within(root).getByText('10')).toBeInTheDocument()

@@ -2,99 +2,48 @@
 
 import { useEffect } from 'react';
 import { useWeatherStore } from '@/store/useWeatherStore';
-import { useState } from 'react';
 import dynamic from 'next/dynamic';
 import CityInfoSkeleton from '../skeleton/CityInfoSkeleton';
 import EmptyPage from '../EmptyPage/EmptyPage';
 import { getWeatherBackground, isNightTime } from '@/lib/helpers';
-import { CityWeather } from '@/types/weather';
+import { useBackgroundRefresh } from '@/hooks/useBackgroundRefresh';
+import { useUserSync } from '@/hooks/useUserSync';
+import BackgroundUpdateBanner from '@/components/ui/BackgroundUpdateBanner';
 
-const SwipeableWeatherCard = dynamic(() => import('@/components/WeatherCard/SwipeableWeatherCard').then((module) => module.default), {
-  loading: () => (
-    <CityInfoSkeleton />
-  ),
-  ssr: false,
+const SwipeableWeatherCard = dynamic(() => import('@/features/weather/components/card/SwipeableWeatherCard'), {
+  loading: () => <CityInfoSkeleton />,
+  ssr: true,
 });
 
-const CityPagination = dynamic(() => import('@/components/WeatherCard/CityPagination').then((module) => module.default), {
+const CityPagination = dynamic(() => import('@/features/weather/components/card/CityPagination'), {
   loading: () => null,
-  ssr: false,
+  ssr: true,
 });
 
-interface InitialData {
-  user: {
-    id: string;
-    clerkId: string;
-    email: string | null;
-    name: string | null;
-    preferences: {
-      locale?: string;
-      theme?: string;
-      unit?: string;
-    } | null;
-  } | null;
-  cities: Array<{
-    id: string;
-    lat: number;
-    lon: number;
-    name: {
-      en: string;
-      he: string;
-    };
-    country: {
-      en: string;
-      he: string;
-    };
-  }>;
-  currentWeather: CityWeather | null;
+import { BootstrapData } from '@/lib/server/bootstrap';
+
+interface ClientHomePageProps {
+  initialData: BootstrapData | null;
   locale: 'he' | 'en';
 }
 
-interface ClientHomePageProps {
-  initialData: InitialData | null;
-}
-
 export default function ClientHomePage({ initialData }: ClientHomePageProps) {
-  const [isHydrated, setIsHydrated] = useState(false);
+  // User sync hook - checks if user exists in database
+  const { isChecking } = useUserSync();
   
-  useEffect(() => {
-    setIsHydrated(true);
-  }, []);
+  // Background refresh hook
+  const { 
+    pendingUpdates, 
+    applyBackgroundUpdate, 
+    dismissBackgroundUpdate 
+  } = useBackgroundRefresh();
 
   // Initialize store with server data
   useEffect(() => {
     if (initialData) {
-      useWeatherStore.setState({
-        cities: initialData.cities.map(city => ({
-          ...city,
-          current: initialData.currentWeather?.current || {
-            codeId: 800,
-            temp: 20,
-            feelsLike: 20,
-            tempMin: 15,
-            tempMax: 25,
-            desc: 'Clear',
-            icon: '01d',
-            humidity: 50,
-            wind: 5,
-            windDeg: 0,
-            pressure: 1013,
-            visibility: 10000,
-            clouds: 0,
-            sunrise: 0,
-            sunset: 0,
-            timezone: 0
-          },
-          forecast: initialData.currentWeather?.forecast || [],
-          hourly: initialData.currentWeather?.hourly || [],
-          lastUpdated: initialData.currentWeather?.lastUpdated || 0,
-          unit: 'metric'
-        })),
-        currentIndex: 0,
-        locale: initialData.locale,
-        theme: (initialData.user?.preferences?.theme as 'light' | 'dark' | 'system') || 'system',
-        unit: (initialData.user?.preferences?.unit as 'metric' | 'imperial') || 'metric',
-        isAuthenticated: !!initialData.user
+      useWeatherStore.getState().loadFromServer({
+        ...initialData,
+        currentCityId: initialData.currentCityId || undefined
       });
     }
   }, [initialData]);
@@ -113,13 +62,13 @@ export default function ClientHomePage({ initialData }: ClientHomePageProps) {
   const isNight = isNightTime(currentTime, sunrise, sunset);
   const backgroundClass = getWeatherBackground(weatherCode, isNight);
 
-  // Show loading state until component is mounted to prevent hydration mismatch
-  if (!isHydrated) {
+  // Show loading state only for critical user sync operations
+  if (isChecking) {
     return (
-      <div className="h-full bg-gradient-to-br from-slate-800 to-slate-900">
+      <div className="h-full">
         <div className="h-full flex flex-col w-full px-2 md:px-4 xl:px-6 pt-2">
           <div className="flex-1 flex items-center justify-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+            <CityInfoSkeleton />
           </div>
         </div>
       </div>
@@ -128,6 +77,16 @@ export default function ClientHomePage({ initialData }: ClientHomePageProps) {
 
   return (
     <div className={`h-full bg-cover bg-center bg-no-repeat transition-all duration-1000 ${backgroundClass}`}>
+      {/* Background Update Banners */}
+      {pendingUpdates.map(update => (
+        <BackgroundUpdateBanner
+          key={update.id}
+          cityName={update.cityName}
+          onApply={() => applyBackgroundUpdate(update.id)}
+          onDismiss={() => dismissBackgroundUpdate(update.id)}
+        />
+      ))}
+      
       <div className="h-full flex flex-col w-full px-2 md:px-4 xl:px-6 pt-2">
         {isLoading && (
           <div data-testid="loading-overlay" className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 flex items-center justify-center">
@@ -137,12 +96,12 @@ export default function ClientHomePage({ initialData }: ClientHomePageProps) {
         {cities.length > 0 ? (
           <>
             {/* Weather Card - Takes remaining space minus pagination */}
-            <div className="flex-1 min-h-0 mb-2" data-testid="weather-list">
+            <div className="flex-1 overflow-hidden" data-testid="weather-list">
               <SwipeableWeatherCard />
             </div>
             
-            {/* Pagination - Fixed at Bottom */}
-            <div className="flex-shrink-0">
+            {/* Pagination - Fixed at Bottom, closer to the card */}
+            <div className="flex-shrink-0 mt-1">
               <CityPagination />
             </div>
           </>

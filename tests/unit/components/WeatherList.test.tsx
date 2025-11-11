@@ -1,7 +1,7 @@
 import { render, screen, fireEvent } from '@/tests/utils/renderWithIntl'
 import { vi } from 'vitest'
 import { AppLocale } from '@/types/i18n'
-import WeatherList from '@/components/CitiesList/Weatherlist'
+import WeatherList from '@/features/cities/components/WeatherList'
 import { act } from 'react'
 
 vi.mock('next-intl', async importOriginal => {

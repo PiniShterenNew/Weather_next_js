@@ -7,7 +7,9 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Bell, Settings, AlertCircle } from 'lucide-react';
-import { useWeatherStore } from '@/store/useWeatherStore';
+import { useWeatherDataStore } from '@/features/weather/store/useWeatherDataStore';
+import { useToastStore } from '@/features/ui/store/useToastStore';
+import { fetchSecure } from '@/lib/fetchSecure';
 import { useUser } from '@clerk/nextjs';
 import { AppLocale } from '@/types/i18n';
 
@@ -20,8 +22,8 @@ export default function NotificationsCard() {
   const t = useTranslations('notifications');
   const locale = useLocale() as AppLocale;
   const { user } = useUser();
-  const cities = useWeatherStore((s) => s.cities);
-  // const unit = useWeatherStore((s) => s.unit);
+  const cities = useWeatherDataStore((state) => state.cities);
+  const showToast = useToastStore((state) => state.showToast);
   
   const isRTL = locale === 'he';
   
@@ -81,16 +83,9 @@ export default function NotificationsCard() {
     // Save to database if user is authenticated
     if (user?.id) {
       try {
-        // eslint-disable-next-line no-console
-        console.log('Saving notification preferences to database:', {
-          enabled: updatedSettings.enabled,
-        });
-        
-        const response = await fetch('/api/user/preferences', {
+        const response = await fetchSecure('/api/user/preferences', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          requireAuth: true,
           body: JSON.stringify({
             notifications: {
               enabled: updatedSettings.enabled,
@@ -99,22 +94,30 @@ export default function NotificationsCard() {
         });
         
         if (response.ok) {
-          // eslint-disable-next-line no-console
-          console.log('Notification preferences saved successfully');
+          // Show success toast
+          showToast({
+            message: updatedSettings.enabled ? 'notifications.enabled' : 'notifications.disabled',
+            type: 'success',
+          });
         } else {
-          // eslint-disable-next-line no-console
-          console.error('Failed to save notification preferences:', response.status);
+          // Show error toast
+          showToast({
+            message: 'toasts.error',
+            type: 'error',
+          });
         }
-      } catch (error) {
-        // eslint-disable-next-line no-console
-        console.error('Error saving notification preferences:', error);
+      } catch {
+        showToast({
+          message: 'toasts.error',
+          type: 'error',
+        });
       }
     }
   };
 
   const requestPermission = async () => {
     if (!('Notification' in window)) {
-      useWeatherStore.getState().showToast({
+      showToast({
         message: 'notifications.permissionDenied',
         type: 'error',
       });
@@ -131,21 +134,12 @@ export default function NotificationsCard() {
         const subscription = await registerForPushNotifications();
         
         if (subscription) {
-          // eslint-disable-next-line no-console
-          console.log('Sending subscription to server:', {
-            userId: user?.id,
-            endpoint: subscription.endpoint
-          });
-          
           // Send subscription to server
-          const response = await fetch('/api/notifications/subscribe', {
+          const response = await fetchSecure('/api/notifications/subscribe', {
             method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
+            requireAuth: true,
             body: JSON.stringify({
               ...subscription,
-              userId: user?.id,
             }),
           });
 
@@ -160,10 +154,8 @@ export default function NotificationsCard() {
             throw new Error('Failed to save subscription');
           }
         }
-      } catch (error) {
-        // eslint-disable-next-line no-console
-        console.error('Error registering for push notifications:', error);
-        useWeatherStore.getState().showToast({
+      } catch {
+        showToast({
           message: 'notifications.permissionDenied',
           type: 'error',
         });
@@ -175,7 +167,7 @@ export default function NotificationsCard() {
         enabled: false
       }));
 
-      useWeatherStore.getState().showToast({
+      showToast({
         message: 'notifications.permissionDenied',
         type: 'error',
       });
@@ -196,8 +188,9 @@ export default function NotificationsCard() {
         
         if (result.success && result.endpoint) {
           // Remove from server using query parameter
-          await fetch(`/api/notifications/subscribe?endpoint=${encodeURIComponent(result.endpoint)}`, {
+          await fetchSecure(`/api/notifications/subscribe?endpoint=${encodeURIComponent(result.endpoint)}`, {
             method: 'DELETE',
+            requireAuth: true,
           });
 
           // Update state regardless of server response
@@ -206,12 +199,10 @@ export default function NotificationsCard() {
           // Still update the UI state even if unsubscribe failed
           await saveSettings({ enabled: false });
         }
-      } catch (error) {
-        // eslint-disable-next-line no-console
-        console.error('Error unsubscribing from push notifications:', error);
+      } catch {
         // Still update the UI state even if there was an error
         await saveSettings({ enabled: false });
-        useWeatherStore.getState().showToast({
+        showToast({
           message: 'notifications.permissionDenied',
           type: 'error',
         });
@@ -224,21 +215,12 @@ export default function NotificationsCard() {
         const subscription = await registerForPushNotifications();
         
         if (subscription) {
-          // eslint-disable-next-line no-console
-          console.log('Re-registering subscription to server:', {
-            userId: user?.id,
-            endpoint: subscription.endpoint
-          });
-          
           // Send subscription to server
-          const response = await fetch('/api/notifications/subscribe', {
+          const response = await fetchSecure('/api/notifications/subscribe', {
             method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
+            requireAuth: true,
             body: JSON.stringify({
               ...subscription,
-              userId: user?.id,
             }),
           });
 
@@ -251,9 +233,7 @@ export default function NotificationsCard() {
           // No subscription available, but still save the preference
           await saveSettings({ enabled: true });
         }
-      } catch (error) {
-        // eslint-disable-next-line no-console
-        console.error('Error ensuring push subscription:', error);
+      } catch {
         await saveSettings({ enabled: true });
       }
     } else {

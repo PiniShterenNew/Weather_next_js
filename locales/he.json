@@ -3,6 +3,16 @@
     "title": "אפליקציית מזג אוויר"
   },
   "loading": "טוען...",
+  "aria": {
+    "weatherDetailsGroup": "מדדי מזג אוויר",
+    "weatherDetailsCard": "{metric}: {value}",
+    "sunriseTime": "זריחה בשעה {time}",
+    "sunsetTime": "שקיעה בשעה {time}",
+    "userTimePanel": "השעה המקומית שלך {time} בתאריך {date}",
+    "cityTimePanel": "השעה בעיר {time} בתאריך {date}",
+    "forecastList": "תחזית לחמישה ימים",
+    "forecastItem": "{date}: טמפרטורה גבוהה {high}, טמפרטורה נמוכה {low}"
+  },
   "refresh": "רענן",
   "remove": "הסר",
   "navigation": {
@@ -44,6 +54,27 @@
     "description": "שגיאה",
     "tryAgain": "נסה שוב",
     "goHome": "חזור"
+  },
+  "backgroundUpdate": {
+    "title": "מידע חדש זמין עבור {city}",
+    "description": "המידע עודכן ברקע. לחץ להצגה.",
+    "apply": "הצג"
+  },
+  "toasts": {
+    "refreshed": "מידע עודכן עבור {city}",
+    "serverData": "נתוני שרת זמניים",
+    "geolocationDenied": "גישה למיקום נדחתה",
+    "geolocationTimeout": "זמן קצוב למיקום פג",
+    "apiFailure": "שגיאה בטעינת נתונים"
+  },
+  "errorBanner": {
+    "geolocationDenied": "גישה למיקום נדחתה",
+    "geolocationTimeout": "זמן קצוב למיקום פג",
+    "apiFailure": "שגיאה בטעינת נתונים",
+    "serverData": "נתוני שרת זמניים",
+    "serverDataDescription": "המידע עשוי להיות לא מעודכן",
+    "unknown": "שגיאה לא ידועה",
+    "retry": "נסה שוב"
   },
   "search": {
     "placeholder": "חפש עיר",
@@ -95,7 +126,29 @@
     "fahrenheit": "°F",
     "toggle": "החלף"
   },
+  "units": {
+    "percentageSymbol": "%",
+    "pressure": "hPa",
+    "windSpeed": {
+      "metric": "קמ״ש",
+      "imperial": "מייל/שעה"
+    },
+    "distance": {
+      "kilometers": "ק\"מ",
+      "meters": "מטרים"
+    }
+  },
   "weather": {
+    "directionDescription": "כיוון {direction}",
+    "uv": {
+      "risk": {
+        "low": "סיכון נמוך",
+        "moderate": "סיכון בינוני",
+        "high": "סיכון גבוה",
+        "very-high": "סיכון גבוה מאוד",
+        "extreme": "סיכון קיצוני"
+      }
+    },
     "conditions": {
       "200": {
         "main": "רעמים",
@@ -338,7 +391,11 @@
     "fetchWeather": "שגיאה בטעינת נתוני מזג האוויר",
     "cityDeleted": "העיר {city} נמחקה",
     "cityRestored": "העיר {city} שוחזרה",
-    "cannotDeleteCurrentLocation": "לא ניתן למחוק את המיקום הנוכחי"
+    "cannotDeleteCurrentLocation": "לא ניתן למחוק את המיקום הנוכחי",
+    "locationUpdated": "המיקום עודכן ל-{city}",
+    "locationUpdateFailed": "שגיאה בעדכון המיקום",
+    "locationAccessDenied": "גישה למיקום נדחתה",
+    "geolocationNotSupported": "דפדפן זה אינו תומך במיקום גיאוגרפי"
   },
   "common": {
     "close": "סגור",
@@ -349,7 +406,8 @@
     "save": "שמור",
     "undo": "בטל",
     "edit": "ערוך",
-    "delete": "מחק"
+    "delete": "מחק",
+    "notAvailable": "לא זמין"
   },
   "errors": {
     "fetchWeather": "לא ניתן למשוך את מזג האוויר.",
@@ -428,7 +486,10 @@
     "currentLocation": "מיקום נוכחי",
     "nowShowing": "מוצג כעת",
     "swipeToDelete": "גרור למחיקה",
+    "hoverToDelete": "רחף עם העכבר למחיקה",
+    "deleteCity": "מחק עיר",
     "cityDeleted": "העיר {city} נמחקה",
+    "refreshLocation": "רענן מיקום",
     "available": "זמינות"
   },
   "auth": {
@@ -436,9 +497,7 @@
     "signOut": "התנתק",
     "signUp": "הירשם",
     "signInWithGoogle": "התחבר עם Google",
-    "signInWithApple": "התחבר עם Apple",
     "signUpWithGoogle": "הירשם עם Google",
-    "signUpWithApple": "הירשם עם Apple",
     "loginDescription": "התחבר כדי לשמור את ההעדפות שלך ולגשת אליהן מכל מכשיר",
     "signUpDescription": "צור חשבון כדי לשמור את העדפות מזג האוויר שלך בכל מכשיר",
     "termsAgreement": "בהתחברות, אתה מסכים לתנאי השימוש ולמדיניות הפרטיות שלנו",
@@ -482,6 +541,11 @@
     "sending": "שולח...",
     "backToEmail": "חזור לאימייל",
     "backToSignIn": "חזור להתחברות",
+    "sendMagicLink": "שלח קישור קסם",
+    "magicLinkSent": "שלחנו קישור קסם לאימייל שלך. לחץ על הקישור כדי להתחבר.",
+    "magicLinkError": "שליחת קישור הקסם נכשלה. אנא נסה שוב.",
+    "magicLinkGoogleUser": "לא ניתן לשלוח קישור קסם למשתמשים שנרשמו דרך Google. אנא התחבר עם Google.",
+    "magicLinkGoogleUserToast": "התחבר עם Google כדי לגשת לחשבונך.",
     "passwordResetSuccess": "הסיסמה אופסה בהצלחה",
     "passwordResetSuccessDescription": "הסיסמה שלך עודכנה. כעת תוכל להתחבר עם הסיסמה החדשה."
   },
@@ -540,7 +604,8 @@
     "noCitiesDescription": "הוסף לפחות עיר אחת כדי לקבל התראות מזג אוויר",
     "enabled": "התראות מופעלות",
     "disabled": "התראות מושבתות",
-    "permissionGranted": "הרשאת התראות אושרה"
+    "permissionGranted": "הרשאת התראות אושרה",
+    "loading": "טוען..."
   },
   "location": {
     "title": "מיקום",

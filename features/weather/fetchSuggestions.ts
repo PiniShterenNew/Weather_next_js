@@ -1,7 +1,9 @@
 // features/weather/fetchSuggestions.ts
-import { CitySuggestion } from '@/types/suggestion';
-import { AppLocale } from '@/types/i18n';
 import { cache } from 'react';
+
+import { fetchSecure } from '@/lib/fetchSecure';
+import { AppLocale } from '@/types/i18n';
+import { CitySuggestion } from '@/types/suggestion';
 
 /**
  * Fetches city suggestions from the API
@@ -18,9 +20,10 @@ const fetchSuggestionsImpl = cache(async (
   if (!query || query.length < 2) return [];
   
   try {
-    const response = await fetch(
+    const response = await fetchSecure(
       `/api/suggest?q=${encodeURIComponent(query)}&lang=${lang}`,
       { 
+        requireAuth: true,
         // Cache for 5 minutes - suggestions don't change frequently
         next: { revalidate: 300 }
       }

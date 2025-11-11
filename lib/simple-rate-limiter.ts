@@ -49,6 +49,7 @@ const limiters = {
   '/api/user/preferences': new SimpleRateLimiter({ points: 100, duration: 60 }),
   '/api/user/sync': new SimpleRateLimiter({ points: 50, duration: 60 }),
   '/api/reverse': new SimpleRateLimiter({ points: 100, duration: 60 }),
+  '/api/bootstrap': new SimpleRateLimiter({ points: 20, duration: 60 }), // Lower limit for bootstrap
 };
 
 /**

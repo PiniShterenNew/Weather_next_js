@@ -1,4 +1,5 @@
 import { getOptimizedCurrentPosition } from '@/lib/performance-optimizations';
+import { fetchSecure } from '@/lib/fetchSecure';
 import { CurrentLocationData, LocationCheckResponse } from '@/types/location';
 import { AppLocale } from '@/types/i18n';
 import { TemporaryUnit } from '@/types/ui';
@@ -28,11 +29,9 @@ export const locationService = {
   },
 
   async saveCurrentLocation(params: SaveCurrentLocationParams): Promise<CurrentLocationData> {
-    const response = await fetch('/api/location/current', {
+    const response = await fetchSecure('/api/location/current', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      requireAuth: true,
       body: JSON.stringify(params),
     });
 
@@ -45,11 +44,9 @@ export const locationService = {
   },
 
   async getStoredCurrentLocation(): Promise<CurrentLocationData | null> {
-    const response = await fetch('/api/location/current', {
+    const response = await fetchSecure('/api/location/current', {
       method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      requireAuth: true,
     });
 
     if (!response.ok) {
@@ -61,11 +58,9 @@ export const locationService = {
   },
 
   async checkLocationChange(params: CheckLocationChangeParams): Promise<LocationCheckResponse> {
-    const response = await fetch('/api/location/check', {
+    const response = await fetchSecure('/api/location/check', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      requireAuth: true,
       body: JSON.stringify(params),
     });
 
@@ -78,11 +73,9 @@ export const locationService = {
   },
 
   async sendLocationChangeNotification(params: SendLocationChangeNotificationParams): Promise<void> {
-    const response = await fetch('/api/notifications/location-change', {
+    const response = await fetchSecure('/api/notifications/location-change', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      requireAuth: true,
       body: JSON.stringify(params),
     });
 

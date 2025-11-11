@@ -3,14 +3,23 @@
 import { useWeatherStore } from '@/store/useWeatherStore';
 import { Thermometer } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useTranslations } from 'next-intl';
 
 export default function TemperatureUnitToggle() {
+  const unitTranslations = useTranslations('unit');
   const unit = useWeatherStore((s) => s.unit);
   const setUnit = useWeatherStore((s) => s.setUnit);
 
   const handleUnitChange = (newUnit: 'metric' | 'imperial') => {
     if (newUnit === unit) return;
     setUnit(newUnit);
+    
+    // Show toast notification
+    useWeatherStore.getState().showToast({
+      message: 'settings.unitChanged',
+      type: 'success',
+      values: { unit: newUnit === 'metric' ? '°C' : '°F' }
+    });
   };
 
   return (
@@ -24,7 +33,7 @@ export default function TemperatureUnitToggle() {
             ? 'bg-gradient-to-br from-sky-500 to-sky-600 text-white'
             : 'text-gray-600 dark:text-gray-400 hover:bg-white/50 dark:hover:bg-white/5'
         }`}
-        aria-label="Celsius"
+        aria-label={unitTranslations('celsius')}
         aria-pressed={unit === 'metric'}
         dir="ltr"
       >
@@ -50,7 +59,7 @@ export default function TemperatureUnitToggle() {
             ? 'bg-gradient-to-br from-sky-500 to-sky-600 text-white'
             : 'text-gray-600 dark:text-gray-400 hover:bg-white/50 dark:hover:bg-white/5'
         }`}
-        aria-label="Fahrenheit"
+        aria-label={unitTranslations('fahrenheit')}
         aria-pressed={unit === 'imperial'}
         dir="ltr"
       >

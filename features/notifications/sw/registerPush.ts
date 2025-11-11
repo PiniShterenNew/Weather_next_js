@@ -1,3 +1,5 @@
+import { logger } from '@/lib/errors';
+
 /**
  * Push notification registration utilities
  */
@@ -15,16 +17,14 @@ export interface PushSubscriptionData {
  */
 export async function registerForPushNotifications(): Promise<PushSubscriptionData | null> {
   if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
-    // eslint-disable-next-line no-console
-    console.warn('Push messaging is not supported');
+    logger.warn('Push messaging is not supported');
     return null;
   }
 
   try {
     // Register service worker
     const registration = await navigator.serviceWorker.register('/sw.js');
-    // eslint-disable-next-line no-console
-    console.log('Service Worker registered successfully');
+    logger.debug('Service Worker registered successfully');
 
     // Check if we already have a subscription
     let subscription = await registration.pushManager.getSubscription();
@@ -33,8 +33,7 @@ export async function registerForPushNotifications(): Promise<PushSubscriptionDa
       // Create new subscription
       const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
       if (!vapidPublicKey) {
-        // eslint-disable-next-line no-console
-        console.error('VAPID public key not found');
+        logger.error('VAPID public key not found');
         return null;
       }
 
@@ -55,8 +54,7 @@ export async function registerForPushNotifications(): Promise<PushSubscriptionDa
 
     return subscriptionData;
   } catch (error) {
-    // eslint-disable-next-line no-console
-    console.error('Error registering for push notifications:', error);
+    logger.error('Error registering for push notifications', error as Error);
     return null;
   }
 }
@@ -77,8 +75,7 @@ export async function unregisterFromPushNotifications(): Promise<{ success: bool
     }
     return { success: false };
   } catch (error) {
-    // eslint-disable-next-line no-console
-    console.error('Error unregistering from push notifications:', error);
+    logger.error('Error unregistering from push notifications', error as Error);
     return { success: false };
   }
 }

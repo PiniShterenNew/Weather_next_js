@@ -4,14 +4,14 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { z } from 'zod';
 import { PrismaClient } from '@prisma/client';
+
+import { logger } from '@/lib/errors';
 import { findMatchingLimiter, getErrorMessage, getRequestIP } from '@/lib/simple-rate-limiter';
 
 const prisma = new PrismaClient();
 
 // Zod schema for current location
 const CurrentLocationSchema = z.object({
-  lat: z.number().min(-90).max(90),
-  lon: z.number().min(-180).max(180),
   cityId: z.string().min(1),
 });
 
@@ -40,8 +40,8 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Get user from database
-    const user = await prisma.user.findUnique({
+    // Get user from database or create if doesn't exist
+    let user = await prisma.user.findUnique({
       where: { clerkId: userId },
       include: {
         currentLocation: {
@@ -52,6 +52,47 @@ export async function GET(request: NextRequest) {
       },
     });
 
+    if (!user) {
+      // Create user if doesn't exist (with upsert to handle race conditions)
+      try {
+        logger.debug('Creating new user for Clerk integration');
+        user = await prisma.user.create({
+          data: {
+            clerkId: userId,
+            email: null,
+            name: null,
+            preferences: {},
+          },
+          include: {
+            currentLocation: {
+              include: {
+                city: true,
+              },
+            },
+          },
+        });
+        logger.debug('User created successfully for Clerk integration');
+      } catch (error: unknown) {
+        // If user already exists due to race condition, fetch it
+        if (error && typeof error === 'object' && 'code' in error && error.code === 'P2002') {
+          logger.debug('User already exists, fetching from database');
+          user = await prisma.user.findUnique({
+            where: { clerkId: userId },
+            include: {
+              currentLocation: {
+                include: {
+                  city: true,
+                },
+              },
+            },
+          });
+        } else {
+          throw error;
+        }
+      }
+    }
+
+    // Ensure user exists after creation/fetch
     if (!user) {
       return NextResponse.json(
         { error: 'User not found' },
@@ -70,8 +111,8 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       currentLocation: {
         id: user.currentLocation.id,
-        lat: user.currentLocation.lat,
-        lon: user.currentLocation.lon,
+        lat: user.currentLocation.city.lat,
+        lon: user.currentLocation.city.lon,
         cityId: user.currentLocation.cityId,
         lastCheckedAt: user.currentLocation.lastCheckedAt,
         createdAt: user.currentLocation.createdAt,
@@ -88,8 +129,7 @@ export async function GET(request: NextRequest) {
       },
     }, { status: 200 });
   } catch (error) {
-    // eslint-disable-next-line no-console
-    console.error('Get current location error:', error);
+    logger.error('Get current location error', error as Error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -126,11 +166,38 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const validatedData = CurrentLocationSchema.parse(body);
 
-    // Get user from database
-    const user = await prisma.user.findUnique({
+    // Get user from database or create if doesn't exist
+    let user = await prisma.user.findUnique({
       where: { clerkId: userId },
     });
 
+    if (!user) {
+      // Create user if doesn't exist (with upsert to handle race conditions)
+      try {
+        logger.debug('Creating new user for Clerk integration');
+        user = await prisma.user.create({
+          data: {
+            clerkId: userId,
+            email: null,
+            name: null,
+            preferences: {},
+          },
+        });
+        logger.debug('User created successfully for Clerk integration');
+      } catch (error: unknown) {
+        // If user already exists due to race condition, fetch it
+        if (error && typeof error === 'object' && 'code' in error && error.code === 'P2002') {
+          logger.debug('User already exists, fetching from database');
+          user = await prisma.user.findUnique({
+            where: { clerkId: userId },
+          });
+        } else {
+          throw error;
+        }
+      }
+    }
+
+    // Ensure user exists after creation/fetch
     if (!user) {
       return NextResponse.json(
         { error: 'User not found' },
@@ -155,16 +222,12 @@ export async function POST(request: NextRequest) {
       where: { userId: user.id },
       update: {
         cityId: validatedData.cityId,
-        lat: validatedData.lat,
-        lon: validatedData.lon,
         lastCheckedAt: new Date(),
         updatedAt: new Date(),
       },
       create: {
         userId: user.id,
         cityId: validatedData.cityId,
-        lat: validatedData.lat,
-        lon: validatedData.lon,
         lastCheckedAt: new Date(),
       },
       include: {
@@ -176,8 +239,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       currentLocation: {
         id: currentLocation.id,
-        lat: currentLocation.lat,
-        lon: currentLocation.lon,
+        lat: currentLocation.city.lat,
+        lon: currentLocation.city.lon,
         cityId: currentLocation.cityId,
         lastCheckedAt: currentLocation.lastCheckedAt,
         createdAt: currentLocation.createdAt,
@@ -201,8 +264,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // eslint-disable-next-line no-console
-    console.error('Save current location error:', error);
+    logger.error('Save current location error', error as Error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

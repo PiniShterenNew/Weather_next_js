@@ -5,8 +5,8 @@ import { useRouter } from 'next/navigation';
 import { MapPin, Star } from 'lucide-react';
 import { Suspense } from 'react';
 import { SearchBar, RecentSearches } from '@/features/search';
-import PopularCities from '@/components/QuickAdd/PopularCities';
-import AddLocation from '@/components/QuickAdd/AddLocation';
+import PopularCities from '@/features/search/components/quickAdd/PopularCities';
+import AddLocation from '@/features/search/components/quickAdd/AddLocation';
 import { getDirection } from '@/lib/intl';
 import { AppLocale } from '@/types/i18n';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -51,7 +51,7 @@ export default function AddCityPage() {
         {/* Add Current Location Button */}
         {showAddLocation && (
           <div className="flex justify-center">
-            <AddLocation size="lg" type="default" dataTestid="add-location-page" />
+            <AddLocation size="lg" type="default" dataTestId="add-location-page" />
           </div>
         )}
 

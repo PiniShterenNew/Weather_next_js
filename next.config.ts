@@ -65,23 +65,33 @@ export default withPWA({
   workboxOptions: {
     skipWaiting: true,
     clientsClaim: true,
-    // Cache only assets and app shell, not weather data
+    // Cache strategy: Stale-While-Revalidate for API endpoints
     runtimeCaching: [
       {
-        urlPattern: /^https:\/\/api\.openweathermap\.org\/.*/i,
-        handler: 'NetworkOnly', // Don't cache weather API responses
+        urlPattern: /^\/api\/bootstrap/,
+        handler: 'StaleWhileRevalidate',
         options: {
-          backgroundSync: {
-            name: 'weather-sync',
-            options: {
-              maxRetentionTime: 24 * 60 // 24 hours
-            }
+          cacheName: 'bootstrap-cache',
+          expiration: {
+            maxEntries: 1,
+            maxAgeSeconds: 20 * 60 // 20 minutes
           }
         }
       },
       {
         urlPattern: /^\/api\/weather/,
-        handler: 'NetworkOnly', // Don't cache weather API responses
+        handler: 'StaleWhileRevalidate',
+        options: {
+          cacheName: 'weather-cache',
+          expiration: {
+            maxEntries: 50,
+            maxAgeSeconds: 20 * 60 // 20 minutes
+          }
+        }
+      },
+      {
+        urlPattern: /^https:\/\/api\.openweathermap\.org\/.*/i,
+        handler: 'NetworkOnly', // Don't cache external API responses
       }
     ]
   },

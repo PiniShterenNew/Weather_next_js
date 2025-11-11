@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import { formatDate, formatTemperatureWithConversion } from '@/lib/helpers';
 import { AppLocale } from '@/types/i18n';
 import type { WeatherForecastItem } from '@/types/weather';
@@ -7,7 +8,7 @@ import { useLocale } from 'next-intl';
 import { WeatherIcon } from '../WeatherIcon/WeatherIcon';
 import { TemporaryUnit } from '@/types/ui';
 import { motion } from 'framer-motion';
-import { Wind, Droplets, Cloud } from 'lucide-react';
+import { Wind, Droplets, Cloud, Sunrise, Sunset } from 'lucide-react';
 
 export interface ForecastListProperties {
   forecast: WeatherForecastItem[];
@@ -19,26 +20,30 @@ export default function ForecastList({ forecast, cityUnit, unit }: ForecastListP
   const locale = useLocale() as AppLocale;
 
   return (
-    <div className="animate-fade-in" data-testid="forecast-list">
-      <h3 className="text-lg font-semibold text-gray-900 dark:text-white/90 mb-3" data-testid="forecast-title">
+    <div className="animate-fade-in bg-gray-50/30 dark:bg-gray-800/20 rounded-2xl p-4 border border-gray-200/30 dark:border-gray-700/30" data-testid="forecast-list">
+      <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3 flex items-center gap-2" data-testid="forecast-title">
+        <div className="w-1 h-6 bg-gray-500 rounded-full"></div>
         {locale === 'he' ? 'תחזית 5 ימים' : '5-Day Forecast'}
       </h3>
-      <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-0">
         {forecast.map((day, index) => {
           const tempDiff = day.max - day.min;
           const isWarming = tempDiff > 10;
           const isCooling = tempDiff < 5;
           
           return (
-            <motion.div
-              key={index}
-              data-testid="forecast-item"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.05, duration: 0.3 }}
-              className="w-full"
-            >
-              <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl rounded-2xl p-4 transition-all hover-lift border border-gray-200/50 dark:border-gray-700/50">
+            <React.Fragment key={index}>
+              {index > 0 && (
+                <div className="h-px bg-black/5 dark:bg-white/5 my-3" />
+              )}
+              <motion.div
+                data-testid="forecast-item"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.05, duration: 0.3 }}
+                className="w-full"
+              >
+                <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl rounded-2xl p-4 transition-all hover-lift border border-gray-200/50 dark:border-gray-700/50">
                 {/* שורה עליונה - תאריך, אייקון וטמפרטורות */}
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-4 flex-1">
@@ -48,8 +53,8 @@ export default function ForecastList({ forecast, cityUnit, unit }: ForecastListP
                     
                     <div className="flex items-center gap-2">
                       <WeatherIcon
-                        code={day.icon}
-                        icon={null}
+                        code={null}
+                        icon={day.icon}
                         alt={day.desc}
                         size={40}
                         title={day.desc}
@@ -70,7 +75,7 @@ export default function ForecastList({ forecast, cityUnit, unit }: ForecastListP
                 </div>
 
                 {/* שורה תחתונה - מידע נוסף */}
-                {(day.wind !== undefined || day.humidity !== undefined || day.clouds !== undefined) && (
+                {(day.wind !== undefined || day.humidity !== undefined || day.clouds !== undefined || day.sunrise || day.sunset) && (
                   <div className="flex items-center gap-4 text-xs text-gray-600 dark:text-gray-400">
                     {day.wind !== undefined && (
                       <div className="flex items-center gap-1">
@@ -90,10 +95,23 @@ export default function ForecastList({ forecast, cityUnit, unit }: ForecastListP
                         <span>{day.clouds}%</span>
                       </div>
                     )}
+                    {day.sunrise && (
+                      <div className="flex items-center gap-1">
+                        <Sunrise className="h-3 w-3" />
+                        <span>{new Date(day.sunrise).toLocaleTimeString(locale === 'he' ? 'he-IL' : 'en-US', { hour: '2-digit', minute: '2-digit' })}</span>
+                      </div>
+                    )}
+                    {day.sunset && (
+                      <div className="flex items-center gap-1">
+                        <Sunset className="h-3 w-3" />
+                        <span>{new Date(day.sunset).toLocaleTimeString(locale === 'he' ? 'he-IL' : 'en-US', { hour: '2-digit', minute: '2-digit' })}</span>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
-            </motion.div>
+              </motion.div>
+            </React.Fragment>
           );
         })}
       </div>

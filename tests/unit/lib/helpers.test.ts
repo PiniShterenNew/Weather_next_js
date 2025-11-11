@@ -9,12 +9,9 @@ import {
   formatTimeWithOffset,
   formatDate,
   isCityExists,
-  getWeatherByCoords,
-  groupForecastByDay,
   getSuggestionsForDB,
   getCityInfoByCoords,
 } from '@/lib/helpers';
-import { OpenWeatherForecastItem } from '@/types/api';
 import { CityWeather } from '@/types/weather';
 
 // Set up environment variables for tests
@@ -166,33 +163,8 @@ describe('helpers', () => {
     expect(getWindDirection(270)).toBe('W');
   });
 
-  it('handles getWeatherByCoords for both languages', async () => {
-    const mockInput = {
-      lat: 40.7128,
-      lon: -74.0060,
-      name: 'New York',
-      country: 'USA',
-    };
-
-    try {
-      const weatherData = await getWeatherByCoords(mockInput);
-      expect(weatherData.he).toHaveProperty('current');
-      expect(weatherData.en).toHaveProperty('current');
-    } catch (error) {
-      console.error('Failed to fetch weather data:', error);
-      throw error;
-    }
-  });
-
-  it('groups forecast items by day', () => {
-    const forecastItems = [
-      { dt_txt: '2025-06-15 06:00:00', main: { temp_min: 20, temp_max: 25 } },
-      { dt_txt: '2025-06-15 12:00:00', main: { temp_min: 20, temp_max: 25 } },
-      { dt_txt: '2025-06-16 06:00:00', main: { temp_min: 18, temp_max: 22 } },
-    ];
-    const grouped = groupForecastByDay(forecastItems as OpenWeatherForecastItem[]);
-    expect(grouped).toHaveLength(2);
-  });
+  // Note: getWeatherByCoords and groupForecastByDay functions have been removed
+  // These tests are skipped as the functions no longer exist in the codebase
 
   it('fetches Geoapify suggestions for a city', async () => {
     try {

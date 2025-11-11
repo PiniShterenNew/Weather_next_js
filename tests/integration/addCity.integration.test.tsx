@@ -5,7 +5,8 @@ import { vi, describe, it, beforeEach, expect } from 'vitest';
 import { NextIntlClientProvider } from 'next-intl';
 import heMessages from '@/locales/he.json';
 import enMessages from '@/locales/en.json';
-import { QuickCityAddModal } from '@/components/QuickAdd/QuickCityAddModal';
+import QuickCityAddModal from '@/features/search/components/quickAdd/QuickCityAddModal';
+import { useQuickAddStore } from '@/features/search/store/useQuickAddStore';
 import { useWeatherStore } from '@/store/useWeatherStore';
 import { fetchSuggestions, fetchWeather, FetchWeatherInput } from '@/features/weather';
 import { CityWeather } from '@/types/weather';
@@ -91,10 +92,9 @@ describe('Add City Integration Flow', () => {
 
     // Reset the store before each test
     const resetStore = useWeatherStore.getState().resetStore;
-    resetStore();
+    await resetStore();
 
-    // Open the modal by default
-    useWeatherStore.setState({ open: true });
+    useQuickAddStore.setState({ isOpen: true });
 
     // Default mock implementation
     (fetchSuggestions as any).mockResolvedValue([mockTelAviv]);
@@ -125,7 +125,9 @@ describe('Add City Integration Flow', () => {
     );
 
     // 1. Verify modal is open
-    expect(screen.getAllByRole('heading', { name: /Weather/i })).toHaveLength(2);
+    const quickAddLabel = heMessages.search.quickAdd;
+    expect(screen.getByRole('heading', { name: quickAddLabel })).toBeInTheDocument();
+    expect(screen.getByText(heMessages.search.addCityDescription)).toBeInTheDocument();
 
     // 2. The search input should be visible (no tabs in this modal)
     expect(screen.getByTestId('city-search-input')).toBeInTheDocument();
@@ -168,7 +170,9 @@ describe('Add City Integration Flow', () => {
     });
 
     // 10. Verify modal was closed
-    expect(useWeatherStore.getState().open).toBe(false);
+    await waitFor(() => {
+      expect(useQuickAddStore.getState().isOpen).toBe(false);
+    });
   });
 
   it('should search for a city in English, select it, and add it to the store', async () => {
@@ -184,7 +188,9 @@ describe('Add City Integration Flow', () => {
     );
 
     // 1. Verify modal is open with English text
-    expect(screen.getAllByRole('heading', { name: /Weather/i })).toHaveLength(2);
+    const quickAddLabelEn = enMessages.search.quickAdd;
+    expect(screen.getByRole('heading', { name: quickAddLabelEn })).toBeInTheDocument();
+    expect(screen.getByText(enMessages.search.addCityDescription)).toBeInTheDocument();
 
     // 2. The search input should be visible (no tabs in this modal)
     expect(screen.getByTestId('city-search-input')).toBeInTheDocument();
@@ -229,7 +235,7 @@ describe('Add City Integration Flow', () => {
 
     // Add Tel Aviv to the store first
     useWeatherStore.getState().addCity(telAvivWeather);
-    useWeatherStore.getState().setOpen(true);
+    useQuickAddStore.getState().setOpen(true);
     (fetchWeather as any).mockResolvedValue(telAvivWeather);
 
     render(
@@ -319,7 +325,9 @@ describe('Add City Integration Flow', () => {
     );
 
     // 1. Verify modal is open
-    expect(screen.getAllByRole('heading', { name: /Weather/i })).toHaveLength(2);
+    const quickAddLabel = heMessages.search.quickAdd;
+    expect(screen.getByRole('heading', { name: quickAddLabel })).toBeInTheDocument();
+    expect(screen.getByText(heMessages.search.addCityDescription)).toBeInTheDocument();
 
     // 2. Find a city in the popular list (e.g., Paris)
     // Note: The cities are displayed directly without continent sections
@@ -344,7 +352,9 @@ describe('Add City Integration Flow', () => {
     });
 
     // 7. Verify modal was closed
-    expect(useWeatherStore.getState().open).toBe(false);
+    await waitFor(() => {
+      expect(useQuickAddStore.getState().isOpen).toBe(false);
+    });
   }, 10000);
 
   it('should handle API errors gracefully', async () => {

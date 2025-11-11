@@ -4,7 +4,7 @@ import { useWeatherStore } from '@/store/useWeatherStore';
 import { useTranslations, useLocale } from 'next-intl';
 import { cn } from '@/lib/utils';
 import { useEffect } from 'react';
-import { X, AlertCircle, CheckCircle, Info, AlertTriangle } from 'lucide-react';
+import { AlertCircle, CheckCircle, Info, AlertTriangle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createPortal } from 'react-dom';
 import { zIndex } from '@/config/tokens';
@@ -12,30 +12,17 @@ import { zIndex } from '@/config/tokens';
 function getToastIcon(type: string) {
   switch (type) {
     case 'success':
-      return <CheckCircle size={24} className="text-success" />;
+      return <CheckCircle size={20} className="text-green-500" />;
     case 'error':
-      return <AlertCircle size={24} className="text-danger" />;
+      return <AlertCircle size={20} className="text-red-500" />;
     case 'warning':
-      return <AlertTriangle size={24} className="text-warning" />;
+      return <AlertTriangle size={20} className="text-yellow-500" />;
     case 'info':
     default:
-      return <Info size={24} className="text-brand-500" />;
+      return <Info size={20} className="text-blue-500" />;
   }
 }
 
-function getToastStyles(type: string) {
-  switch (type) {
-    case 'success':
-      return 'bg-card/95 border-success/30 text-card-foreground';
-    case 'error':
-      return 'bg-card/95 border-danger/30 text-card-foreground';
-    case 'warning':
-      return 'bg-card/95 border-warning/30 text-card-foreground';
-    case 'info':
-    default:
-      return 'bg-card/95 border-brand-500/30 text-card-foreground';
-  }
-}
 
 function ToastItem({ id, message, values, type = 'info', duration = 3000 }: {
   id: number;
@@ -65,40 +52,21 @@ function ToastItem({ id, message, values, type = 'info', duration = 3000 }: {
       exit={{ opacity: 0, y: -50, scale: 0.95 }}
       transition={{ duration: 0.2, ease: "easeOut" }}
       className={cn(
-        'border-2 rounded-2xl px-6 py-6 backdrop-blur-md',
-        'flex items-start gap-4 relative overflow-hidden',
+        'rounded-2xl px-4 py-3 backdrop-blur-md',
+        'flex items-center gap-3 relative',
         'transition-all duration-300 ease-in-out w-full',
-        'shadow-lg hover:shadow-xl bg-card/95',
-        getToastStyles(type)
+        'shadow-sm bg-white/90 dark:bg-gray-800/90 border border-white/20 dark:border-gray-700/30',
+        'text-gray-700 dark:text-gray-200'
       )}
       dir={isRtl ? 'rtl' : 'ltr'}
     >
-      <div className="flex-shrink-0 mt-1">{getToastIcon(type)}</div>
+      <div className="flex-shrink-0">{getToastIcon(type)}</div>
 
       <div className="flex-1 min-w-0">
-        <p className="text-base font-medium leading-relaxed break-words">
+        <p className="text-sm font-medium leading-relaxed break-words">
           {t(message, values)}
         </p>
       </div>
-
-      <button
-        onClick={() => hideToast(id)}
-        aria-label={t('common.close')}
-        title={t('common.close')}
-        className="flex-shrink-0 p-2 rounded-lg transition-all hover:bg-muted/70 active:scale-95 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500 min-w-[44px] min-h-[44px] flex items-center justify-center"
-      >
-        <X size={20} role="presentation" />
-      </button>
-
-      <motion.div
-        className={cn(
-          'absolute bottom-0 h-1.5 bg-current opacity-40 rounded-full',
-          isRtl ? 'right-0' : 'left-0'
-        )}
-        initial={{ width: '100%' }}
-        animate={{ width: '0%' }}
-        transition={{ duration: duration / 1000, ease: "linear" }}
-      />
     </motion.div>
   );
 }

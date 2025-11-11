@@ -6,6 +6,7 @@ import { TemporaryUnit } from '@/types/ui';
 import { WeatherIcon } from '@/components/WeatherIcon/WeatherIcon';
 import { motion } from 'framer-motion';
 import { useLocale } from 'next-intl';
+import { Wind } from 'lucide-react';
 import { AppLocale } from '@/types/i18n';
 
 interface HourlyForecastProps {
@@ -22,14 +23,15 @@ export default function HourlyForecast({ hourly, cityUnit, unit }: HourlyForecas
   }
 
   return (
-    <div className="animate-fade-in" data-testid="hourly-forecast">
-      <h3 className="text-lg font-semibold text-gray-900 dark:text-white/90 mb-3">
+    <div className="animate-fade-in bg-blue-50/30 dark:bg-blue-950/20 rounded-2xl p-4 border border-blue-200/30 dark:border-blue-800/30" data-testid="hourly-forecast">
+      <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-100 mb-3 flex items-center gap-2">
+        <div className="w-1 h-6 bg-blue-500 rounded-full"></div>
         {locale === 'he' ? 'תחזית שעתית' : 'Hourly Forecast'}
       </h3>
       
-      {/* Mobile: גלילה אופקית */}
-      <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide lg:hidden">
-        {hourly.map((hour, index) => {
+      {/* גלילה אופקית - לכל הגדלים */}
+      <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
+        {hourly.slice(0, 12).map((hour, index) => {
           const hourTime = new Date(hour.time);
           const isNow = index === 0;
           
@@ -57,8 +59,8 @@ export default function HourlyForecast({ hourly, cityUnit, unit }: HourlyForecas
                 {/* אייקון מזג אוויר */}
                 <div className="flex justify-center mb-2">
                   <WeatherIcon
-                    code={hour.icon}
-                    icon={null}
+                    code={null}
+                    icon={hour.icon}
                     alt={hour.desc}
                     size={32}
                     className="text-brand-500 dark:text-brand-400"
@@ -71,84 +73,18 @@ export default function HourlyForecast({ hourly, cityUnit, unit }: HourlyForecas
                 </p>
                 
                 {/* מידע נוסף (רוח) */}
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                  {hour.wind.toFixed(0)} km/h
-                </p>
-              </div>
-            </motion.div>
-          );
-        })}
-      </div>
-
-      {/* Desktop: כרטיסים נפרדים כמו התחזית היומית */}
-      <div className="hidden lg:flex lg:flex-col lg:gap-3">
-        {hourly.slice(0, 8).map((hour, index) => {
-          const hourTime = new Date(hour.time);
-          const isNow = index === 0;
-          
-          return (
-            <motion.div
-              key={hour.time}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.05, duration: 0.3 }}
-              className="w-full"
-            >
-              <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl rounded-2xl p-4 transition-all hover-lift border border-gray-200/50 dark:border-gray-700/50">
-                {/* שורה עליונה - שעה, אייקון וטמפרטורה */}
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-4 flex-1">
-                    <p className="text-sm font-semibold text-foreground min-w-[80px]" data-testid="hourly-time">
-                      {isNow 
-                        ? (locale === 'he' ? 'עכשיו' : 'Now')
-                        : hourTime.toLocaleTimeString(locale === 'he' ? 'he-IL' : 'en-US', {
-                            hour: '2-digit',
-                            minute: '2-digit',
-                            hour12: false
-                          })
-                      }
-                    </p>
-                    
-                    <div className="flex items-center gap-2">
-                      <WeatherIcon
-                        code={hour.icon}
-                        icon={null}
-                        alt={hour.desc}
-                        size={40}
-                        title={hour.desc}
-                        className="text-brand-500 dark:text-brand-400"
-                        priority={index < 3}
-                      />
-                    </div>
-                  </div>
-                  
-                  <div className={`flex items-center gap-4 ${locale === 'he' ? 'flex-row-reverse' : 'flex-row'}`}>
-                    <div className="text-xl font-bold tabular-nums text-foreground">
-                      {formatTemperatureWithConversion(hour.temp, cityUnit, unit)}
-                    </div>
-                  </div>
-                </div>
-
-                {/* שורה תחתונה - מידע נוסף */}
-                <div className="flex items-center gap-4 text-xs text-gray-600 dark:text-gray-400">
-                  <div className="flex items-center gap-1">
-                    <span>🌬️</span>
-                    <span>{hour.wind.toFixed(0)} km/h</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <span>💧</span>
-                    <span>{hour.humidity}%</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <span>☁️</span>
-                    <span>{hour.humidity}%</span>
-                  </div>
+                <div className="flex items-center justify-center gap-1 mt-1">
+                  <Wind className="w-3 h-3 text-gray-500 dark:text-gray-400" />
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    {hour.wind?.toFixed(0) || '--'}
+                  </p>
                 </div>
               </div>
             </motion.div>
           );
         })}
       </div>
+
     </div>
   );
 }

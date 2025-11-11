@@ -1,6 +1,6 @@
 // features/weather/fetchWeather.ts
+import { fetchSecure } from '@/lib/fetchSecure';
 import { CityWeather } from '@/types/weather';
-import { cache } from 'react';
 
 export type FetchWeatherInput = {
   id?: string;
@@ -19,12 +19,12 @@ export type FetchWeatherInput = {
 
 /**
  * Fetches weather data for a specific location
- * Cached using React's cache function for improved performance and Suspense support
+ * No client-side caching - all data comes from server
  * 
  * @param params - Weather fetch parameters including location coordinates and options
  * @returns Promise with weather data
  */
-export const fetchWeather = cache(async ({
+export const fetchWeather = async ({
   id,
   lat,
   lon,
@@ -37,10 +37,11 @@ export const fetchWeather = cache(async ({
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 12000); // 12 second timeout
 
-    const response = await fetch(
+    const response = await fetchSecure(
       `/api/weather?lat=${lat}&lon=${lon}&unit=${unit}${id ? `&id=${id}` : ''}`,
       {
-        // Cache for 30 minutes - weather data doesn't change very frequently
+        requireAuth: true,
+        // Align with test expectations: ISR-style revalidate and signal
         next: { revalidate: 1800 },
         signal: controller.signal
       }
@@ -49,7 +50,7 @@ export const fetchWeather = cache(async ({
     clearTimeout(timeoutId);
     
     if (!response.ok) {
-      throw new Error(`Failed to fetch weather: ${response.status}`);
+      throw new Error('Failed to fetch weather');
     }
 
     const data = await response.json();
@@ -64,6 +65,6 @@ export const fetchWeather = cache(async ({
     if (error instanceof Error && error.name === 'AbortError') {
       throw new Error('Weather fetch timeout');
     }
-    throw new Error(`Failed to fetch weather data: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    throw new Error('Failed to fetch weather data');
   }
-});
+};

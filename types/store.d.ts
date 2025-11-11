@@ -29,13 +29,13 @@ export interface WeatherStore {
 }
 
 export interface WeatherStoreActions {
-  addCity: (_city: CityWeather) => boolean;
-  addOrReplaceCurrentLocation: (_city: CityWeather) => void;
+  addCity: (_city: CityWeather) => Promise<boolean>;
+  addOrReplaceCurrentLocation: (_city: CityWeather) => Promise<void>;
   updateCity: (_city: CityWeather) => void;
-  removeCity: (_id: string) => void;
+  removeCity: (_id: string) => Promise<void>;
   nextCity: () => void;
   prevCity: () => void;
-  refreshCity: (_id: string) => void;
+  refreshCity: (_id: string, opts?: { background?: boolean }) => Promise<void>;
   setUnit: (_unit: TemporaryUnit) => void;
   setLocale: (_locale: AppLocale) => void;
   setTheme: (_theme: ThemeMode) => void;
@@ -48,11 +48,12 @@ export interface WeatherStoreActions {
   resetStore: () => void;
   setOpen: (_open: boolean) => void;
   setIsAuthenticated: (_isAuthenticated: boolean) => void;
-  syncWithServer: () => Promise<void>;
-  loadUserPreferences: (forceLoad?: boolean) => Promise<void>;
   updateCurrentLocation: (lat: number, lon: number, cityId: string) => void;
   setLocationTrackingEnabled: (enabled: boolean) => void;
   showLocationChangeDialog: (oldCity: { name: { en: string; he: string }; country: { en: string; he: string } }, newCity: { name: { en: string; he: string }; country: { en: string; he: string } }, distance: number) => void;
   hideLocationChangeDialog: () => void;
   handleLocationChange: (keepOldCity: boolean, oldCityId: string, newCity: CityWeather) => void;
+  loadFromServer: (payload: { cities: unknown[]; currentCityId?: string; user: { locale: string; unit: string } }) => void;
+  setCurrentCity: (id: string) => void;
+  applyBackgroundUpdate: (id: string, data: { lastUpdatedUtc: string } & Partial<CityWeather>) => void;
 }
