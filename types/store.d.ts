@@ -1,4 +1,10 @@
-import { CityWeather, CityWeatherCurrent } from './weather';
+import {
+  CityWeather,
+  CityWeatherCurrent,
+  WeatherCurrent,
+  WeatherForecastItem,
+  WeatherHourlyItem,
+} from './weather';
 import { TemporaryUnit as TemporaryUnit, ThemeMode, Direction, ToastMessage } from './ui';
 import { AppLocale } from './i18n';
 import { CurrentLocationData } from './location';
@@ -48,12 +54,48 @@ export interface WeatherStoreActions {
   resetStore: () => void;
   setOpen: (_open: boolean) => void;
   setIsAuthenticated: (_isAuthenticated: boolean) => void;
+  setIsSyncing: (_isSyncing: boolean) => void;
   updateCurrentLocation: (lat: number, lon: number, cityId: string) => void;
   setLocationTrackingEnabled: (enabled: boolean) => void;
-  showLocationChangeDialog: (oldCity: { name: { en: string; he: string }; country: { en: string; he: string } }, newCity: { name: { en: string; he: string }; country: { en: string; he: string } }, distance: number) => void;
+  showLocationChangeDialog: (oldCity?: CityWeather, newCity?: CityWeather, distance?: number) => void;
   hideLocationChangeDialog: () => void;
   handleLocationChange: (keepOldCity: boolean, oldCityId: string, newCity: CityWeather) => void;
-  loadFromServer: (payload: { cities: unknown[]; currentCityId?: string; user: { locale: string; unit: string } }) => void;
+  sendLocationChangeNotification: (oldCityName: string, newCityName: string, locale: AppLocale) => Promise<void>;
+  loadFromServer: (payload: {
+    cities: Array<{
+      id: string;
+      lat: number;
+      lon: number;
+      name: { en: string; he: string };
+      country: { en: string; he: string };
+      isCurrentLocation?: boolean;
+      lastUpdatedUtc: string;
+      current: WeatherCurrent;
+      forecast: WeatherForecastItem[];
+      hourly: WeatherHourlyItem[];
+    }>;
+    currentCityId?: string;
+    user: { locale: string; unit: string };
+  }) => void;
+  bootstrapLoad: (payload: {
+    cities: Array<{
+      id: string;
+      lat: number;
+      lon: number;
+      name: { en: string; he: string };
+      country: { en: string; he: string };
+      isCurrentLocation?: boolean;
+      lastUpdatedUtc: string;
+      current: WeatherCurrent;
+      forecast: WeatherForecastItem[];
+      hourly: WeatherHourlyItem[];
+    }>;
+    currentCityId?: string;
+    user: { locale: string; unit: string };
+  }) => void;
   setCurrentCity: (id: string) => void;
   applyBackgroundUpdate: (id: string, data: { lastUpdatedUtc: string } & Partial<CityWeather>) => void;
+  closeQuickAddAndResetLoading: () => void;
+  persistPreferencesIfAuthenticated: (cities: CityWeather[]) => Promise<void>;
+  setAutoLocationCityId: (id?: string) => void;
 }

@@ -4,6 +4,18 @@ export interface FetchSecureOptions extends RequestInit {
 
 type ClerkServerModule = typeof import('@clerk/nextjs/server');
 
+type ClerkBrowserModule = {
+  getToken?: (options?: { template?: string }) => Promise<string | null>;
+};
+
+interface WindowWithClerk extends Window {
+  Clerk?: {
+    session?: {
+      getToken: (options?: { template?: string }) => Promise<string | null>;
+    };
+  };
+}
+
 const ensureHttps = (url: string) => {
   if (url.startsWith('http://')) {
     throw new Error('Insecure HTTP protocol is not allowed. Use HTTPS for all requests.');
@@ -28,12 +40,29 @@ const resolveAuthToken = async (): Promise<string | null> => {
   }
 
   try {
-    const { getToken } = await import('@clerk/nextjs');
-    const token = await getToken();
-    return token ?? null;
+    const module = (await import('@clerk/nextjs')) as ClerkBrowserModule;
+    if (typeof module.getToken === 'function') {
+      const token = await module.getToken();
+      if (token) {
+        return token;
+      }
+    }
   } catch {
-    return null;
+    // ignore and fallback to window.Clerk
   }
+
+  const clerkWindow = window as WindowWithClerk;
+  const clerk = clerkWindow.Clerk;
+  if (clerk?.session) {
+    try {
+      const token = await clerk.session.getToken();
+      return token ?? null;
+    } catch {
+      return null;
+    }
+  }
+
+  return null;
 };
 
 export const fetchSecure = async (

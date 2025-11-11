@@ -153,7 +153,6 @@ const SwipeableWeatherCard = () => {
       aria-label="Weather information"
       aria-live="polite"
       onPointerDown={handlePointerDown}
-      onTouchStart={handlePointerDown}
       drag={cities.length > 1 ? 'x' : false}
       dragListener={false}
       dragControls={dragControls}

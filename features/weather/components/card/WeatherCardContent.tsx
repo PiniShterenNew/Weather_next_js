@@ -14,6 +14,7 @@ import { useCityManagement } from '@/hooks/useCityManagement';
 import { useWeatherStore } from '@/store/useWeatherStore';
 import type { AppLocale } from '@/types/i18n';
 import type { CityWeather, CityWeatherCurrent } from '@/types/weather';
+import type { TemporaryUnit } from '@/types/ui';
 import { formatTemperatureWithConversion, formatTimeWithTimezone, isSameTimezone } from '@/lib/helpers';
 
 import CityHeader from './CityHeader';
@@ -103,10 +104,10 @@ const WeatherCardContent = ({ cityWeather, locale, cityLocale }: WeatherCardCont
 
         <div className="flex flex-col gap-4">
           {cityWeather.hourly && cityWeather.hourly.length > 0 ? (
-            <HourlyForecast hourly={cityWeather.hourly} cityUnit={cityWeather.unit} unit={unit} />
+            <HourlyForecast hourly={cityWeather.hourly} cityUnit={cityWeather.unit as TemporaryUnit} unit={unit as TemporaryUnit} />
           ) : null}
 
-          <ForecastList cityUnit={cityWeather.unit} forecast={cityWeather.forecast} unit={unit} />
+          <ForecastList cityUnit={cityWeather.unit as TemporaryUnit} forecast={cityWeather.forecast} unit={unit as TemporaryUnit} />
 
           <div className="text-center">
             <p className="text-xs text-gray-600 dark:text-white/50" aria-live="polite">
@@ -121,12 +122,12 @@ const WeatherCardContent = ({ cityWeather, locale, cityLocale }: WeatherCardCont
           <div className="flex flex-col gap-5">
             <div className="animate-scale-in text-center">
               <p className="text-8xl font-light leading-tight tracking-tight text-gray-900 tabular-nums dark:text-white">
-                {formatTemperatureWithConversion(cityLocale.current.temp, cityLocale.unit, unit)}
+                {formatTemperatureWithConversion(cityLocale.current.temp, cityLocale.unit as TemporaryUnit, unit as TemporaryUnit)}
               </p>
               <p className="mt-4 text-xl font-medium capitalize text-gray-700 dark:text-white/80">{cityLocale.current.desc}</p>
               <div className="mt-4 text-center">
                 <p className="text-lg text-gray-600 dark:text-white/60">
-                  {t('feelsLike')} {formatTemperatureWithConversion(cityLocale.current.feelsLike, cityLocale.unit, unit)}
+                  {t('feelsLike')} {cityLocale.current.feelsLike !== null ? formatTemperatureWithConversion(cityLocale.current.feelsLike, cityLocale.unit as TemporaryUnit, unit as TemporaryUnit) : '--'}
                 </p>
               </div>
               {cityLocale.current.tempMin !== undefined && cityLocale.current.tempMax !== undefined ? (
@@ -136,7 +137,7 @@ const WeatherCardContent = ({ cityWeather, locale, cityLocale }: WeatherCardCont
                       ↑
                     </span>
                     <span className="text-lg font-bold text-gray-900 dark:text-white">
-                      {formatTemperatureWithConversion(cityLocale.current.tempMax, cityLocale.unit, unit)}
+                      {formatTemperatureWithConversion(cityLocale.current.tempMax, cityLocale.unit as TemporaryUnit, unit as TemporaryUnit)}
                     </span>
                   </div>
                   <div className="hover-scale flex items-center gap-2 rounded-xl border border-blue-500/30 bg-blue-50 px-4 py-3 transition-all dark:bg-black/40">
@@ -144,7 +145,7 @@ const WeatherCardContent = ({ cityWeather, locale, cityLocale }: WeatherCardCont
                       ↓
                     </span>
                     <span className="text-lg font-bold text-gray-900 dark:text-white">
-                      {formatTemperatureWithConversion(cityLocale.current.tempMin, cityLocale.unit, unit)}
+                      {formatTemperatureWithConversion(cityLocale.current.tempMin, cityLocale.unit as TemporaryUnit, unit as TemporaryUnit)}
                     </span>
                   </div>
                 </div>
@@ -254,9 +255,9 @@ const WeatherCardContent = ({ cityWeather, locale, cityLocale }: WeatherCardCont
 
         <div className="mt-8 space-y-5 border-t border-black/5 pt-8 dark:border-white/5">
           {cityWeather.hourly && cityWeather.hourly.length > 0 ? (
-            <HourlyForecast hourly={cityWeather.hourly} cityUnit={cityWeather.unit} unit={unit} />
+            <HourlyForecast hourly={cityWeather.hourly} cityUnit={cityWeather.unit as TemporaryUnit} unit={unit as TemporaryUnit} />
           ) : null}
-          <ForecastList cityUnit={cityWeather.unit} forecast={cityWeather.forecast} unit={unit} />
+          <ForecastList cityUnit={cityWeather.unit as TemporaryUnit} forecast={cityWeather.forecast} unit={unit as TemporaryUnit} />
         </div>
       </section>
     </div>

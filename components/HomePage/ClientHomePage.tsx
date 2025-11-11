@@ -41,9 +41,11 @@ export default function ClientHomePage({ initialData }: ClientHomePageProps) {
   // Initialize store with server data
   useEffect(() => {
     if (initialData) {
+      const { cities, currentCityId, user } = initialData;
       useWeatherStore.getState().loadFromServer({
-        ...initialData,
-        currentCityId: initialData.currentCityId || undefined
+        cities,
+        currentCityId: currentCityId ?? undefined,
+        user,
       });
     }
   }, [initialData]);

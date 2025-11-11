@@ -50,7 +50,9 @@ export default function LocationChangeDialog() {
             clouds: 0,
             sunrise: 0,
             sunset: 0,
-            timezone: 0
+            timezone: '',
+            uvIndex: null,
+            rainProbability: null
           },
           // daily: [] as any, // Placeholder - removed as it's not in CityWeather type
           hourly: [], // Placeholder
@@ -90,7 +92,9 @@ export default function LocationChangeDialog() {
             clouds: 0,
             sunrise: 0,
             sunset: 0,
-            timezone: 0
+            timezone: '',
+            uvIndex: null,
+            rainProbability: null
           },
           // daily: [] as any, // Placeholder - removed as it's not in CityWeather type
           hourly: [], // Placeholder

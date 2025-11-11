@@ -40,6 +40,10 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# build cache
+.eslintcache
+.next/cache/
+
 /coverage
 
 /generated/prisma

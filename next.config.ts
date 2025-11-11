@@ -6,10 +6,19 @@ const withNextIntl = createNextIntlPlugin();
 const nextConfig = {
   reactStrictMode: true,
 
+  // Build optimizations
+  compiler: {
+    removeConsole: process.env.NODE_ENV === 'production' ? {
+      exclude: ['error', 'warn'],
+    } : false,
+  },
+
   experimental: {
     serverActions: {},
     optimizeCss: true,
-    optimizePackageImports: ['next-intl', 'lucide-react', 'framer-motion'],
+    optimizePackageImports: ['next-intl', 'lucide-react', 'framer-motion', '@radix-ui/react-dialog', '@radix-ui/react-popover', '@radix-ui/react-select'],
+    // Enable parallel builds
+    webpackBuildWorker: true,
   },
 
   images: {
@@ -38,8 +47,14 @@ const nextConfig = {
 
   typescript: {
     ignoreBuildErrors: false,
+    // Enable incremental builds
+    tsconfigPath: './tsconfig.json',
   },
 
+  eslint: {
+    // Only run ESLint during build if not in CI (faster local builds)
+    ignoreDuringBuilds: process.env.CI !== 'true',
+  },
 
   poweredByHeader: false,
 

@@ -119,12 +119,6 @@ const separatorLine: CSSProperties = {
   background: colors.border,
 };
 
-const iconStyle: CSSProperties = {
-  width: iconSizes['3xl'],
-  height: iconSizes['3xl'],
-  color: colors.weather.sunny,
-};
-
 const ForecastList = ({ forecast, cityUnit, unit }: ForecastListProps) => {
   const locale = useLocale() as AppLocale;
   const t = useTranslations();
@@ -201,7 +195,6 @@ const ForecastList = ({ forecast, cityUnit, unit }: ForecastListProps) => {
                           size={Number.isNaN(weatherIconPixelSize) ? 48 : weatherIconPixelSize}
                           title={day.desc}
                           priority={index < 3}
-                          style={iconStyle}
                         />
                       </div>
                     </div>

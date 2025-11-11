@@ -5,7 +5,12 @@ import { useMemo } from 'react';
 import type { WeatherStore, WeatherStoreActions } from '@/types/store';
 import type { AppLocale } from '@/types/i18n';
 import type { TemporaryUnit } from '@/types/ui';
-import type { CityWeather } from '@/types/weather';
+import type {
+  CityWeather,
+  WeatherCurrent,
+  WeatherForecastItem,
+  WeatherHourlyItem,
+} from '@/types/weather';
 
 import { locationService } from '@/features/location/services/locationService';
 import { useWeatherDataStore } from '@/features/weather/store/useWeatherDataStore';
@@ -30,22 +35,30 @@ const sendLocationChangeNotification = async (oldCityName: string, newCityName: 
   }
 };
 
-const loadFromServerImpl = (payload: { cities: unknown[]; currentCityId?: string; user: { locale: string; unit: string } }) => {
+interface ServerCityPayload {
+  id: string;
+  lat: number;
+  lon: number;
+  name: { en: string; he: string };
+  country: { en: string; he: string };
+  isCurrentLocation?: boolean;
+  lastUpdatedUtc: string;
+  current: WeatherCurrent;
+  forecast: WeatherForecastItem[];
+  hourly: WeatherHourlyItem[];
+}
+
+interface ServerBootstrapPayload {
+  cities: ServerCityPayload[];
+  currentCityId?: string;
+  user: { locale: string; unit: string };
+}
+
+const loadFromServerImpl = (payload: ServerBootstrapPayload) => {
   useWeatherDataStore
     .getState()
     .loadFromServer({
-      cities: payload.cities as Array<{
-        id: string;
-        lat: number;
-        lon: number;
-        name: { en: string; he: string };
-        country: { en: string; he: string };
-        isCurrentLocation?: boolean;
-        lastUpdatedUtc: string;
-        current: unknown;
-        forecast: unknown;
-        hourly: unknown;
-      }>,
+      cities: payload.cities,
       currentCityId: payload.currentCityId,
     });
 

@@ -5,11 +5,16 @@
   "type": "module",
   "scripts": {
     "dev": "next dev",
-    "build": "prisma generate && npm run set-version && next build",
+    "build": "npm run build:prisma && npm run set-version && npm run build:next",
+    "build:prisma": "prisma generate",
+    "build:next": "next build",
+    "build:analyze": "ANALYZE=true next build",
+    "build:fast": "SKIP_ENV_VALIDATION=1 next build",
     "set-version": "echo NEXT_PUBLIC_APP_VERSION=$npm_package_version > .env.local",
     "start": "next start",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "lint:fix": "eslint . --fix --ext .js,.jsx,.ts,.tsx",
+    "lint:cache": "eslint . --ext .js,.jsx,.ts,.tsx --cache --cache-location .eslintcache",
     "format": "prettier --write .",
     "clean": "npm run lint:fix && npm run format",
     "test": "vitest",
@@ -23,9 +28,6 @@
     "e2e:report": "playwright show-report",
     "e2e:chrome": "playwright test --project=chromium",
     "lighthouse": "lhci autorun"
-  },
-  "prisma": {
-    "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
     "@clerk/localizations": "^3.25.7",

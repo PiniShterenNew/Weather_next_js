@@ -10,6 +10,7 @@ import { formatTemperatureWithConversion, isSameTimezone } from '@/lib/helpers';
 import { useWeatherStore } from '@/store/useWeatherStore';
 import type { AppLocale } from '@/types/i18n';
 import type { CityWeather, CityWeatherCurrent } from '@/types/weather';
+import type { TemporaryUnit } from '@/types/ui';
 
 interface CityHeaderProps {
   cityWeather: CityWeather;
@@ -112,12 +113,12 @@ const CityHeader = ({
 
         <div className="text-center animate-scale-in">
           <p className="text-6xl font-light tracking-tight text-gray-900 tabular-nums leading-tight dark:text-white">
-            {formatTemperatureWithConversion(cityLocale.current.temp, cityLocale.unit, currentUnit)}
+            {formatTemperatureWithConversion(cityLocale.current.temp, cityLocale.unit as TemporaryUnit, currentUnit as TemporaryUnit)}
           </p>
           <p className="mt-2 text-base font-medium capitalize text-gray-700 dark:text-white/80">{cityLocale.current.desc}</p>
           <div className="mt-3 text-center">
             <p className="text-sm text-gray-600 dark:text-white/60">
-              {t('feelsLike')} {formatTemperatureWithConversion(cityLocale.current.feelsLike, cityLocale.unit, currentUnit)}
+              {t('feelsLike')} {cityLocale.current.feelsLike !== null ? formatTemperatureWithConversion(cityLocale.current.feelsLike, cityLocale.unit as TemporaryUnit, currentUnit as TemporaryUnit) : '--'}
             </p>
           </div>
         </div>
@@ -135,7 +136,7 @@ const CityHeader = ({
                 ↑
               </span>
               <span className="text-lg font-bold text-gray-900 dark:text-white">
-                {formatTemperatureWithConversion(cityLocale.current.tempMax, cityLocale.unit, currentUnit)}
+                {formatTemperatureWithConversion(cityLocale.current.tempMax, cityLocale.unit as TemporaryUnit, currentUnit as TemporaryUnit)}
               </span>
             </div>
             <div className="hover-scale flex items-center gap-2 rounded-xl border border-blue-500/30 bg-blue-50 px-4 py-3 transition-all dark:bg-black/40">
@@ -143,7 +144,7 @@ const CityHeader = ({
                 ↓
               </span>
               <span className="text-lg font-bold text-gray-900 dark:text-white">
-                {formatTemperatureWithConversion(cityLocale.current.tempMin, cityLocale.unit, currentUnit)}
+                {formatTemperatureWithConversion(cityLocale.current.tempMin, cityLocale.unit as TemporaryUnit, currentUnit as TemporaryUnit)}
               </span>
             </div>
           </div>
@@ -166,11 +167,11 @@ const CityHeader = ({
 
         <div className="animate-scale-in text-center">
           <p className="text-8xl font-light tracking-tight text-gray-900 tabular-nums leading-tight dark:text-white">
-            {formatTemperatureWithConversion(cityLocale.current.temp, cityLocale.unit, currentUnit)}
+            {formatTemperatureWithConversion(cityLocale.current.temp, cityLocale.unit as TemporaryUnit, currentUnit as TemporaryUnit)}
           </p>
           <div className="mt-2 text-center">
             <p className="text-lg text-gray-600 dark:text-white/60">
-              {t('feelsLike')} {formatTemperatureWithConversion(cityLocale.current.feelsLike, cityLocale.unit, currentUnit)}
+              {t('feelsLike')} {cityLocale.current.feelsLike !== null ? formatTemperatureWithConversion(cityLocale.current.feelsLike, cityLocale.unit as TemporaryUnit, currentUnit as TemporaryUnit) : '--'}
             </p>
           </div>
           {cityLocale.current.tempMin !== undefined && cityLocale.current.tempMax !== undefined ? (
@@ -180,7 +181,7 @@ const CityHeader = ({
                   ↑
                 </span>
                 <span className="text-lg font-bold text-gray-900 dark:text-white">
-                  {formatTemperatureWithConversion(cityLocale.current.tempMax, cityLocale.unit, currentUnit)}
+                  {formatTemperatureWithConversion(cityLocale.current.tempMax, cityLocale.unit as TemporaryUnit, currentUnit as TemporaryUnit)}
                 </span>
               </div>
               <div className="flex items-center gap-2 rounded-xl border border-blue-500/30 bg-blue-50 px-4 py-3 transition-all dark:bg-black/40">
@@ -188,7 +189,7 @@ const CityHeader = ({
                   ↓
                 </span>
                 <span className="text-lg font-bold text-gray-900 dark:text-white">
-                  {formatTemperatureWithConversion(cityLocale.current.tempMin, cityLocale.unit, currentUnit)}
+                  {formatTemperatureWithConversion(cityLocale.current.tempMin, cityLocale.unit as TemporaryUnit, currentUnit as TemporaryUnit)}
                 </span>
               </div>
             </div>
