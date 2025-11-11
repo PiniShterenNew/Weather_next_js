@@ -3,8 +3,6 @@
 > Progressive weather experience for Hebrew & English speakers, powered by Next.js 15, Clerk, Prisma, and real‑time Open‑Meteo data.  
 > אפליקציית מזג אוויר מתקדמת בעברית ובאנגלית, מבוססת Next.js 15, Clerk, Prisma ו־Open‑Meteo בזמן אמת.
 
-![Weather App Screenshot](./public/github_pic.png)
-
 ---
 
 ## Contents • תוכן עניינים
