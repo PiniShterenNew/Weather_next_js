@@ -16,6 +16,13 @@ export default function ThemeSwitcher() {
   const cycleTheme = () => {
     const next = theme === 'light' ? 'dark' : theme === 'dark' ? 'system' : 'light';
     setTheme(next);
+    
+    // Show toast notification
+    useWeatherStore.getState().showToast({
+      message: 'settings.themeChanged',
+      type: 'success',
+      values: { theme: next === 'light' ? t('light') : next === 'dark' ? t('dark') : t('system') }
+    });
   };
 
   const icon =

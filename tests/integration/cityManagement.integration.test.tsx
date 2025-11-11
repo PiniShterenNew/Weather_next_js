@@ -34,41 +34,42 @@ beforeEach(() => {
 })
 
 describe("City Management Integration Flow", () => {
-    it("should delete a city", () => {
-        useWeatherStore.getState().addCity(IsraelCity);
+    it("should delete a city", async () => {
+        const { addCity, removeCity } = useWeatherStore.getState();
+        await addCity(IsraelCity);
         expect(useWeatherStore.getState().cities.length).toBe(1);
-        const removeCity = useWeatherStore.getState().removeCity;
-        removeCity(IsraelCity.id);
+        await removeCity(IsraelCity.id);
         expect(useWeatherStore.getState().cities.length).toBe(0);
     })
-    it("should navigate between cities", () => {
-        useWeatherStore.getState().addCity(IsraelCity);
-        useWeatherStore.getState().addCity(UKCity);
-        useWeatherStore.getState().addCity(FranceCity);
+
+    it("should navigate between cities", async () => {
+        const { addCity, setCurrentIndex } = useWeatherStore.getState();
+        await addCity(IsraelCity);
+        await addCity(UKCity);
+        await addCity(FranceCity);
         expect(useWeatherStore.getState().cities.length).toBe(3);
-        const navigateToCity = useWeatherStore.getState().setCurrentIndex;
-        navigateToCity(1);
+        setCurrentIndex(1);
         expect(useWeatherStore.getState().currentIndex).toBe(1);
     })
-    it("should update a city", () => {
-        useWeatherStore.getState().addCity(IsraelCity);
+
+    it("should update a city", async () => {
+        const { addCity, updateCity } = useWeatherStore.getState();
+        await addCity(IsraelCity);
         expect(useWeatherStore.getState().cities.length).toBe(1);
-        const updateCity = useWeatherStore.getState().updateCity;
-        updateCity({...IsraelCity, name: { en: 'Ashdod', he: 'אשדוד' } });
+        updateCity({ ...IsraelCity, name: { en: 'Ashdod', he: 'אשדוד' } });
         expect(useWeatherStore.getState().cities[0].name.en).toBe('Ashdod');
     })
-    it("should persist cities between sessions", () => {
-        useWeatherStore.getState().addCity(IsraelCity);
-        useWeatherStore.getState().addCity(UKCity);
-        useWeatherStore.getState().addCity(FranceCity);
+
+    it("should persist cities between sessions", async () => {
+        const { addCity, setCurrentIndex, removeCity, resetStore } = useWeatherStore.getState();
+        await addCity(IsraelCity);
+        await addCity(UKCity);
+        await addCity(FranceCity);
         expect(useWeatherStore.getState().cities.length).toBe(3);
-        const navigateToCity = useWeatherStore.getState().setCurrentIndex;
-        navigateToCity(1);
+        setCurrentIndex(1);
         expect(useWeatherStore.getState().currentIndex).toBe(1);
-        const removeCity = useWeatherStore.getState().removeCity;
-        removeCity(UKCity.id);
+        await removeCity(UKCity.id);
         expect(useWeatherStore.getState().cities.length).toBe(2);
-        const resetStore = useWeatherStore.getState().resetStore;
         resetStore();
         expect(useWeatherStore.getState().cities.length).toBe(0);
     })

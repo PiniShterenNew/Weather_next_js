@@ -1,5 +1,5 @@
 import { fireEvent, waitFor, within } from "@testing-library/react";
-import PopularCities from "@/components/QuickAdd/PopularCities";
+import PopularCities from "@/features/search/components/quickAdd/PopularCities";
 import { POPULAR_CITIES } from "@/constants/popularCities";
 import { render, screen } from "@/tests/utils/renderWithIntl";
 import { FullCityEntry } from "@/types/cache";

@@ -26,3 +26,11 @@ export function isCityDataStale(city: CityWeather): boolean {
   ): boolean {
     return isCityDataStale(city) && canRefreshCity(city.id);
   }
+
+  /**
+   * Update last refresh time for a city after manual refresh
+   * This prevents auto-refresh from overriding fresh manual data
+   */
+  export function updateLastRefreshTime(cityId: string): void {
+    lastRefreshMap.set(cityId, Date.now());
+  }

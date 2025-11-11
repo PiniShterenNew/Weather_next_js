@@ -10,8 +10,7 @@ import { Card } from '@/components/ui/card';
 import { Thermometer, Mail, Lock, User, Loader2 } from 'lucide-react';
 import { AppLocale } from '@/types/i18n';
 import { Link } from '@/i18n/navigation';
-import AuthLanguageSwitcher from './AuthLanguageSwitcher';
-import AuthThemeSwitcher from './AuthThemeSwitcher';
+import AuthHeader from './AuthHeader';
 
 export default function CustomSignUp() {
   const { signUp, isLoaded, setActive } = useSignUp();
@@ -88,7 +87,7 @@ export default function CustomSignUp() {
     }
   };
 
-  const handleOAuthSignUp = async (strategy: 'oauth_google' | 'oauth_apple') => {
+  const handleOAuthSignUp = async (strategy: 'oauth_google') => {
     if (!isLoaded) return;
 
     setIsLoading(true);
@@ -108,26 +107,18 @@ export default function CustomSignUp() {
   if (verifying) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-brand-500 to-brand-600 p-4 relative">
-        {/* Theme Switcher - Top Left */}
-        <div className="absolute top-4 left-4 z-10">
-          <AuthThemeSwitcher />
-        </div>
+        <AuthHeader />
         
-        {/* Language Switcher - Top Right */}
-        <div className="absolute top-4 right-4 z-10">
-          <AuthLanguageSwitcher />
-        </div>
-        
-        <Card className="w-full max-w-md p-8 space-y-6 animate-fade-in">
-          <div className="text-center space-y-4">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-brand-500 to-brand-600">
-              <Mail className="h-8 w-8 text-white" />
+        <Card className="w-full max-w-md lg:max-w-lg xl:max-w-xl p-6 lg:p-8 xl:p-10 space-y-4 lg:space-y-6 animate-fade-in mt-20 lg:mt-24">
+          <div className="text-center space-y-3 lg:space-y-4">
+            <div className="inline-flex items-center justify-center w-14 h-14 lg:w-16 lg:h-16 xl:w-18 xl:h-18 rounded-full bg-gradient-to-br from-brand-500 to-brand-600">
+              <Mail className="h-6 w-6 lg:h-8 lg:w-8 xl:h-9 xl:w-9 text-white" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+              <h1 className="text-xl lg:text-2xl xl:text-3xl font-bold text-gray-900 dark:text-white">
                 {t('verifyEmail')}
               </h1>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+              <p className="text-xs lg:text-sm xl:text-base text-gray-600 dark:text-gray-400 mt-1 lg:mt-2">
                 {t('verifyEmailDescription')}
               </p>
             </div>
@@ -189,27 +180,19 @@ export default function CustomSignUp() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-brand-500 to-brand-600 p-4 relative">
-      {/* Theme Switcher - Top Left */}
-      <div className="absolute top-4 left-4 z-10">
-        <AuthThemeSwitcher />
-      </div>
+      <AuthHeader />
       
-      {/* Language Switcher - Top Right */}
-      <div className="absolute top-4 right-4 z-10">
-        <AuthLanguageSwitcher />
-      </div>
-      
-      <Card className="w-full max-w-md p-8 space-y-6 animate-fade-in">
+      <Card className="w-full max-w-md lg:max-w-lg xl:max-w-xl p-6 lg:p-8 xl:p-10 space-y-4 lg:space-y-6 animate-fade-in mt-20 lg:mt-24">
         {/* Logo & Title */}
-        <div className="text-center space-y-4">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-brand-500 to-brand-600">
-            <Thermometer className="h-8 w-8 text-white" />
+        <div className="text-center space-y-3 lg:space-y-4">
+          <div className="inline-flex items-center justify-center w-14 h-14 lg:w-16 lg:h-16 xl:w-18 xl:h-18 rounded-full bg-gradient-to-br from-brand-500 to-brand-600">
+            <Thermometer className="h-6 w-6 lg:h-8 lg:w-8 xl:h-9 xl:w-9 text-white" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+            <h1 className="text-xl lg:text-2xl xl:text-3xl font-bold text-gray-900 dark:text-white">
               {t('signUp')}
             </h1>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+            <p className="text-xs lg:text-sm xl:text-base text-gray-600 dark:text-gray-400 mt-1 lg:mt-2">
               {t('signUpDescription')}
             </p>
           </div>
@@ -223,17 +206,17 @@ export default function CustomSignUp() {
         )}
 
         {/* OAuth Buttons */}
-        <div className="space-y-3">
+        <div className="space-y-2 lg:space-y-3">
           <Button
             onClick={() => handleOAuthSignUp('oauth_google')}
             disabled={isLoading}
-            className="w-full h-12 gap-3 bg-white dark:bg-gray-800 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"
+            className="w-full h-10 lg:h-12 xl:h-14 gap-2 lg:gap-3 bg-white dark:bg-gray-800 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 text-sm lg:text-base"
             size="lg"
           >
             {isLoading ? (
-              <Loader2 className="h-5 w-5 animate-spin" />
+              <Loader2 className="h-4 w-4 lg:h-5 lg:w-5 animate-spin" />
             ) : (
-              <svg className="h-5 w-5" viewBox="0 0 24 24">
+              <svg className="h-4 w-4 lg:h-5 lg:w-5" viewBox="0 0 24 24">
                 <path
                   fill="currentColor"
                   d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -254,22 +237,6 @@ export default function CustomSignUp() {
             )}
             {t('signUpWithGoogle')}
           </Button>
-
-          <Button
-            onClick={() => handleOAuthSignUp('oauth_apple')}
-            disabled={isLoading}
-            className="w-full h-12 gap-3 bg-black text-white hover:bg-gray-900"
-            size="lg"
-          >
-            {isLoading ? (
-              <Loader2 className="h-5 w-5 animate-spin" />
-            ) : (
-              <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09l.01-.01zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z" />
-              </svg>
-            )}
-            {t('signUpWithApple')}
-          </Button>
         </div>
 
         {/* Divider */}
@@ -285,21 +252,21 @@ export default function CustomSignUp() {
         </div>
 
         {/* Email/Password Form */}
-        <form onSubmit={handleEmailSignUp} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
+        <form onSubmit={handleEmailSignUp} className="space-y-3 lg:space-y-4">
+          <div className="grid grid-cols-2 gap-3 lg:gap-4">
             <div>
-              <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label htmlFor="firstName" className="block text-xs lg:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 lg:mb-2">
                 {t('firstName')}
               </label>
               <div className="relative">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 lg:h-5 lg:w-5 text-gray-400" />
                 <Input
                   id="firstName"
                   type="text"
                   value={firstName}
                   onChange={(e) => setFirstName(e.target.value)}
                   placeholder={t('firstNamePlaceholder')}
-                  className="pl-10 h-12"
+                  className="pl-9 lg:pl-10 h-10 lg:h-12 text-sm lg:text-base"
                   required
                   disabled={isLoading}
                 />
@@ -307,7 +274,7 @@ export default function CustomSignUp() {
             </div>
 
             <div>
-              <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label htmlFor="lastName" className="block text-xs lg:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 lg:mb-2">
                 {t('lastName')}
               </label>
               <Input
@@ -316,7 +283,7 @@ export default function CustomSignUp() {
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
                 placeholder={t('lastNamePlaceholder')}
-                className="h-12"
+                className="h-10 lg:h-12 text-sm lg:text-base"
                 required
                 disabled={isLoading}
               />
@@ -324,18 +291,18 @@ export default function CustomSignUp() {
           </div>
 
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label htmlFor="email" className="block text-xs lg:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 lg:mb-2">
               {t('email')}
             </label>
             <div className="relative">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 lg:h-5 lg:w-5 text-gray-400" />
               <Input
                 id="email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder={t('emailPlaceholder')}
-                className="pl-10 h-12"
+                className="pl-9 lg:pl-10 h-10 lg:h-12 text-sm lg:text-base"
                 required
                 disabled={isLoading}
               />
@@ -343,18 +310,18 @@ export default function CustomSignUp() {
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label htmlFor="password" className="block text-xs lg:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 lg:mb-2">
               {t('password')}
             </label>
             <div className="relative">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 lg:h-5 lg:w-5 text-gray-400" />
               <Input
                 id="password"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder={t('passwordPlaceholder')}
-                className="pl-10 h-12"
+                className="pl-9 lg:pl-10 h-10 lg:h-12 text-sm lg:text-base"
                 required
                 disabled={isLoading}
                 minLength={8}
@@ -368,12 +335,12 @@ export default function CustomSignUp() {
           <Button
             type="submit"
             disabled={isLoading}
-            className="w-full h-12 bg-gradient-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700"
+            className="w-full h-10 lg:h-12 xl:h-14 bg-gradient-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700 text-sm lg:text-base"
             size="lg"
           >
             {isLoading ? (
               <>
-                <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                <Loader2 className="h-4 w-4 lg:h-5 lg:w-5 animate-spin mr-2" />
                 {t('signingUp')}
               </>
             ) : (
@@ -384,7 +351,7 @@ export default function CustomSignUp() {
 
         {/* Sign In Link */}
         <div className="text-center">
-          <p className="text-sm text-gray-600 dark:text-gray-400">
+          <p className="text-xs lg:text-sm text-gray-600 dark:text-gray-400">
             {t('haveAccount')}{' '}
             <Link 
               href="/sign-in" 

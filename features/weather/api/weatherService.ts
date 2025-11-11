@@ -4,6 +4,8 @@
  */
 
 import { z } from 'zod';
+
+import { fetchSecure } from '@/lib/fetchSecure';
 import { WeatherData, FetchWeatherInput, WeatherApiResponse } from '../types';
 
 // Zod schemas for validation
@@ -54,11 +56,9 @@ export class WeatherService {
         unit: validatedInput.unit,
       });
 
-      const response = await fetch(`${this.baseUrl}/weather?${params}`, {
+      const response = await fetchSecure(`${this.baseUrl}/weather?${params}`, {
         method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        requireAuth: true,
       });
 
       if (!response.ok) {

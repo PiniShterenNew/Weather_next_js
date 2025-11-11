@@ -3,29 +3,30 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import WeatherList from '@/components/CitiesList/Weatherlist';
+
+import WeatherList from './WeatherList';
 
 const CitiesList = () => {
-    const router = useRouter();
+  const router = useRouter();
 
-    useEffect(() => {
-        const handleResize = () => {
-            if (window.innerWidth >= 1280) {
-                router.replace('/');
-            }
-        };
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 1280) {
+        router.replace('/');
+      }
+    };
 
-        handleResize(); // קריאה מיידית
+    handleResize();
 
-        window.addEventListener('resize', handleResize);
-        return () => window.removeEventListener('resize', handleResize);
-    }, [router]);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [router]);
 
-    return (
-        <div className="">
-            <WeatherList />
-        </div>
-    );
+  return (
+    <div>
+      <WeatherList />
+    </div>
+  );
 };
 
 export default CitiesList;

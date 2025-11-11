@@ -1,33 +1,28 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
-import React from 'react';
+import type { MouseEvent as ReactMouseEvent } from 'react';
+import { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { useDrag } from '@use-gesture/react';
 import { useTranslations, useLocale } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useWeatherStore } from '@/store/useWeatherStore';
+import { hapticButtonPress } from '@/lib/haptics';
 import { AppLocale } from '@/types/i18n';
 import type { CityWeather } from '@/types/weather';
 import { Card } from '@/components/ui/card';
 import { WeatherIcon } from '@/components/WeatherIcon/WeatherIcon';
-import { MapPin, Trash2, RotateCcw } from 'lucide-react';
+import { MapPin, Trash2, RotateCcw, Navigation } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { fetchSecure } from '@/lib/fetchSecure';
 
 export interface SwipeableCityCardProps {
   city: CityWeather;
   index: number;
-  isSwiped?: boolean;
-  onSwipeStart?: (cityId: string) => void;
-  onSwipeEnd?: () => void;
 }
 
 export default function SwipeableCityCard({ 
   city, 
-  index, 
-  isSwiped = false, 
-  onSwipeStart, 
-  onSwipeEnd 
+  index
 }: SwipeableCityCardProps) {
   const t = useTranslations();
   const locale = useLocale() as AppLocale;
@@ -39,11 +34,12 @@ export default function SwipeableCityCard({
   const autoLocationCityId = useWeatherStore((s) => s.autoLocationCityId);
   const removeCity = useWeatherStore((s) => s.removeCity);
   const showToast = useWeatherStore((s) => s.showToast);
+  const updateCurrentLocation = useWeatherStore((s) => s.updateCurrentLocation);
+  const [isRefreshingLocation, setIsRefreshingLocation] = useState(false);
 
   const [deletedCity, setDeletedCity] = useState<CityWeather | null>(null);
-  const [showDeleteIcon, setShowDeleteIcon] = useState(false);
-  const [dragOffset, setDragOffset] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
+
 
   const cityName = city.name[locale] || city.name.en;
   const currentTemp = city.current?.temp;
@@ -56,16 +52,7 @@ export default function SwipeableCityCard({
     ? `${Math.round(currentTemp)}°${unit === 'metric' ? 'C' : 'F'}`
     : '--°';
 
-  // Determine swipe direction based on locale
-  const isRTL = locale === 'he';
 
-  // Reset swipe state when isSwiped becomes false (click outside)
-  useEffect(() => {
-    if (!isSwiped) {
-      setDragOffset(0);
-      setShowDeleteIcon(false);
-    }
-  }, [isSwiped]);
 
   // Handle delete function
   const handleDelete = () => {
@@ -80,57 +67,9 @@ export default function SwipeableCityCard({
     setDeletedCity(city);
   };
 
-  // Use drag gesture from @use-gesture/react
-  const bind = useDrag(
-    ({ active, movement: [mx], direction: [xDir], velocity: [vx] }) => {
-      // Don't allow drag for current location cities
-      if (isCurrentLocation) return;
-
-      // Only allow horizontal swipes in the correct direction
-      const correctDirection = isRTL ? xDir > 0 : xDir < 0;
-      if (!correctDirection) return;
-
-      // Notify parent when swipe starts
-      if (active && Math.abs(mx) > 10 && onSwipeStart) {
-        onSwipeStart(city.id);
-      }
-
-      setDragOffset(active ? mx : 0);
-
-      // Show delete icon at 50px (half swipe)
-      const shouldShowDelete = isRTL ? mx > 50 : mx < -50;
-      setShowDeleteIcon(shouldShowDelete);
-
-      if (!active) {
-        // Reset on end
-        setDragOffset(0);
-        setShowDeleteIcon(false);
-        
-        // Notify parent when swipe ends
-        if (onSwipeEnd) {
-          onSwipeEnd();
-        }
-
-        // Check for full swipe or fast swipe
-        const fullSwipeThreshold = 150;
-        const fastSwipeThreshold = 0.5;
-
-        const isFullSwipe = Math.abs(mx) > fullSwipeThreshold;
-        const isFastSwipe = Math.abs(vx) > fastSwipeThreshold;
-
-        if ((isFullSwipe || isFastSwipe) && correctDirection) {
-          handleDelete();
-        }
-      }
-    },
-    {
-      axis: 'x',
-      filterTaps: true,
-      bounds: { left: isRTL ? 0 : -200, right: isRTL ? 200 : 0 },
-    }
-  );
 
   const handleClick = () => {
+    hapticButtonPress();
     setCurrentIndex(index);
     router.push(`/${locale}`);
   };
@@ -153,6 +92,70 @@ export default function SwipeableCityCard({
       values: { city: cityName },
       duration: 3000
     });
+  };
+
+  // Handle location refresh for current location
+const handleRefreshLocation = async (e: ReactMouseEvent) => {
+    e.stopPropagation();
+    hapticButtonPress();
+    
+    if (!navigator.geolocation) {
+      showToast({
+        message: 'toasts.geolocationNotSupported',
+        type: 'error'
+      });
+      return;
+    }
+
+    setIsRefreshingLocation(true);
+    
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        try {
+          const { latitude, longitude } = position.coords;
+          
+          // Call reverse geocoding API to get city
+          const response = await fetchSecure(`/api/reverse?lat=${latitude}&lon=${longitude}`, { requireAuth: true });
+          if (!response.ok) {
+            throw new Error('Failed to get location');
+          }
+          
+          const data = await response.json();
+          
+          if (data.id) {
+            updateCurrentLocation(latitude, longitude, data.id);
+            const cityName = data.cityHe || data.cityEn || 'Unknown';
+            showToast({
+              message: 'toasts.locationUpdated',
+              type: 'success',
+              values: { city: cityName }
+            });
+            
+            // Refresh the page to load the new location data
+            router.refresh();
+          }
+        } catch {
+          showToast({
+            message: 'toasts.locationUpdateFailed',
+            type: 'error'
+          });
+        } finally {
+          setIsRefreshingLocation(false);
+        }
+      },
+      () => {
+        showToast({
+          message: 'toasts.locationAccessDenied',
+          type: 'error'
+        });
+        setIsRefreshingLocation(false);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0
+      }
+    );
   };
 
   // If city is deleted, show undo option
@@ -197,49 +200,16 @@ export default function SwipeableCityCard({
   }
 
   return (
-    <div className="relative w-full">
-      {/* Delete Icon Background */}
-      <motion.div
-        className={`absolute inset-y-0 ${isRTL ? 'left-0' : 'right-0'} flex items-center justify-center bg-red-500 rounded-2xl z-0`}
-        initial={{ width: 0 }}
-        animate={{ width: showDeleteIcon ? 60 : 0 }}
-        transition={{ duration: 0.2 }}
-      >
-        <motion.button
-          initial={{ opacity: 0, scale: 0.5 }}
-          animate={{ opacity: showDeleteIcon ? 1 : 0, scale: showDeleteIcon ? 1 : 0.5 }}
-          transition={{ duration: 0.2 }}
-          onClick={handleDelete}
-          disabled={!showDeleteIcon}
-          className="p-2 rounded-full hover:bg-red-600 transition-colors disabled:pointer-events-none"
-          aria-label={t('cities.swipeToDelete')}
-        >
-          <Trash2 className="h-6 w-6 text-white" />
-        </motion.button>
-      </motion.div>
-
-      <motion.div
-        ref={containerRef}
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ 
-          opacity: 1, 
-          y: 0,
-          x: dragOffset 
-        }}
-        transition={{ duration: 0.2, delay: index * 0.05 }}
-        whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.98 }}
-        className="relative z-10"
-        style={{ 
-          userSelect: 'none', 
-          WebkitUserSelect: 'none',
-          touchAction: 'pan-x'
-        }}
-      >
-        <div
-          {...(isCurrentLocation ? {} : bind())}
-          className="w-full"
-        >
+    <motion.div
+      ref={containerRef}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ 
+        opacity: 1, 
+        y: 0
+      }}
+      transition={{ duration: 0.2, delay: index * 0.05 }}
+      className="relative w-full"
+    >
       <Card
         className={`w-full p-4 cursor-pointer backdrop-blur-md rounded-2xl shadow-sm transition-all duration-200 select-none ${
           isActiveCity
@@ -274,22 +244,10 @@ export default function SwipeableCityCard({
                 {city.country[locale] || city.country.en}
               </p>
             )}
-            {/* Swipe hint for non-current location cities */}
-            {!isCurrentLocation && (
-              <div className="flex items-center gap-1 mt-1">
-                <p className="text-xs text-neutral-500 dark:text-white/40">
-                  {t('cities.swipeToDelete')}
-                </p>
-                <div className="flex gap-0.5">
-                  <div className="w-1 h-1 bg-neutral-400 dark:bg-white/60 rounded-full animate-pulse"></div>
-                  <div className="w-1 h-1 bg-neutral-400 dark:bg-white/60 rounded-full animate-pulse" style={{animationDelay: '0.2s'}}></div>
-                  <div className="w-1 h-1 bg-neutral-400 dark:bg-white/60 rounded-full animate-pulse" style={{animationDelay: '0.4s'}}></div>
-                </div>
-              </div>
-            )}
+            
           </div>
 
-          {/* Weather Icon & Temp */}
+          {/* Weather Icon & Temp & Delete Button */}
           <div className="flex items-center gap-3 flex-shrink-0">
             <WeatherIcon
               code={weatherCode.toString()}
@@ -300,11 +258,44 @@ export default function SwipeableCityCard({
             <div className={`text-2xl ${isCurrentLocation ? 'font-extrabold' : 'font-bold'} text-sky-600 dark:text-sky-400`}>
               {displayTemp}
             </div>
+            
+            {/* Location Refresh Button - Only for current location */}
+            {isCurrentLocation && (
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={handleRefreshLocation}
+                disabled={isRefreshingLocation}
+                className="h-8 w-8 aspect-square rounded-full text-gray-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all duration-200 flex items-center justify-center p-0"
+                title={t('cities.refreshLocation')}
+                aria-label={t('cities.refreshLocation')}
+              >
+                {isRefreshingLocation ? (
+                  <RotateCcw className="h-3 w-3 animate-spin" />
+                ) : (
+                  <Navigation className="h-3 w-3" />
+                )}
+              </Button>
+            )}
+            
+            {/* Delete Button - Show for all cities including current location */}
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={(e) => {
+                e.stopPropagation();
+                hapticButtonPress();
+                handleDelete();
+              }}
+              className="h-8 w-8 aspect-square rounded-full text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all duration-200 flex items-center justify-center p-0"
+              title={t('cities.deleteCity')}
+              aria-label={t('cities.deleteCity')}
+            >
+              <Trash2 className="h-3 w-3" />
+            </Button>
           </div>
         </div>
       </Card>
-        </div>
-      </motion.div>
-    </div>
+    </motion.div>
   );
 }

@@ -12,12 +12,12 @@ export const cityWeather: CityWeather = {
   isCurrentLocation: false,
 
   current: {
-    codeId: 800,
+    codeId: 0,
     temp: 19,
     feelsLike: 21,
     tempMin: 18,
     tempMax: 26,
-    desc: 'Clear skies',
+    desc: 'Clear sky',
     icon: '01d',
     humidity: 65,
     wind: 12.5,
@@ -27,7 +27,9 @@ export const cityWeather: CityWeather = {
     clouds: 0,
     sunrise: 1640995200,
     sunset: 1641034800,
-    timezone: -18000
+    timezone: 'Asia/Jerusalem',
+    uvIndex: 5.0,
+    rainProbability: 0
   },
   forecast: [
     {
@@ -35,16 +37,22 @@ export const cityWeather: CityWeather = {
       min: 18,
       max: 26,
       icon: '01d',
-      desc: 'Sunny',
-      codeId: 800
+      desc: 'Clear sky',
+      codeId: 0,
+      humidity: null,
+      wind: 15.0,
+      clouds: null
     },
     {
       date: Date.now() + 2 * 86_400_000,
       min: 19,
       max: 27,
       icon: '02d',
-      desc: 'Partly cloudy',
-      codeId: 801
+      desc: 'Mainly clear',
+      codeId: 1,
+      humidity: null,
+      wind: 16.0,
+      clouds: null
     }
   ],
   hourly: [
@@ -52,8 +60,8 @@ export const cityWeather: CityWeather = {
       time: Date.now(),
       temp: 20,
       icon: '01d',
-      desc: 'Clear skies',
-      codeId: 800,
+      desc: 'Clear sky',
+      codeId: 0,
       wind: 12.5,
       humidity: 65
     },
@@ -61,8 +69,8 @@ export const cityWeather: CityWeather = {
       time: Date.now() + 3600000,
       temp: 21,
       icon: '01d',
-      desc: 'Clear skies',
-      codeId: 800,
+      desc: 'Clear sky',
+      codeId: 0,
       wind: 13.0,
       humidity: 60
     }

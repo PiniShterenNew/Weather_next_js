@@ -38,9 +38,24 @@ vi.mock('@/lib/errors', () => ({
   },
 }));
 
+const mockLimiter = { consume: vi.fn() };
+
+vi.mock('@/lib/simple-rate-limiter', () => ({
+  findMatchingLimiter: vi.fn(() => mockLimiter),
+  getRequestIP: vi.fn(() => '127.0.0.1'),
+  getErrorMessage: vi.fn(() => 'Too many requests'),
+}));
+
+vi.mock('@clerk/nextjs/server', () => ({
+  auth: vi.fn(),
+}));
+
 import { getLocationForDB } from '@/lib/helpers';
 import { findCityById, saveCityToDatabase } from '@/lib/db/suggestion';
 import { getCityId } from '@/lib/utils';
+import { auth } from '@clerk/nextjs/server';
+
+const mockedAuth = auth as unknown as ReturnType<typeof vi.fn>;
 
 function createRequest(params: Record<string, string> = {}) {
   const url = new URL('http://localhost/api/reverse');
@@ -58,7 +73,12 @@ const mockCityData = {
 
 describe('GET /api/reverse', () => {
   beforeEach(() => {
-    vi.resetAllMocks();
+    vi.clearAllMocks();
+    mockLimiter.consume.mockResolvedValue(undefined);
+    mockedAuth.mockResolvedValue({
+      userId: 'user_123',
+      getToken: vi.fn().mockResolvedValue('token'),
+    });
   });
 
   it('returns 400 if lat/lon are missing', async () => {
@@ -76,7 +96,7 @@ describe('GET /api/reverse', () => {
     
     expect(response.status).toBe(400);
     const data = await response.json();
-    expect(data.error).toBe('Invalid coordinates format');
+    expect(data.error).toBe('Invalid parameters: Expected number, received nan');
   });
 
   it('returns 400 if coordinates are out of range', async () => {
@@ -85,7 +105,7 @@ describe('GET /api/reverse', () => {
     
     expect(response.status).toBe(400);
     const data = await response.json();
-    expect(data.error).toBe('Coordinates out of valid range');
+    expect(data.error).toBe('Invalid parameters: Latitude out of valid range');
   });
 
   it('returns existing city from database', async () => {

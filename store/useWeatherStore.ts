@@ -1,335 +1,240 @@
 'use client';
 
-import { create } from 'zustand';
+import { useMemo } from 'react';
+
 import type { WeatherStore, WeatherStoreActions } from '@/types/store';
-import { isCityExists } from '@/lib/helpers';
-import { CityWeather } from '@/types/weather';
-import { ToastMessage } from '@/types/ui';
+import type { AppLocale } from '@/types/i18n';
+import type { TemporaryUnit } from '@/types/ui';
+import type { CityWeather } from '@/types/weather';
+
 import { locationService } from '@/features/location/services/locationService';
+import { useWeatherDataStore } from '@/features/weather/store/useWeatherDataStore';
+import { useAppPreferencesStore } from '@/store/useAppPreferencesStore';
+import { useToastStore } from '@/features/ui/store/useToastStore';
+import { useQuickAddStore } from '@/features/search/store/useQuickAddStore';
+import { useLocationStore } from '@/features/location/store/useLocationStore';
+import { weatherActions } from '@/features/weather/actions/weatherActions';
+import { useWeatherActions } from '@/features/weather/hooks/useWeatherActions';
 
-let toastIdCounter = 0;
+type CombinedState = WeatherStore & WeatherStoreActions;
 
-export const useWeatherStore = create<WeatherStore & WeatherStoreActions>()(
-  (set, get) => ({
-      cities: [],
-      currentIndex: 0,
-      unit: 'metric',
-      locale: 'he',
-      theme: 'system',
-      direction: 'ltr',
-      toasts: [],
-      isLoading: false,
-      autoLocationCityId: undefined,
-      userTimezoneOffset: -new Date().getTimezoneOffset() * 60,
-      open: false,
-      maxCities: 15,
-      currentLocationData: undefined,
-      locationTrackingEnabled: false,
-      locationChangeDialog: {
-        isOpen: false,
-        oldCity: undefined,
-        newCity: undefined,
-        distance: undefined,
-      },
-      setOpen: (open) => set({ open }),
-      addCity: (city) => {
-        if (get().cities.length >= get().maxCities) {
-          get().showToast({
-            message: 'toasts.maxCities',
-            type: 'warning',
-            values: { maxCities: get().maxCities.toString() }
-          });
-          return false;
-        }
-        const exists = isCityExists(get().cities, city);
-        if (exists) {
-          get().showToast({
-            message: 'toasts.exists',
-            type: 'info',
-            values: { city: city.name[get().locale] }
-          });
-          return false;
-        }
-        set((state) => {
-          // Remove any duplicates before adding
-          const filteredCities = state.cities.filter((c) => c.id !== city.id);
-          return {
-            cities: [...filteredCities, city],
-            currentIndex: filteredCities.length
-          };
-        });
-        
-        // Sync to server after adding city
-        if (get().isAuthenticated) {
-          setTimeout(() => {
-            get().syncWithServer();
-          }, 100); // Small delay to ensure state is updated
-        }
-        
-        return true;
-      },
-      addOrReplaceCurrentLocation: (city) => {
-        set((state) => {
+const sendLocationChangeNotification = async (oldCityName: string, newCityName: string, locale: string) => {
+  try {
+    await locationService.sendLocationChangeNotification({
+      oldCityName,
+      newCityName,
+      locale: locale as 'he' | 'en',
+    });
+  } catch {
+    // ignore
+  }
+};
 
-          const alreadyExists = isCityExists(state.cities, city);
-          const isAlreadyCurrent = city.isCurrentLocation;
+const loadFromServerImpl = (payload: { cities: unknown[]; currentCityId?: string; user: { locale: string; unit: string } }) => {
+  useWeatherDataStore
+    .getState()
+    .loadFromServer({
+      cities: payload.cities as Array<{
+        id: string;
+        lat: number;
+        lon: number;
+        name: { en: string; he: string };
+        country: { en: string; he: string };
+        isCurrentLocation?: boolean;
+        lastUpdatedUtc: string;
+        current: unknown;
+        forecast: unknown;
+        hourly: unknown;
+      }>,
+      currentCityId: payload.currentCityId,
+    });
 
-          if (alreadyExists && !isAlreadyCurrent) {
-            return state;
-          }
+  const preferences = useAppPreferencesStore.getState();
+  preferences.setLocale(payload.user.locale as AppLocale);
+  preferences.setUnit(payload.user.unit as TemporaryUnit);
+  preferences.setIsAuthenticated(true);
+};
 
-          // Remove any existing current location city and any duplicates
-          const filteredCities = state.cities.filter((c) => 
-            c.id !== state.autoLocationCityId && c.id !== city.id
-          );
+const buildState = (): CombinedState => {
+  const dataStore = useWeatherDataStore.getState();
+  const preferences = useAppPreferencesStore.getState();
+  const toastStore = useToastStore.getState();
+  const quickAddStore = useQuickAddStore.getState();
+  const locationStore = useLocationStore.getState();
 
-          const updatedCity: CityWeather = {
-            ...city,
-            isCurrentLocation: true,
-          };
+  return {
+    cities: dataStore.cities,
+    currentIndex: dataStore.currentIndex,
+    unit: preferences.unit,
+    locale: preferences.locale,
+    theme: preferences.theme,
+    direction: preferences.direction,
+    toasts: toastStore.toasts,
+    isLoading: dataStore.isLoading,
+    autoLocationCityId: dataStore.autoLocationCityId,
+    userTimezoneOffset: preferences.userTimezoneOffset,
+    open: quickAddStore.isOpen,
+    maxCities: dataStore.maxCities,
+    currentLocationData: locationStore.currentLocationData,
+    locationTrackingEnabled: locationStore.locationTrackingEnabled,
+    locationChangeDialog: locationStore.locationChangeDialog,
 
-          return {
-            cities: [updatedCity, ...filteredCities],
-            autoLocationCityId: updatedCity.id,
-            currentIndex: 0,
-          };
-        });
-        
-        // Sync to server after adding current location
-        if (get().isAuthenticated) {
-          setTimeout(() => {
-            get().syncWithServer();
-          }, 100); // Small delay to ensure state is updated
-        }
-      },
-      updateCity: (city) => {
-        const updated = get().cities.map((c) => (c.id === city.id ? city : c));
-        set({ cities: updated });
-      },
-      removeCity: (id) => {
-        set((state) => {
-          const newCities = state.cities.filter((c) => c.id !== id);
-          const currentIndex = state.cities.findIndex((c) => c.id === id);
-          const isCurrentCity = currentIndex === state.currentIndex;
+    setOpen: (open: boolean) => useQuickAddStore.setState({ isOpen: open }),
+    addCity: weatherActions.addCity,
+    addOrReplaceCurrentLocation: weatherActions.addOrReplaceCurrentLocation,
+    updateCity: dataStore.updateCity,
+    removeCity: weatherActions.removeCity,
+    setUnit: preferences.setUnit,
+    setLocale: preferences.setLocale,
+    setTheme: preferences.setTheme,
+    setCurrentIndex: weatherActions.setCurrentIndex,
+    showToast: toastStore.showToast,
+    hideToast: toastStore.hideToast,
+    setIsLoading: (value: boolean) => useWeatherDataStore.setState({ isLoading: value }),
+    nextCity: weatherActions.nextCity,
+    prevCity: weatherActions.prevCity,
+    setUserTimezoneOffset: preferences.setUserTimezoneOffset,
+    getUserTimezoneOffset: () => useAppPreferencesStore.getState().userTimezoneOffset,
+    resetStore: weatherActions.resetStores,
+    isAuthenticated: preferences.isAuthenticated,
+    isSyncing: preferences.isSyncing,
+    setIsAuthenticated: preferences.setIsAuthenticated,
+    setIsSyncing: preferences.setIsSyncing,
+    updateCurrentLocation: locationStore.updateCurrentLocation,
+    setLocationTrackingEnabled: locationStore.setLocationTrackingEnabled,
+    showLocationChangeDialog: (oldCity?: CityWeather, newCity?: CityWeather, distance?: number) =>
+      locationStore.showLocationChangeDialog({ oldCity, newCity, distance }),
+    hideLocationChangeDialog: locationStore.hideLocationChangeDialog,
+    handleLocationChange: weatherActions.handleLocationChange,
+    sendLocationChangeNotification,
+    loadFromServer: loadFromServerImpl,
+    bootstrapLoad: loadFromServerImpl,
+    refreshCity: weatherActions.refreshCity,
+    setCurrentCity: weatherActions.setCurrentCity,
+    applyBackgroundUpdate: weatherActions.applyBackgroundUpdate,
+    closeQuickAddAndResetLoading: weatherActions.closeQuickAddAndResetLoading,
+    persistPreferencesIfAuthenticated: weatherActions.persistPreferencesIfAuthenticated,
+    setAutoLocationCityId: weatherActions.setAutoLocationCityId,
+  };
+};
 
-          let newIndex = state.currentIndex;
-          if (isCurrentCity) {
-            newIndex = Math.max(0, state.currentIndex - 1);
-          } else if (state.currentIndex > currentIndex) {
-            newIndex = state.currentIndex - 1;
-          }
+export const useWeatherStore = <T = CombinedState>(selector?: (state: CombinedState) => T): T => {
+  const cities = useWeatherDataStore((state) => state.cities);
+  const currentIndex = useWeatherDataStore((state) => state.currentIndex);
+  const isLoading = useWeatherDataStore((state) => state.isLoading);
+  const autoLocationCityId = useWeatherDataStore((state) => state.autoLocationCityId);
+  const maxCities = useWeatherDataStore((state) => state.maxCities);
 
-          if (newCities.length === 0) {
-            newIndex = 0;
-          }
+  const preferences = useAppPreferencesStore();
+  const toasts = useToastStore((state) => state.toasts);
+  const quickAddOpen = useQuickAddStore((state) => state.isOpen);
+  const locationState = useLocationStore();
+  const actions = useWeatherActions();
 
-          return {
-            cities: newCities,
-            currentIndex: newIndex,
-            autoLocationCityId: id === state.autoLocationCityId ? undefined : state.autoLocationCityId,
-          };
-        });
-        
-        // Sync to server after removing city
-        if (get().isAuthenticated) {
-          setTimeout(() => {
-            get().syncWithServer();
-          }, 100); // Small delay to ensure state is updated
-        }
-      },
-      refreshCity: (id) => {
-        const updated = get().cities.map((c) => (c.id === id ? { ...c, lastUpdated: 0 } : c));
-        set({ cities: updated });
-      },
-      setUnit: (unit) => set({ unit }),
-      setLocale: (locale) => set({ locale }),
-      setTheme: (theme) => set({ theme }),
-      setCurrentIndex: (index) => set({ currentIndex: index }),
+  const combined = useMemo<CombinedState>(
+    () => ({
+      ...buildState(),
+      cities,
+      currentIndex,
+      isLoading,
+      autoLocationCityId,
+      maxCities,
+      unit: preferences.unit,
+      locale: preferences.locale,
+      theme: preferences.theme,
+      direction: preferences.direction,
+      userTimezoneOffset: preferences.userTimezoneOffset,
+      isAuthenticated: preferences.isAuthenticated,
+      isSyncing: preferences.isSyncing,
+      toasts,
+      open: quickAddOpen,
+      currentLocationData: locationState.currentLocationData,
+      locationTrackingEnabled: locationState.locationTrackingEnabled,
+      locationChangeDialog: locationState.locationChangeDialog,
+      setOpen: actions.setQuickAddOpen,
+      addCity: actions.addCity,
+      addOrReplaceCurrentLocation: actions.addOrReplaceCurrentLocation,
+      removeCity: actions.removeCity,
+      setCurrentIndex: actions.setCurrentIndex,
+      showToast: useToastStore.getState().showToast,
+      hideToast: useToastStore.getState().hideToast,
+      setIsLoading: actions.setIsLoading,
+      nextCity: actions.nextCity,
+      prevCity: actions.prevCity,
+      handleLocationChange: actions.handleLocationChange,
+      refreshCity: actions.refreshCity,
+      applyBackgroundUpdate: actions.applyBackgroundUpdate,
+      closeQuickAddAndResetLoading: actions.closeQuickAddAndResetLoading,
+      persistPreferencesIfAuthenticated: actions.persistPreferencesIfAuthenticated,
+      setAutoLocationCityId: actions.setAutoLocationCityId,
+    }),
+    [
+      actions,
+      autoLocationCityId,
+      cities,
+      currentIndex,
+      isLoading,
+      locationState.currentLocationData,
+      locationState.locationChangeDialog,
+      locationState.locationTrackingEnabled,
+      maxCities,
+      preferences.direction,
+      preferences.isAuthenticated,
+      preferences.isSyncing,
+      preferences.locale,
+      preferences.theme,
+      preferences.unit,
+      preferences.userTimezoneOffset,
+      quickAddOpen,
+      toasts,
+    ],
+  );
 
-      showToast: ({ message, type = 'info', duration, values = {} }) => {
-        toastIdCounter += 1;
-        const id = toastIdCounter;
-        const newToast: ToastMessage = {
-          id,
-          message,
-          type,
-          values,
-          ...(duration && { duration })
-        };
+  const select = selector ?? ((state: CombinedState) => state as unknown as T);
+  return select(combined);
+};
 
-        set((state) => ({
-          toasts: [...state.toasts, newToast],
-        }));
-      },
+useWeatherStore.getState = buildState;
 
-      hideToast: (id) => {
-        set((state) => ({
-          toasts: state.toasts.filter((t) => t.id !== id),
-        }));
-      },
+useWeatherStore.setState = (partial: Partial<CombinedState>) => {
+  if ('cities' in partial && partial.cities) {
+    useWeatherDataStore.setState({ cities: partial.cities });
+  }
+  if ('currentIndex' in partial && typeof partial.currentIndex === 'number') {
+    useWeatherDataStore.setState({ currentIndex: partial.currentIndex });
+  }
+  if ('isLoading' in partial && typeof partial.isLoading === 'boolean') {
+    useWeatherDataStore.setState({ isLoading: partial.isLoading });
+  }
+  if ('autoLocationCityId' in partial) {
+    useWeatherDataStore.setState({ autoLocationCityId: partial.autoLocationCityId });
+  }
+  if ('unit' in partial && partial.unit) {
+    useAppPreferencesStore.setState({ unit: partial.unit });
+  }
+  if ('locale' in partial && partial.locale) {
+    useAppPreferencesStore.setState({ locale: partial.locale as AppLocale });
+  }
+  if ('theme' in partial && partial.theme) {
+    useAppPreferencesStore.setState({ theme: partial.theme });
+  }
+  if ('direction' in partial && partial.direction) {
+    useAppPreferencesStore.setState({ direction: partial.direction });
+  }
+  if ('userTimezoneOffset' in partial && typeof partial.userTimezoneOffset === 'number') {
+    useAppPreferencesStore.setState({ userTimezoneOffset: partial.userTimezoneOffset });
+  }
+  if ('isAuthenticated' in partial && typeof partial.isAuthenticated === 'boolean') {
+    useAppPreferencesStore.setState({ isAuthenticated: partial.isAuthenticated });
+  }
+  if ('isSyncing' in partial && typeof partial.isSyncing === 'boolean') {
+    useAppPreferencesStore.setState({ isSyncing: partial.isSyncing });
+  }
+  if ('open' in partial && typeof partial.open === 'boolean') {
+    useQuickAddStore.setState({ isOpen: partial.open });
+  }
+  if ('toasts' in partial && Array.isArray(partial.toasts)) {
+    useToastStore.setState({ toasts: partial.toasts });
+  }
+};
 
-      setIsLoading: (isLoading) => set({ isLoading }),
-
-      nextCity: () => set({ currentIndex: (get().currentIndex + 1) % get().cities.length }),
-      prevCity: () => set({ currentIndex: (get().currentIndex - 1 + get().cities.length) % get().cities.length }),
-      setUserTimezoneOffset: (offset) => set({ userTimezoneOffset: offset }),
-      getUserTimezoneOffset: () => get().userTimezoneOffset,
-      resetStore: () => set({
-        cities: [],
-        currentIndex: 0,
-        unit: 'metric',
-        locale: 'he',
-        theme: 'system',
-        direction: 'ltr',
-        toasts: [],
-        isLoading: false,
-        autoLocationCityId: undefined,
-        userTimezoneOffset: -new Date().getTimezoneOffset() * 60,
-        isAuthenticated: false,
-        isSyncing: false,
-      }),
-      
-      // Auth and Sync
-      isAuthenticated: false,
-      isSyncing: false,
-      
-      setIsAuthenticated: (isAuthenticated) => set({ isAuthenticated }),
-      
-      syncWithServer: async () => {
-        // syncWithServer: called
-        
-        if (!get().isAuthenticated) {
-          // syncWithServer: not authenticated, skipping
-          return;
-        }
-        
-        if (get().isSyncing) {
-          // syncWithServer: already syncing, forcing reset and continuing
-          set({ isSyncing: false });
-        }
-        
-        // syncWithServer: starting sync
-        
-        // Don't set loading state for background sync
-        // This prevents unnecessary UI loading states
-        set({ isSyncing: true });
-        
-        try {
-          const response = await fetch('/api/user/preferences', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              locale: get().locale,
-              theme: get().theme,
-              unit: get().unit,
-              cities: get().cities,
-            }),
-          });
-          
-          // syncWithServer: response received
-          
-          if (!response.ok) {
-            throw new Error('Failed to sync preferences');
-          }
-          
-          // syncWithServer: sync completed successfully
-        } catch {
-          // syncWithServer: sync error
-        } finally {
-          // syncWithServer: setting isSyncing to false
-          set({ isSyncing: false });
-        }
-      },
-      
-      loadUserPreferences: async (_forceLoad = false) => {
-        // This function is now disabled - preferences are loaded via syncUserToDatabase
-        // to avoid duplicate API calls on page refresh
-        // Log only in development
-        if (process.env.NODE_ENV !== 'production') {
-          // eslint-disable-next-line no-console
-          console.log('loadUserPreferences called but disabled to prevent duplicate API calls');
-        }
-        return;
-      },
-
-      updateCurrentLocation: (lat, lon, cityId) => {
-        set({
-          currentLocationData: {
-            lat,
-            lon,
-            cityId,
-            lastChecked: Date.now(),
-          },
-        });
-      },
-
-      setLocationTrackingEnabled: (enabled) => {
-        set({ locationTrackingEnabled: enabled });
-      },
-
-      showLocationChangeDialog: (oldCity, newCity, distance) => {
-        set({
-          locationChangeDialog: {
-            isOpen: true,
-            oldCity,
-            newCity,
-            distance,
-          },
-        });
-      },
-
-      hideLocationChangeDialog: () => {
-        set({
-          locationChangeDialog: {
-            isOpen: false,
-            oldCity: undefined,
-            newCity: undefined,
-            distance: undefined,
-          },
-        });
-      },
-
-      handleLocationChange: async (keepOldCity, oldCityId, newCity) => {
-        try {
-          if (keepOldCity) {
-            // Keep the old city in the cities list
-            // The old city should already be in the list, so we just add the new one
-            get().addOrReplaceCurrentLocation(newCity);
-          } else {
-            // Remove the old city and add the new one
-            get().removeCity(oldCityId);
-            get().addOrReplaceCurrentLocation(newCity);
-          }
-
-          // Update current location data
-          get().updateCurrentLocation(newCity.lat, newCity.lon, newCity.id);
-
-          // Show success toast
-          get().showToast({
-            message: 'location.locationUpdated',
-            type: 'success',
-            values: { city: newCity.name[get().locale] },
-          });
-        } catch (error) {
-          // eslint-disable-next-line no-console
-          console.error('Error handling location change:', error);
-          get().showToast({
-            message: 'location.locationCheckFailed',
-            type: 'error',
-          });
-        }
-      },
-
-      sendLocationChangeNotification: async (oldCityName: string, newCityName: string, locale: string) => {
-        try {
-          await locationService.sendLocationChangeNotification({
-            oldCityName,
-            newCityName,
-            locale: locale as 'he' | 'en',
-          });
-        } catch {
-          // console.error('Error sending location change notification:', error);
-        }
-      },
-    })
-);

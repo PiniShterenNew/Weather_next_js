@@ -1,5 +1,5 @@
-import { BilingualName, CityWeather, CityWeatherCurrent, WeatherCurrent, WeatherForecastItem, WeatherHourlyItem } from '@/types/weather';
-import { GeoAPIResult, OpenWeatherForecastItem, OneCallResponse } from '@/types/api';
+import { CityWeather } from '@/types/weather';
+import { GeoAPIResult } from '@/types/api';
 import { TemporaryUnit } from '@/types/ui';
 import { getCityId } from './utils';
 import { CityTranslation } from '@/types/cache';
@@ -58,18 +58,83 @@ export function getUVIndexInfo(uvIndex: number): { description: string; risk: 'l
 }
 
 /**
+ * Convert timezone string to offset in seconds
+ * @param timezone - timezone string (e.g., 'Asia/Jerusalem')
+ * @returns timezone offset in seconds
+ */
+export function getTimezoneOffset(timezone: string): number {
+  if (!timezone) return 0;
+  
+  try {
+    // Get current time
+    const now = new Date();
+    
+    // Get the same moment in the target timezone
+    const formatter = new Intl.DateTimeFormat('en-US', {
+      timeZone: timezone,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false
+    });
+    
+    const parts = formatter.formatToParts(now);
+    const getValue = (type: string) => parts.find(p => p.type === type)?.value || '0';
+    
+    // Create a date in the target timezone
+    const tzDate = new Date(
+      parseInt(getValue('year')),
+      parseInt(getValue('month')) - 1,
+      parseInt(getValue('day')),
+      parseInt(getValue('hour')),
+      parseInt(getValue('minute')),
+      parseInt(getValue('second'))
+    );
+    
+    // Calculate offset in seconds
+    // The offset is the difference between the timezone time and UTC time
+    const offset = (tzDate.getTime() - now.getTime()) / 1000;
+    return offset;
+  } catch {
+    return 0;
+  }
+}
+
+/**
  * Check if city timezone matches user's timezone
- * @param cityTz - city timezone offset in seconds
- * @param userTz - user timezone offset (optional)
+ * @param cityTz - city timezone (string or offset in seconds)
+ * @param userTz - user timezone offset in seconds
  * @returns true if timezones are the same
  */
-export function isSameTimezone(cityTz: number, userTz: number): boolean {
+export function isSameTimezone(cityTz: string | number, userTz: number): boolean {
   // Handle undefined or null values
   if (cityTz === undefined || cityTz === null || userTz === undefined || userTz === null) {
     return false;
   }
   
-  // Compare timezone offsets (in seconds)
+  // If cityTz is a string (timezone name), compare by formatting the same time in both timezones
+  if (typeof cityTz === 'string') {
+    try {
+      const now = new Date();
+      
+      // Format time in city timezone
+      const cityTime = formatTimeWithTimezone(Math.floor(now.getTime() / 1000), cityTz);
+      
+      // Format time in user timezone (by calculating user's timezone name)
+      const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      const userTime = formatTimeWithTimezone(Math.floor(now.getTime() / 1000), userTimezone);
+      
+      // If times are the same, timezones are the same
+      return cityTime === userTime;
+    } catch {
+      return false;
+    }
+  }
+  
+  // If cityTz is a number (offset), compare offsets
   return Math.abs(cityTz - userTz) < 60; // Allow 1 minute difference for rounding
 }
 
@@ -109,6 +174,32 @@ export function formatTimeWithOffset(timestamp: number, offsetSeconds: number, u
   const minutes = date.getUTCMinutes().toString().padStart(2, '0');
 
   return `${hours}:${minutes}`;
+}
+
+/**
+ * Format time for Open-Meteo timezone string
+ * @param timestamp - UTC timestamp in seconds
+ * @param timezone - timezone string (e.g., 'Asia/Jerusalem')
+ * @returns formatted time string (HH:MM)
+ */
+export function formatTimeWithTimezone(timestamp: number, timezone: string): string {
+  if (timestamp === null || timestamp === undefined || isNaN(timestamp) || !timezone) {
+    return '--:--';
+  }
+
+  try {
+    const date = new Date(timestamp * 1000);
+    const timeString = date.toLocaleTimeString('en-US', {
+      timeZone: timezone,
+      hour12: false,
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+    
+    return timeString;
+  } catch {
+    return '--:--';
+  }
 }
 
 /**
@@ -197,183 +288,132 @@ export function getWindDirection(degrees: number): string {
   return directions[index];
 }
 
-type GetWeatherInput = {
-  lat: number;
-  lon: number;
-  name: string | BilingualName;
-  country: string | BilingualName;
-};
-
-export async function getWeatherByCoords(
-  input: Omit<GetWeatherInput, 'lang'>
-): Promise<{ he: CityWeatherCurrent; en: CityWeatherCurrent }> {
-  const API_KEY = process.env.OWM_API_KEY as string;
-  
-  if (!API_KEY) {
-    throw new Error('OpenWeatherMap API key is not configured');
-  }
-
-  const urls = {
-    he: {
-      current: `https://api.openweathermap.org/data/2.5/weather?lat=${input.lat}&lon=${input.lon}&appid=${API_KEY}&units=metric&lang=he`,
-      forecast: `https://api.openweathermap.org/data/2.5/forecast?lat=${input.lat}&lon=${input.lon}&appid=${API_KEY}&units=metric&lang=he`,
-      oneCall: `https://api.openweathermap.org/data/2.5/onecall?lat=${input.lat}&lon=${input.lon}&appid=${API_KEY}&units=metric&exclude=minutely,alerts`
-    },
-    en: {
-      current: `https://api.openweathermap.org/data/2.5/weather?lat=${input.lat}&lon=${input.lon}&appid=${API_KEY}&units=metric&lang=en`,
-      forecast: `https://api.openweathermap.org/data/2.5/forecast?lat=${input.lat}&lon=${input.lon}&appid=${API_KEY}&units=metric&lang=en`,
-      oneCall: `https://api.openweathermap.org/data/2.5/onecall?lat=${input.lat}&lon=${input.lon}&appid=${API_KEY}&units=metric&exclude=minutely,alerts`
-    }
-  };
-
-  const fetchWeatherData = async (lang: 'he' | 'en'): Promise<CityWeatherCurrent> => {
-    const [currentResponse, forecastResponse, oneCallResponse] = await Promise.all([
-      fetch(urls[lang].current),
-      fetch(urls[lang].forecast),
-      fetch(urls[lang].oneCall).catch(() => null), // Allow OneCall to fail gracefully
-    ]);
-
-    if (!currentResponse.ok || !forecastResponse.ok) {
-      throw new Error(`Failed to fetch weather for lang: ${lang}`);
-    }
-
-    const currentJson = await currentResponse.json();
-    const forecastJson = await forecastResponse.json();
-    
-    
-    // Parse OneCall response if available
-    let oneCallJson: OneCallResponse | null = null;
-    if (oneCallResponse && oneCallResponse.ok) {
-      try {
-        oneCallJson = await oneCallResponse.json() as OneCallResponse;
-      } catch {
-        // Ignore OneCall parsing errors
-      }
-    }
-
-    const grouped = groupForecastByDay(forecastJson.list);
-    const today = new Date().toISOString().split('T')[0];
-    
-    // Get today's min/max temperatures from forecast data (24 hours)
-    const todayForecast = grouped.find(([date]) => date === today);
-    let todayMin = currentJson.main.temp_min;
-    let todayMax = currentJson.main.temp_max;
-    
-    // Get today's highest rain probability from forecast
-    let todayMaxRainProbability: number | undefined;
-    if (todayForecast && todayForecast[1].length > 0) {
-      const todayTemps = todayForecast[1].map((item) => item.main);
-      todayMin = Math.min(...todayTemps.map((t) => t.temp_min));
-      todayMax = Math.max(...todayTemps.map((t) => t.temp_max));
-      
-      // Get max rain probability for today
-      const rainProbabilities = todayForecast[1]
-        .map((item) => item.pop)
-        .filter((pop) => pop !== undefined);
-      if (rainProbabilities.length > 0) {
-        todayMaxRainProbability = Math.max(...rainProbabilities);
-      }
-    }
-
-    const current: WeatherCurrent = {
-      codeId: currentJson.weather[0].id,
-      temp: currentJson.main.temp,
-      feelsLike: currentJson.main.feels_like,
-      tempMin: todayMin, // ← עכשיו זה מינימום של היום הנוכחי
-      tempMax: todayMax, // ← עכשיו זה מקסימום של היום הנוכחי
-      desc: currentJson.weather[0].description,
-      icon: currentJson.weather[0].icon,
-      humidity: currentJson.main.humidity,
-      wind: currentJson.wind.speed,
-      windDeg: currentJson.wind.deg || 0,
-      pressure: currentJson.main.pressure,
-      visibility: currentJson.visibility,
-      clouds: currentJson.clouds.all,
-      sunrise: currentJson.sys.sunrise,
-      sunset: currentJson.sys.sunset,
-      timezone: currentJson.timezone,
-      uvIndex: oneCallJson?.current?.uvi, // UV Index from OneCall API
-      rainProbability: todayMaxRainProbability, // Rain probability from forecast API
-    };
-
-
-    // תחזית יומית (5 ימים)
-    const forecast: WeatherForecastItem[] = grouped
-      .filter(([date]) => date > today)
-      .slice(0, 5)
-      .map(([date, items]) => {
-        const temps = items.map((i) => i.main);
-        const weatherMidday =
-          items.find((i) => i.dt_txt.includes('12:00:00')) || items[Math.floor(items.length / 2)];
-
-        return {
-          date: new Date(date + 'T00:00:00').getTime(),
-          min: Math.min(...temps.map((t) => t.temp_min)),
-          max: Math.max(...temps.map((t) => t.temp_max)),
-          icon: weatherMidday.weather[0].icon,
-          desc: weatherMidday.weather[0].description,
-          codeId: weatherMidday.weather[0].id,
-          // מידע נוסף - ממוצע של היום
-          humidity: Math.round(items.reduce((sum, item) => sum + item.main.humidity, 0) / items.length),
-          wind: Math.round((items.reduce((sum, item) => sum + item.wind.speed, 0) / items.length) * 10) / 10,
-          clouds: Math.round(items.reduce((sum, item) => sum + item.clouds.all, 0) / items.length),
-        };
-      });
-
-    // תחזית שעתית (הבא 24 שעות)
-    const hourly: WeatherHourlyItem[] = forecastJson.list
-      .slice(0, 8) // הבא 8 מדידות (24 שעות)
-      .map((item: OpenWeatherForecastItem) => ({
-        time: item.dt * 1000, // Convert to milliseconds
-        temp: item.main.temp,
-        icon: item.weather[0].icon,
-        desc: item.weather[0].description,
-        codeId: item.weather[0].id,
-        wind: item.wind.speed,
-        humidity: item.main.humidity,
-      }));
-
-    return {
-      current,
-      forecast,
-      hourly,
-      lastUpdated: Date.now(),
-      unit: 'metric',
-      lat: input.lat,
-      lon: input.lon,
-    };
-  };
-
-  const [he, en] = await Promise.all([
-    fetchWeatherData('he'),
-    fetchWeatherData('en')
-  ]);
-
-  return { he, en };
-}
-
-
-/**
- * Group forecast items by day
- * @param list - forecast items from API
- * @returns array of [date, items] tuples
- */
-export function groupForecastByDay(
-  list: OpenWeatherForecastItem[],
-): [string, OpenWeatherForecastItem[]][] {
-  const days: Record<string, OpenWeatherForecastItem[]> = {};
-
-  for (const item of list) {
-    const dayKey = item?.dt_txt?.split(' ')[0]; // e.g., '2025-06-15'
-    if (!days[dayKey]) days[dayKey] = [];
-    days[dayKey].push(item);
-  }
-
-  // Sort by date to ensure correct order
-  return Object.entries(days).sort(([a], [b]) => a.localeCompare(b));
-}
 
 const GEOAPIFY_KEY = process.env.GEOAPIFY_KEY as string;
+
+/**
+ * Helper function to ensure we get full country name instead of country code
+ * @param country - Country name from Geoapify
+ * @param countryCode - Country code from Geoapify
+ * @param lang - Language preference
+ * @returns Full country name in the correct language
+ */
+function getFullCountryName(country: string, countryCode: string, lang: 'he' | 'en'): string {
+  // If we already have a full country name, check if it's in the right language
+  if (country && country.length > 2 && !country.match(/^[A-Z]{2}$/)) {
+    // Check if the country name contains Hebrew characters (for Hebrew language)
+    const hasHebrewChars = /[\u0590-\u05FF]/.test(country);
+    
+    if (lang === 'he' && hasHebrewChars) {
+      return country; // Hebrew name for Hebrew language
+    } else if (lang === 'en' && !hasHebrewChars) {
+      return country; // English name for English language
+    }
+    // If we have a name in the wrong language, we'll need to convert it
+    // Try to find the equivalent in the target language
+    const reverseMappings: Record<string, { en: string; he: string }> = {
+      'ישראל': { en: 'Israel', he: 'ישראל' },
+      'ארצות הברית': { en: 'United States', he: 'ארצות הברית' },
+      'בריטניה': { en: 'United Kingdom', he: 'בריטניה' },
+      'צרפת': { en: 'France', he: 'צרפת' },
+      'גרמניה': { en: 'Germany', he: 'גרמניה' },
+      'איטליה': { en: 'Italy', he: 'איטליה' },
+      'ספרד': { en: 'Spain', he: 'ספרד' },
+      'רוסיה': { en: 'Russia', he: 'רוסיה' },
+      'סין': { en: 'China', he: 'סין' },
+      'יפן': { en: 'Japan', he: 'יפן' },
+      'הודו': { en: 'India', he: 'הודו' },
+      'ברזיל': { en: 'Brazil', he: 'ברזיל' },
+      'קנדה': { en: 'Canada', he: 'קנדה' },
+      'אוסטרליה': { en: 'Australia', he: 'אוסטרליה' },
+      'מקסיקו': { en: 'Mexico', he: 'מקסיקו' },
+      'ארגנטינה': { en: 'Argentina', he: 'ארגנטינה' },
+      'מצרים': { en: 'Egypt', he: 'מצרים' },
+      'טורקיה': { en: 'Turkey', he: 'טורקיה' },
+      'ערב הסעודית': { en: 'Saudi Arabia', he: 'ערב הסעודית' },
+      'איחוד האמירויות הערביות': { en: 'United Arab Emirates', he: 'איחוד האמירויות הערביות' },
+      'ירדן': { en: 'Jordan', he: 'ירדן' },
+      'לבנון': { en: 'Lebanon', he: 'לבנון' },
+      'סוריה': { en: 'Syria', he: 'סוריה' },
+      'עיראק': { en: 'Iraq', he: 'עיראק' },
+      'איראן': { en: 'Iran', he: 'איראן' },
+      'פלסטין': { en: 'Palestine', he: 'פלסטין' },
+      // English to Hebrew mappings
+      'Israel': { en: 'Israel', he: 'ישראל' },
+      'United States': { en: 'United States', he: 'ארצות הברית' },
+      'United Kingdom': { en: 'United Kingdom', he: 'בריטניה' },
+      'France': { en: 'France', he: 'צרפת' },
+      'Germany': { en: 'Germany', he: 'גרמניה' },
+      'Italy': { en: 'Italy', he: 'איטליה' },
+      'Spain': { en: 'Spain', he: 'ספרד' },
+      'Russia': { en: 'Russia', he: 'רוסיה' },
+      'China': { en: 'China', he: 'סין' },
+      'Japan': { en: 'Japan', he: 'יפן' },
+      'India': { en: 'India', he: 'הודו' },
+      'Brazil': { en: 'Brazil', he: 'ברזיל' },
+      'Canada': { en: 'Canada', he: 'קנדה' },
+      'Australia': { en: 'Australia', he: 'אוסטרליה' },
+      'Mexico': { en: 'Mexico', he: 'מקסיקו' },
+      'Argentina': { en: 'Argentina', he: 'ארגנטינה' },
+      'Egypt': { en: 'Egypt', he: 'מצרים' },
+      'Turkey': { en: 'Turkey', he: 'טורקיה' },
+      'Saudi Arabia': { en: 'Saudi Arabia', he: 'ערב הסעודית' },
+      'United Arab Emirates': { en: 'United Arab Emirates', he: 'איחוד האמירויות הערביות' },
+      'Jordan': { en: 'Jordan', he: 'ירדן' },
+      'Lebanon': { en: 'Lebanon', he: 'לבנון' },
+      'Syria': { en: 'Syria', he: 'סוריה' },
+      'Iraq': { en: 'Iraq', he: 'עיראק' },
+      'Iran': { en: 'Iran', he: 'איראן' },
+      'Palestine': { en: 'Palestine', he: 'פלסטין' }
+    };
+    
+    const mapping = reverseMappings[country];
+    if (mapping) {
+      return mapping[lang];
+    }
+  }
+  
+  // If we only have a country code, try to get the full name
+  if (countryCode && countryCode.length === 2) {
+    // Common country code mappings
+    const countryMappings: Record<string, { en: string; he: string }> = {
+      'IL': { en: 'Israel', he: 'ישראל' },
+      'US': { en: 'United States', he: 'ארצות הברית' },
+      'GB': { en: 'United Kingdom', he: 'בריטניה' },
+      'FR': { en: 'France', he: 'צרפת' },
+      'DE': { en: 'Germany', he: 'גרמניה' },
+      'IT': { en: 'Italy', he: 'איטליה' },
+      'ES': { en: 'Spain', he: 'ספרד' },
+      'RU': { en: 'Russia', he: 'רוסיה' },
+      'CN': { en: 'China', he: 'סין' },
+      'JP': { en: 'Japan', he: 'יפן' },
+      'IN': { en: 'India', he: 'הודו' },
+      'BR': { en: 'Brazil', he: 'ברזיל' },
+      'CA': { en: 'Canada', he: 'קנדה' },
+      'AU': { en: 'Australia', he: 'אוסטרליה' },
+      'MX': { en: 'Mexico', he: 'מקסיקו' },
+      'AR': { en: 'Argentina', he: 'ארגנטינה' },
+      'EG': { en: 'Egypt', he: 'מצרים' },
+      'TR': { en: 'Turkey', he: 'טורקיה' },
+      'SA': { en: 'Saudi Arabia', he: 'ערב הסעודית' },
+      'AE': { en: 'United Arab Emirates', he: 'איחוד האמירויות הערביות' },
+      'JO': { en: 'Jordan', he: 'ירדן' },
+      'LB': { en: 'Lebanon', he: 'לבנון' },
+      'SY': { en: 'Syria', he: 'סוריה' },
+      'IQ': { en: 'Iraq', he: 'עיראק' },
+      'IR': { en: 'Iran', he: 'איראן' },
+      'PS': { en: 'Palestine', he: 'פלסטין' }
+    };
+    
+    const mapping = countryMappings[countryCode.toUpperCase()];
+    if (mapping) {
+      return mapping[lang];
+    }
+  }
+  
+  // Fallback to original country or countryCode
+  return country || countryCode;
+}
 
 async function fetchGeoapify(query: string, lang: 'he' | 'en') {
   if (!GEOAPIFY_KEY) {
@@ -472,8 +512,30 @@ export async function getSuggestionsForDB(query: string, lang: 'he' | 'en') {
 
     for (const item of primaryResults) {
       const id = getCityId(item.lat, item.lon);
-      const cityName = item.address_line1 || item.city || '';
-      const countryName = item.country || '';
+      // Choose the best city name - prioritize formatted name or address_line1
+      const cityName = item.formatted?.split(',')[0] || item.address_line1 || item.city || '';
+      // Use full country name in correct language, not country code
+      const countryName = getFullCountryName(item.country, item.country_code, lang);
+
+      // Log detailed information about what we receive
+      // eslint-disable-next-line no-console
+      console.log('🔍 City Search Result:', {
+        id,
+        lat: item.lat,
+        lon: item.lon,
+        cityName,
+        countryName,
+        fullItem: item,
+        address_line1: item.address_line1,
+        city: item.city,
+        country: item.country,
+        country_code: item.country_code,
+        state: item.state,
+        county: item.county,
+        suburb: item.suburb,
+        postcode: item.postcode,
+        formatted: item.formatted
+      });
 
       if (!cityMap.has(id)) {
         cityMap.set(id, {
@@ -506,6 +568,8 @@ export async function getSuggestionsForDB(query: string, lang: 'he' | 'en') {
         }
       } catch {
         // If fallback fails, continue with primary language data
+        // eslint-disable-next-line no-console
+        console.log('⚠️ Fallback translation failed for:', cityName, 'in', countryName);
       }
     }
 
@@ -517,7 +581,8 @@ export async function getSuggestionsForDB(query: string, lang: 'he' | 'en') {
         for (const item of alternativeResults) {
           const id = getCityId(item.lat, item.lon);
           const cityName = item.address_line1 || item.city || '';
-          const countryName = item.country || '';
+          // Use full country name in correct language, not country code
+          const countryName = getFullCountryName(item.country, item.country_code, fallbackLang);
 
           // Only add if not already exists
           if (!cityMap.has(id)) {
@@ -570,8 +635,8 @@ export const getLocationForDB = async (lat: number, lon: number) => {
       he: heInfo.name,
     },
     country: {
-      en: enInfo.country,
-      he: heInfo.country,
+      en: getFullCountryName(enInfo.country, '', 'en'),
+      he: getFullCountryName(heInfo.country, '', 'he'),
     },
   };
 };
@@ -588,7 +653,7 @@ type CityInfoCoords = { name: string; country: string; id: string; lat: number; 
 export async function getCityInfoByCoords(
   lat: number,
   lon: number,
-  lang = 'en',
+  lang: 'he' | 'en' = 'en',
 ): Promise<CityInfoCoords> {
   const GEOAPIFY_KEY = process.env.GEOAPIFY_KEY as string;
   const url = `https://api.geoapify.com/v1/geocode/reverse?lat=${lat}&lon=${lon}&lang=${lang}&type=city&format=json&apiKey=${GEOAPIFY_KEY}`;
@@ -607,9 +672,39 @@ export async function getCityInfoByCoords(
     throw new Error('City not found for coords');
   }
 
+  // Log what we get from reverse geocoding
+  // eslint-disable-next-line no-console
+  console.log('🌍 Reverse Geocoding Result:', {
+    lang,
+    inputCoords: { lat, lon },
+    apiCoords: { lat: hit.lat, lon: hit.lon },
+    address_line1: hit.address_line1,
+    city: hit.city,
+    country: hit.country,
+    formatted: hit.formatted,
+    result_type: hit.result_type,
+    fullHit: hit
+  });
+
+  // Validate coordinates match (within reasonable tolerance)
+  const coordDiff = Math.abs(hit.lat - lat) + Math.abs(hit.lon - lon);
+  if (coordDiff > 0.1) {
+    // eslint-disable-next-line no-console
+    console.warn('⚠️ Warning: Reverse geocoding coordinates mismatch:', {
+      requested: { lat, lon },
+      returned: { lat: hit.lat, lon: hit.lon },
+      difference: coordDiff
+    });
+  }
+
+  // Validate city data exists
+  if (!hit.city && !hit.address_line1 && !hit.formatted) {
+    throw new Error('Invalid reverse geocoding result: missing city name');
+  }
+
   return {
-    name: hit.address_line1 || hit.city, // Already in the requested language
-    country: hit.country, // Full country name (not ISO code)
+    name: hit.formatted?.split(',')[0] || hit.address_line1 || hit.city, // Use formatted name first
+    country: getFullCountryName(hit.country, hit.country_code || '', lang), // Ensure full country name in correct language
     id: getCityId(hit.lat, hit.lon),
     lat: hit.lat,
     lon: hit.lon,

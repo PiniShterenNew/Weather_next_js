@@ -38,14 +38,15 @@ model City {
 }
 
 model UserCity {
-  id        String   @id @default(cuid())
-  userId    String
-  cityId    String
-  sortOrder Int      @default(0)
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  city      City     @relation(fields: [cityId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id               String   @id @default(cuid())
+  userId           String
+  cityId           String
+  sortOrder        Int      @default(0)
+  isCurrentLocation Boolean  @default(false)
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  city             City     @relation(fields: [cityId], references: [id], onDelete: Cascade)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 
   @@unique([userId, cityId])
   @@index([userId])
@@ -69,8 +70,6 @@ model UserCurrentLocation {
   id            String   @id @default(cuid())
   userId        String   @unique
   cityId        String
-  lat           Float
-  lon           Float
   lastCheckedAt DateTime @default(now())
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt

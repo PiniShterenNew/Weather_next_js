@@ -9,26 +9,19 @@ import { getWeatherBackground, isNightTime } from '@/lib/helpers';
 
 
 
-const SwipeableWeatherCard = dynamic(() => import('@/components/WeatherCard/SwipeableWeatherCard').then((module) => module.default), {
-  loading: () => (
-    <CityInfoSkeleton />
-  ),
-  ssr: false,
+const SwipeableWeatherCard = dynamic(() => import('@/features/weather/components/card/SwipeableWeatherCard'), {
+  loading: () => <CityInfoSkeleton />,
+  ssr: true,
 });
 
-const CityPagination = dynamic(() => import('@/components/WeatherCard/CityPagination').then((module) => module.default), {
+const CityPagination = dynamic(() => import('@/features/weather/components/card/CityPagination'), {
   loading: () => null,
-  ssr: false,
+  ssr: true,
 });
 
 
 export default function HomePage() {
-  const [isHydrated, setIsHydrated] = useState(false);
   const [hasShownSlowNetworkWarning, setHasShownSlowNetworkWarning] = useState(false);
-  
-  useEffect(() => {
-    setIsHydrated(true);
-  }, []);
 
   const cities = useWeatherStore((s) => s.cities);
   const currentIndex = useWeatherStore((s) => s.currentIndex);
@@ -68,18 +61,7 @@ export default function HomePage() {
   const isNight = isNightTime(currentTime, sunrise, sunset);
   const backgroundClass = getWeatherBackground(weatherCode, isNight);
 
-  // Show loading state until component is mounted to prevent hydration mismatch
-  if (!isHydrated) {
-    return (
-      <div className="h-full bg-gradient-to-br from-slate-800 to-slate-900">
-        <div className="h-full flex flex-col w-full px-2 md:px-4 xl:px-6 pt-2">
-          <div className="flex-1 flex items-center justify-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  // Removed unnecessary hydration delay for better performance
 
   return (
     <div className={`h-full bg-cover bg-center bg-no-repeat transition-all duration-1000 ${backgroundClass}`}>

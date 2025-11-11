@@ -52,25 +52,27 @@ export class DatabaseError extends AppError {
   }
 }
 
+const consoleLogger = globalThis.console;
+
 /**
  * Logger utility for consistent logging
  */
 export const logger = {
   info: (message: string, ...meta: unknown[]) => {
-    console.log(`[INFO] ${message}`, ...meta);
+    consoleLogger.log(`[INFO] ${message}`, ...meta);
   },
-  
+
   warn: (message: string, ...meta: unknown[]) => {
-    console.warn(`[WARN] ${message}`, ...meta);
+    consoleLogger.warn(`[WARN] ${message}`, ...meta);
   },
-  
+
   error: (message: string, error?: Error, ...meta: unknown[]) => {
-    console.error(`[ERROR] ${message}`, error || '', ...meta);
+    consoleLogger.error(`[ERROR] ${message}`, error || '', ...meta);
   },
-  
+
   debug: (message: string, ...meta: unknown[]) => {
     if (process.env.NODE_ENV !== 'production') {
-      console.debug(`[DEBUG] ${message}`, ...meta);
+      consoleLogger.debug(`[DEBUG] ${message}`, ...meta);
     }
-  }
+  },
 };

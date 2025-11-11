@@ -232,3 +232,14 @@ High code readability
 Production readiness
 
 Any automated agent (e.g., Cursor or Claude) should validate and enforce all of the above before merge or deployment.
+
+### 13. Security Enforcement
+
+All API routes and client-server interactions must:
+- Use HTTPS in all environments.
+- Validate inputs/outputs with Zod schemas.
+- Handle authentication and authorization through secure tokens (Clerk/JWT).
+- Avoid exposing secrets or internal state to the client.
+- Log security-related actions in development mode for auditability.
+
+Each PR must include a security review checklist if any API/service logic was modified.

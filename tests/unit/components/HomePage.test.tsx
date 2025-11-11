@@ -2,11 +2,11 @@ import React from 'react';
 import { describe, it, vi, beforeEach, afterEach, expect } from 'vitest';
 import { render, screen } from '@/tests/utils/renderWithIntl';
 
-vi.mock('@/components/WeatherList/WeatherList', () => ({
+vi.mock('@/features/cities/components/WeatherList', () => ({
     __esModule: true,
     default: () => <div data-testid="weather-list" />,
 }));
-vi.mock('@/components/WeatherCard/SwipeableWeatherCard', () => ({
+vi.mock('@/features/weather/components/card/SwipeableWeatherCard', () => ({
     __esModule: true,
     default: () => <div data-testid="city-info" />,
 }));
@@ -19,15 +19,15 @@ vi.mock('@/components/LoadingOverlay', () => ({
     __esModule: true,
     default: ({ isLoading }: { isLoading: boolean }) => isLoading ? <div data-testid="loading-overlay" /> : null,
 }));
-vi.mock('@/components/QuickAdd/QuickCityAddModal', () => ({
+vi.mock('@/features/search/components/quickAdd/QuickCityAddModal', () => ({
     __esModule: true,
-    QuickCityAddModal: () => <div data-testid="quick-add-modal" />,
+    default: () => <div data-testid="quick-add-modal" />,
 }));
 vi.mock('@/components/Settings/SettingsModal', () => ({
     __esModule: true,
     default: () => <div data-testid="settings-modal" />,
 }));
-vi.mock('@/components/QuickAdd/AddLocation', () => ({
+vi.mock('@/features/search/components/quickAdd/AddLocation', () => ({
     __esModule: true,
     default: () => <button data-testid="add-location" />,
 }));

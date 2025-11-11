@@ -25,29 +25,42 @@ export function RecentSearches({ onSelect, className = '' }: RecentSearchesProps
   if (recentSearches.length === 0) return null;
 
   return (
-    <div className={`space-y-3 ${className}`} dir={direction}>
-      <h3 className="text-lg font-medium text-neutral-800 dark:text-white/90 flex items-center gap-3">
-        <Clock className="h-5 w-5 text-sky-500 dark:text-blue-400" />
+    <section className={cn('space-y-3', className)} dir={direction} aria-labelledby="recent-searches-heading">
+      <h3
+        id="recent-searches-heading"
+        className="flex items-center gap-2 text-base font-semibold text-neutral-800 dark:text-white/90 sm:text-lg"
+      >
+        <Clock className="h-5 w-5 text-sky-500 dark:text-blue-400" aria-hidden="true" />
         {t('search.recentSearches')}
       </h3>
 
-      <div className="space-y-2 bg-white/60 dark:bg-white/5 backdrop-blur-md shadow-sm border-white/10 rounded-2xl p-4">
+      <ul
+        className="space-y-1 rounded-xl border border-white/10 bg-white/70 p-3 shadow-sm backdrop-blur-md dark:bg-white/5 sm:p-4"
+        aria-live="polite"
+      >
         {recentSearches.map((city) => (
-          <button
-            key={`${city.name}-${city.country}`}
-            className={cn(
-              "w-full py-2 px-3 hover:bg-white/40 dark:hover:bg-white/10 rounded-xl transition-colors",
-              direction === 'rtl' ? 'text-right' : 'text-left'
-            )}
-            onClick={() => onSelect(city)}
-          >
-            <div className="text-base font-normal text-neutral-800 dark:text-white/90">
-              {city.name}
-            </div>
-          </button>
+          <li key={`${city.name}-${city.country}`}>
+            <button
+              type="button"
+              className={cn(
+                'flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm text-neutral-800 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background dark:text-white/90',
+                direction === 'rtl' ? 'text-right' : 'text-left',
+                'hover:bg-white/60 dark:hover:bg-white/10'
+              )}
+              onClick={() => onSelect(city)}
+              aria-label={`${city.name}`}
+            >
+              <span className="truncate text-base font-medium">{city.name}</span>
+              {city.temp ? (
+                <span className="text-sm text-muted-foreground" aria-hidden="true">
+                  {city.temp}
+                </span>
+              ) : null}
+            </button>
+          </li>
         ))}
-      </div>
-    </div>
+      </ul>
+    </section>
   );
 }
 

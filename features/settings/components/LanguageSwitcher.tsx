@@ -36,6 +36,13 @@ export default function LanguageSwitcher() {
     segments[1] = newLocale;
     const newPath = segments.join('/');
     
+    // Show toast notification
+    useWeatherStore.getState().showToast({
+      message: 'settings.languageChanged',
+      type: 'success',
+      values: { language: newLocale === 'he' ? 'עברית' : 'English' }
+    });
+    
     startTransition(() => router.replace(newPath));
   };
 

@@ -1,24 +1,125 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useLocale } from 'next-intl';
-import { AppLocale } from '@/types/i18n';
-import { useWeatherStore } from '@/store/useWeatherStore';
-import { formatTimeWithOffset, isSameTimezone } from '@/lib/helpers';
+import type { CSSProperties } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { useLocale, useTranslations } from 'next-intl';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Clock, Globe } from 'lucide-react';
-import { WeatherTimeNowProps } from '../types';
 
-function formatFullDate(timestamp: number, locale: string, offsetSec?: number): string {
+import { useAppPreferencesStore } from '@/store/useAppPreferencesStore';
+import { formatTimeWithOffset, formatTimeWithTimezone, isSameTimezone } from '@/lib/helpers';
+import { colors, spacing, borderRadius, shadows, typography, iconSizes } from '@/config/tokens';
+import type { AppLocale } from '@/types/i18n';
+import type { WeatherTimeNowProps } from '../types';
+
+const containerStyle: CSSProperties = {
+  marginTop: spacing[3],
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+  gap: spacing[2],
+};
+
+const primaryCardStyle: CSSProperties = {
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+  gap: spacing[2],
+  borderRadius: borderRadius.xl,
+  background: colors.background.elevated,
+  padding: `${spacing[5]} ${spacing[8]}`,
+  border: `1px solid ${colors.border}`,
+  boxShadow: shadows.md,
+  backdropFilter: 'blur(16px)',
+};
+
+const secondaryCardStyle: CSSProperties = {
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+  gap: spacing[2],
+  borderRadius: borderRadius.lg,
+  background: colors.background.card,
+  padding: `${spacing[3]} ${spacing[5]}`,
+  border: `1px solid ${colors.border}`,
+  boxShadow: shadows.sm,
+  opacity: 0.9,
+};
+
+const labelTextStyle: CSSProperties = {
+  fontSize: typography.fontSize.sm,
+  fontWeight: Number(typography.fontWeight.semibold),
+  color: colors.foreground.primary,
+  letterSpacing: '0.04em',
+};
+
+const secondaryLabelStyle: CSSProperties = {
+  ...labelTextStyle,
+  fontSize: typography.fontSize.xs,
+};
+
+const timeWrapperStyle = (gap: string): CSSProperties => ({
+  display: 'flex',
+  alignItems: 'baseline',
+  gap,
+  direction: 'ltr',
+});
+
+const largeTimeStyle: CSSProperties = {
+  fontSize: typography.fontSize['4xl'],
+  fontWeight: Number(typography.fontWeight.bold),
+  color: colors.foreground.primary,
+  fontVariantNumeric: 'tabular-nums',
+};
+
+const smallTimeStyle: CSSProperties = {
+  fontSize: typography.fontSize.lg,
+  fontWeight: Number(typography.fontWeight.semibold),
+  color: colors.foreground.primary,
+  fontVariantNumeric: 'tabular-nums',
+};
+
+const iconStylePrimary: CSSProperties = {
+  width: iconSizes['2xl'],
+  height: iconSizes['2xl'],
+  color: colors.weather.sunny,
+  flexShrink: 0,
+};
+
+const iconStyleSecondary: CSSProperties = {
+  width: iconSizes.sm,
+  height: iconSizes.sm,
+  color: colors.weather.cloudy,
+  flexShrink: 0,
+};
+
+const colonStyle = (size: 'large' | 'small'): CSSProperties => ({
+  fontSize: size === 'large' ? typography.fontSize['4xl'] : typography.fontSize.lg,
+  fontWeight: Number(typography.fontWeight.bold),
+  color: colors.weather.sunny,
+});
+
+function formatFullDate(timestamp: number, locale: string, timezoneOrOffset?: string | number): string {
   const utcDate = new Date(timestamp * 1000);
-  if (offsetSec) {
-    const cityTime = new Date(utcDate.getTime() + offsetSec * 1000);
+  
+  if (timezoneOrOffset) {
+    if (typeof timezoneOrOffset === 'string') {
+      return utcDate.toLocaleDateString(locale, {
+        timeZone: timezoneOrOffset,
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+      });
+    }
+    
+    const cityTime = new Date(utcDate.getTime() + timezoneOrOffset * 1000);
     return cityTime.toLocaleDateString(locale, {
       weekday: 'long',
       day: 'numeric',
       month: 'long',
     });
   }
+  
   return utcDate.toLocaleDateString(locale, {
     weekday: 'long',
     day: 'numeric',
@@ -30,12 +131,14 @@ export default function WeatherTimeNow({
   timezone, 
   userTimezoneOffset: propUserTimezoneOffset, 
   isSameTimezone: propIsSameTimezone,
-  className 
+  className,
 }: WeatherTimeNowProps) {
+  const t = useTranslations();
   const locale = useLocale() as AppLocale;
   const [currentTime, setCurrentTime] = useState(Math.floor(Date.now() / 1000));
-  const storeUserTimezoneOffset = useWeatherStore(state => state.getUserTimezoneOffset());
+  const getUserTimezoneOffset = useAppPreferencesStore((state) => state.getUserTimezoneOffset);
 
+  const storeUserTimezoneOffset = getUserTimezoneOffset();
   const actualUserTimezoneOffset = propUserTimezoneOffset ?? storeUserTimezoneOffset;
   const actualIsSameTimezone = propIsSameTimezone ?? isSameTimezone(timezone, actualUserTimezoneOffset);
 
@@ -44,51 +147,81 @@ export default function WeatherTimeNow({
     return () => clearInterval(interval);
   }, []);
 
-  const cityTime = timezone !== undefined && timezone !== null ? formatTimeWithOffset(currentTime, timezone) : '--:--';
-  const cityDate = timezone !== undefined && timezone !== null ? formatFullDate(currentTime, locale, timezone) : 'No date';
-  const userTime = actualUserTimezoneOffset !== undefined && actualUserTimezoneOffset !== null ? formatTimeWithOffset(currentTime, actualUserTimezoneOffset) : '--:--';
-  const userDate = actualUserTimezoneOffset !== undefined && actualUserTimezoneOffset !== null ? formatFullDate(currentTime, locale, actualUserTimezoneOffset) : 'No date';
+  const fallbackLabel = t('common.notAvailable');
+
+  const cityTime =
+    timezone !== undefined && timezone !== null
+      ? formatTimeWithTimezone(currentTime, timezone)
+      : '--:--';
+  const cityDate =
+    timezone !== undefined && timezone !== null
+      ? formatFullDate(currentTime, locale, timezone)
+      : fallbackLabel;
+  const userTime =
+    actualUserTimezoneOffset !== undefined && actualUserTimezoneOffset !== null
+      ? formatTimeWithOffset(currentTime, actualUserTimezoneOffset)
+      : '--:--';
+  const userDate =
+    actualUserTimezoneOffset !== undefined && actualUserTimezoneOffset !== null
+      ? formatFullDate(currentTime, locale, actualUserTimezoneOffset)
+      : fallbackLabel;
+
   const isDifferentTimezone = actualIsSameTimezone === false;
 
   const [cityHours, cityMinutes] = cityTime.split(':');
-  const [userHours, userMinutes] = isDifferentTimezone ? userTime.split(':') : ['', ''];
+  const [userHours, userMinutes] = userTime.split(':');
+
+  const userAriaLabel = useMemo(
+    () =>
+      isDifferentTimezone
+        ? t('aria.userTimePanel', { time: userTime, date: userDate })
+        : t('aria.userTimePanel', { time: cityTime, date: cityDate }),
+    [cityDate, cityTime, isDifferentTimezone, t, userDate, userTime],
+  );
+
+  const cityAriaLabel = useMemo(
+    () => t('aria.cityTimePanel', { time: cityTime, date: cityDate }),
+    [cityDate, cityTime, t],
+  );
 
   return (
     <motion.div 
-      className={`mt-3 flex flex-col items-center gap-2 ${className || ''}`}
+      className={className}
+      style={containerStyle}
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.16, ease: "easeOut" }}
+      transition={{ duration: 0.16, ease: 'easeOut' }}
     >
-      {/* User Time - Primary (Current timezone - larger and prominent) */}
       <motion.div 
-        className="flex flex-col items-center gap-2 rounded-2xl bg-gradient-to-br from-white/20 via-white/10 to-white/5 dark:from-white/10 dark:via-white/5 dark:to-white/3 backdrop-blur-lg px-8 py-4 border border-white/20 dark:border-white/10 hover:scale-105 transition-all duration-300"
         data-testid="user-time"
+        style={primaryCardStyle}
+        aria-label={userAriaLabel}
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.2, ease: "easeOut" }}
+        transition={{ duration: 0.2, ease: 'easeOut' }}
       >
-        <div className="flex items-center gap-2.5">
-          <Clock className="h-6 w-6 opacity-90 flex-shrink-0 text-brand-500 dark:text-brand-400" />
-          <span className="text-sm font-semibold opacity-95 tracking-wide text-gray-900 dark:text-white">{isDifferentTimezone ? userDate : cityDate}</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: spacing[2] }}>
+          <Clock aria-hidden="true" style={iconStylePrimary} />
+          <span style={labelTextStyle}>{isDifferentTimezone ? userDate : cityDate}</span>
         </div>
-        <div className="flex items-baseline gap-1.5" dir="ltr">
+        <div style={timeWrapperStyle(spacing[2])}>
           <AnimatePresence mode="wait" initial={false}>
             <motion.span
               key={isDifferentTimezone ? userHours : cityHours}
               initial={{ y: 10, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: -10, opacity: 0 }}
-              transition={{ duration: 0.18, ease: "easeOut" }}
-              className="text-4xl font-bold tracking-wider tabular-nums bg-gradient-to-br from-foreground to-foreground/70 bg-clip-text"
+              transition={{ duration: 0.18, ease: 'easeOut' }}
+              style={largeTimeStyle}
             >
               {isDifferentTimezone ? userHours : cityHours}
             </motion.span>
           </AnimatePresence>
           <motion.span
+            aria-hidden="true"
+            style={colonStyle('large')}
             animate={{ opacity: [1, 0.3, 1] }}
             transition={{ repeat: Infinity, duration: 1.2 }}
-            className="text-4xl font-bold text-brand-500 dark:text-brand-400"
           >
             :
           </motion.span>
@@ -98,8 +231,8 @@ export default function WeatherTimeNow({
               initial={{ y: 10, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: -10, opacity: 0 }}
-              transition={{ duration: 0.18, ease: "easeOut" }}
-              className="text-4xl font-bold tracking-wider tabular-nums bg-gradient-to-br from-foreground to-foreground/70 bg-clip-text"
+              transition={{ duration: 0.18, ease: 'easeOut' }}
+              style={largeTimeStyle}
             >
               {isDifferentTimezone ? userMinutes : cityMinutes}
             </motion.span>
@@ -107,36 +240,37 @@ export default function WeatherTimeNow({
         </div>
       </motion.div>
 
-      {/* City Time - Secondary (Only shown when different timezone - smaller) */}
       {isDifferentTimezone && (
         <motion.div 
-          className="flex flex-col items-center gap-1 rounded-xl bg-gradient-to-br from-white/10 via-white/5 to-white/3 dark:from-white/5 dark:via-white/3 dark:to-white/2 backdrop-blur-md px-4 py-2 border border-white/10 dark:border-white/5 hover:scale-105 transition-all duration-300 opacity-85 hover:opacity-100"
           data-testid="city-time"
+          style={secondaryCardStyle}
+          aria-label={cityAriaLabel}
           initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 0.85, scale: 1 }}
-          transition={{ duration: 0.2, ease: "easeOut", delay: 0.1 }}
+          animate={{ opacity: 0.9, scale: 1 }}
+          transition={{ duration: 0.2, ease: 'easeOut', delay: 0.1 }}
         >
-          <div className="flex items-center gap-2">
-            <Globe className="h-4 w-4 opacity-70 flex-shrink-0 text-brand-400 dark:text-brand-300" />
-            <span className="text-xs font-medium opacity-80 tracking-wide text-gray-900 dark:text-white">{cityDate}</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: spacing[2] }}>
+            <Globe aria-hidden="true" style={iconStyleSecondary} />
+            <span style={secondaryLabelStyle}>{cityDate}</span>
           </div>
-          <div className="flex items-baseline gap-1" dir="ltr">
+          <div style={timeWrapperStyle(spacing[1])}>
             <AnimatePresence mode="wait" initial={false}>
               <motion.span
                 key={cityHours}
                 initial={{ y: 8, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 exit={{ y: -8, opacity: 0 }}
-                transition={{ duration: 0.16, ease: "easeOut" }}
-                className="text-lg font-semibold tabular-nums text-gray-900 dark:text-white"
+                transition={{ duration: 0.16, ease: 'easeOut' }}
+                style={smallTimeStyle}
               >
                 {cityHours}
               </motion.span>
             </AnimatePresence>
             <motion.span
+              aria-hidden="true"
+              style={colonStyle('small')}
               animate={{ opacity: [1, 0.2, 1] }}
               transition={{ repeat: Infinity, duration: 1.2 }}
-              className="text-lg font-semibold text-brand-400 dark:text-brand-300"
             >
               :
             </motion.span>
@@ -146,8 +280,8 @@ export default function WeatherTimeNow({
                 initial={{ y: 8, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 exit={{ y: -8, opacity: 0 }}
-                transition={{ duration: 0.16, ease: "easeOut" }}
-                className="text-lg font-semibold tabular-nums text-gray-900 dark:text-white"
+                transition={{ duration: 0.16, ease: 'easeOut' }}
+                style={smallTimeStyle}
               >
                 {cityMinutes}
               </motion.span>

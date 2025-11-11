@@ -12,7 +12,7 @@ vi.mock('next-intl', async (importOriginal: () => Promise<typeof import('next-in
   })
 
 const addLocationSpy = vi.fn()
-vi.mock('@/components/QuickAdd/AddLocation', () => ({
+vi.mock('@/features/search/components/quickAdd/AddLocation', () => ({
     __esModule: true,
     default: (p: any) => {
         addLocationSpy(p)
@@ -27,7 +27,7 @@ vi.mock('@/components/QuickAdd/AddLocation', () => ({
 }))
 
 const popularCitiesSpy = vi.fn()
-vi.mock('@/components/QuickAdd/PopularCities', () => ({
+vi.mock('@/features/search/components/quickAdd/PopularCities', () => ({
     __esModule: true,
     default: (p: any) => {
         popularCitiesSpy(p)
@@ -35,7 +35,7 @@ vi.mock('@/components/QuickAdd/PopularCities', () => ({
             <div
                 data-testid="popular-cities"
                 data-direction={p.direction}
-                data-color={p._color}
+                data-color={p.color}
             />
         )
     },
@@ -70,7 +70,7 @@ describe('WeatherEmpty (presentation only)', () => {
     it('passes correct props to PopularCities', () => {
         render(<EmptyPage />)
         expect(popularCitiesSpy).toHaveBeenCalledWith(
-            expect.objectContaining({ direction: 'rtl', _color: 'primary' })
+            expect.objectContaining({ direction: 'rtl', color: 'primary' })
         )
         const pc = screen.getByTestId('popular-cities')
         expect(pc).toHaveAttribute('data-direction', 'rtl')

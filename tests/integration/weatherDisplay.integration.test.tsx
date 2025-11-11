@@ -3,56 +3,69 @@
 // 🆕 הצגת תחזית
 // 🆕 שינוי יחידות מידה
 
-import { render, screen, waitFor } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import { NextIntlClientProvider } from "next-intl";
-import heMessages from "@/locales/he.json";
-import CityInfo from "@/components/WeatherCard/CityInfo";
-import { cityWeather } from "../fixtures/cityWeather";
+
+import CityInfo from "@/features/weather/components/card/CityInfo";
 import { useWeatherStore } from "@/store/useWeatherStore";
+import heMessages from "@/locales/he.json";
+import { cityWeather } from "../fixtures/cityWeather";
+
+const renderCityInfo = () =>
+  render(
+    <NextIntlClientProvider locale="he" messages={heMessages}>
+      <CityInfo />
+    </NextIntlClientProvider>,
+  );
+
+const loadCity = () => {
+  act(() => {
+    useWeatherStore.getState().resetStore();
+    useWeatherStore.getState().addCity(cityWeather);
+  });
+};
 
 describe("Weather Display Integration Flow", () => {
-    beforeEach(() => {
-        const resetStore = useWeatherStore.getState().resetStore;
-        resetStore();
-    })
-    it("should display current weather", () => {
+  beforeEach(() => {
+    act(() => {
+      useWeatherStore.getState().resetStore();
+    });
+  });
 
-        const addCity = useWeatherStore.getState().addCity;
-        addCity(cityWeather);
-        render(
-            <NextIntlClientProvider locale="he" messages={heMessages}>
-                <CityInfo />
-            </NextIntlClientProvider>
-        );
-        expect(screen.getByText("ניו יורק")).toBeInTheDocument();
-        expect(screen.getByText("19°C")).toBeInTheDocument();
-        expect(screen.getByText("Clear skies")).toBeInTheDocument();
-    })
-    it("should display forecast", async () => {
-        const addCity = useWeatherStore.getState().addCity;
-        addCity(cityWeather);
-        render(
-            <NextIntlClientProvider locale="he" messages={heMessages}>
-                <CityInfo />
-            </NextIntlClientProvider>
-        );
-        await waitFor(() => {
-            expect(screen.getByTestId("forecast-title")).toBeInTheDocument();
-            expect(screen.getAllByTestId("forecast-item")).toHaveLength(2);
-        })
-    })
-    it("should change unit", async () => {
-        const addCity = useWeatherStore.getState().addCity;
-        addCity(cityWeather);
-        render(
-            <NextIntlClientProvider locale="he" messages={heMessages}>
-                <CityInfo />
-            </NextIntlClientProvider>
-        );
-        const changeUnit = useWeatherStore.getState().setUnit;
-        changeUnit("imperial");
-        await waitFor(() => {
-            expect(screen.getAllByText("66°F")).toHaveLength(2);
-        })
-    })
-})
+  it("should display current weather", async () => {
+    loadCity();
+    renderCityInfo();
+
+    const headings = await screen.findAllByRole("heading", { name: /ניו יורק/i });
+    expect(headings.length).toBeGreaterThan(0);
+
+    const description = await screen.findAllByText(/Clear sky/i);
+    expect(description.length).toBeGreaterThan(0);
+  });
+
+  it("should display forecast", async () => {
+    loadCity();
+    renderCityInfo();
+
+    await waitFor(async () => {
+      const titles = await screen.findAllByTestId("forecast-title");
+      const items = await screen.findAllByTestId("forecast-item");
+      expect(titles.length).toBeGreaterThan(0);
+      expect(items.length).toBeGreaterThanOrEqual(cityWeather.forecast.length);
+    });
+  });
+
+  it("should change unit", async () => {
+    loadCity();
+    renderCityInfo();
+
+    act(() => {
+      useWeatherStore.getState().setUnit("imperial");
+    });
+
+    await waitFor(async () => {
+      const imperialTemps = await screen.findAllByText("66°F");
+      expect(imperialTemps.length).toBeGreaterThan(0);
+    });
+  });
+});

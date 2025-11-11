@@ -1,44 +1,53 @@
 // features/weather/fetchSuggestions.test.ts
-import { fetchSuggestions } from '@/features/weather/fetchSuggestions'
 import { vi } from 'vitest'
 
-describe('fetchSuggestions (using fetch)', () => {
+describe('fetchSuggestions (using fetchSecure)', () => {
+  const mockFetchSecure = vi.fn()
+  const mockSuggestions = ['Tel Aviv', 'Tiberias']
+
   beforeEach(() => {
-    vi.stubGlobal('fetch', vi.fn())
+    vi.resetModules()
+    vi.doMock('@/lib/fetchSecure', () => ({
+      fetchSecure: mockFetchSecure,
+    }))
   })
 
   afterEach(() => {
-    vi.restoreAllMocks()
+    vi.resetAllMocks()
   })
 
-  const mockSuggestions = ['Tel Aviv', 'Tiberias']
-
-  it('calls fetch with correct query string, lang param and options, then returns data', async () => {
-    ;(fetch as any).mockResolvedValue({
+  it('calls fetchSecure with correct parameters and returns suggestions', async () => {
+    mockFetchSecure.mockResolvedValue({
       ok: true,
       json: async () => mockSuggestions,
     })
 
+    const { fetchSuggestions } = await import('@/features/weather/fetchSuggestions')
     const result = await fetchSuggestions('tel')
 
-    expect(fetch).toHaveBeenCalledWith(
+    expect(mockFetchSecure).toHaveBeenCalledWith(
       '/api/suggest?q=tel&lang=he',
-      { next: { revalidate: 300 } },
+      expect.objectContaining({
+        requireAuth: true,
+        next: { revalidate: 300 },
+      }),
     )
     expect(result).toEqual(mockSuggestions)
   })
 
-  it('returns [] if fetch response is not ok', async () => {
-    ;(fetch as any).mockResolvedValue({ ok: false })
+  it('returns [] if response is not ok', async () => {
+    mockFetchSecure.mockResolvedValue({ ok: false })
 
+    const { fetchSuggestions } = await import('@/features/weather/fetchSuggestions')
     const result = await fetchSuggestions('x')
 
     expect(result).toEqual([])
   })
 
-  it('returns [] if fetch itself fails', async () => {
-    ;(fetch as any).mockRejectedValue(new Error('network fail'))
+  it('returns [] if fetchSecure fails', async () => {
+    mockFetchSecure.mockRejectedValue(new Error('network fail'))
 
+    const { fetchSuggestions } = await import('@/features/weather/fetchSuggestions')
     const result = await fetchSuggestions('anything')
 
     expect(result).toEqual([])

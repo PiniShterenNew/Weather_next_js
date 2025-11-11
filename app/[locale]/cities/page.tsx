@@ -25,7 +25,7 @@ export default function CitiesPage() {
         </h1>
       </div>
 
-      <div className="px-6 pb-[20px] space-y-6">
+      <div className="px-6 pb-20 space-y-6">
         {/* Cities Search Bar */}
         <div className="relative">
           <Suspense fallback={<Skeleton className="h-12 w-full rounded-xl" />}>

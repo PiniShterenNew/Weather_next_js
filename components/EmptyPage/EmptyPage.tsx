@@ -6,13 +6,13 @@ import { useLocale } from 'next-intl';
 import { AppLocale } from '@/types/i18n';
 import { Star, Cloud } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
-import PopularCities from '../QuickAdd/PopularCities';
+import PopularCities from '@/features/search/components/quickAdd/PopularCities';
 import { getDirection } from '@/lib/intl';
 import { motion } from 'framer-motion';
 import dynamic from 'next/dynamic';
 import { Skeleton } from '../ui/skeleton';
 
-const AddLocation = dynamic(() => import('@/components/QuickAdd/AddLocation').then((module) => module.default), {
+const AddLocation = dynamic(() => import('@/features/search/components/quickAdd/AddLocation').then((module) => module.default), {
   loading: () => (
     <Skeleton className="h-10 w-full" />
   ),
@@ -56,7 +56,7 @@ export default function EmptyPage() {
               <p className="text-muted-foreground leading-relaxed">{t('emptyDescription')}</p>
               
               <div className="mt-6">
-                <AddLocation type="default" size="lg" dataTestid="add-location" />
+                <AddLocation type="default" size="lg" dataTestId="add-location" />
               </div>
             </motion.div>
           </CardContent>
@@ -75,7 +75,7 @@ export default function EmptyPage() {
                 <Star className="h-5 w-5 text-brand-500" />
                 {t('popular.title')}
               </h2>
-              <PopularCities direction={direction} _color="primary" />
+              <PopularCities direction={direction} color="primary" />
             </CardContent>
           </Card>
         </motion.div>

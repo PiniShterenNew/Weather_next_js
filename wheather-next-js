@@ -1,0 +1,101 @@
+warning: in the working copy of 'app/[locale]/layout.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'app/[locale]/page.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'components/EmptyPage/EmptyPage.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'components/HomePage/HomePage.tsx', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'features/weather/fetchWeather.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'features/weather/index.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'lib/helpers.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'middleware.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'next.config.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'prisma/schema.prisma', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'styles/globals.css', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'types/api.d.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'types/store.d.ts', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'types/weather.d.ts', LF will be replaced by CRLF the next time Git touches it
+ CLAUDE.md                                          |  13 [32m+[m[31m-[m
+ WEATHER_SCREEN_UPGRADE_SUMMARY.md                  | 172 [31m-------[m
+ app/[locale]/add-city/page.tsx                     |   6 [32m+[m[31m-[m
+ app/[locale]/cities/page.tsx                       |   2 [32m+[m[31m-[m
+ app/[locale]/layout.tsx                            |  10 [32m+[m
+ app/[locale]/page.tsx                              |  50 [32m+[m[31m-[m
+ app/api/location/current/route.ts                  |  96 [32m+++[m[31m-[m
+ app/api/reverse/route.ts                           |  24 [32m+[m[31m-[m
+ app/api/user/preferences/route.ts                  |  84 [32m+[m[31m--[m
+ components/CitiesList/OpenCitiesList.tsx           |  41 [31m--[m
+ components/CitiesList/WeatherListItem.tsx          | 161 [31m------[m
+ components/CitiesList/Weatherlist.tsx              |  76 [31m---[m
+ components/EmptyPage/EmptyPage.tsx                 |   8 [32m+[m[31m-[m
+ components/ForecastList/ForecastList.tsx           |  52 [32m+[m[31m-[m
+ components/HomePage/ClientHomePage.tsx             | 119 [32m++[m[31m---[m
+ components/HomePage/HomePage.tsx                   |  30 [32m+[m[31m-[m
+ components/Layout/PersistentLayout.tsx             |  18 [32m+[m[31m-[m
+ components/Navigation/BottomNavigation.tsx         | 170 [32m+++++[m[31m--[m
+ components/QuickAdd/AddLocation.tsx                | 125 [31m-----[m
+ components/QuickAdd/PopularCities.tsx              | 127 [31m-----[m
+ components/QuickAdd/QuickAddButton.tsx             |  30 [31m--[m
+ components/QuickAdd/QuickAddHeaderTrigger.tsx      |  21 [31m-[m
+ components/QuickAdd/QuickAddModalContent.tsx       |  70 [31m---[m
+ components/QuickAdd/QuickAddModalHeader.tsx        |  27 [31m-[m
+ components/QuickAdd/QuickAddModalTabs.tsx          |  52 [31m--[m
+ components/QuickAdd/QuickAddTrigger.tsx            |  25 [31m-[m
+ components/QuickAdd/QuickCityAddModal.tsx          |  69 [31m---[m
+ components/WeatherCard/CityHeader.tsx              | 130 [31m-----[m
+ components/WeatherCard/CityInfo.tsx                |  38 [31m--[m
+ components/WeatherCard/CityInfoHelpers.tsx         |  42 [31m--[m
+ components/WeatherCard/CityPagination.tsx          |  82 [31m---[m
+ components/WeatherCard/SwipeableWeatherCard.tsx    | 156 [31m------[m
+ components/WeatherCard/WeatherCardContent.tsx      |  92 [31m----[m
+ components/WeatherCard/WeatherCardSkeleton.tsx     | 144 [31m------[m
+ components/skeleton/CityInfoSkeleton.tsx           | 188 [32m+++++[m[31m--[m
+ features/auth/components/AuthLanguageSwitcher.tsx  |   6 [32m+[m[31m-[m
+ features/auth/components/AuthThemeSwitcher.tsx     |   8 [32m+[m[31m-[m
+ features/auth/components/CustomSignIn.tsx          |  89 [32m++[m[31m--[m
+ features/auth/components/CustomSignUp.tsx          | 105 [32m++[m[31m--[m
+ features/auth/components/ForgotPassword.tsx        |  80 [32m++[m[31m-[m
+ features/auth/components/SignInButtons.tsx         |  12 [31m-[m
+ features/cities/components/CitiesList.tsx          |  39 [32m+[m[31m-[m
+ features/cities/components/SwipeableCityCard.tsx   | 248 [32m+++++[m[31m----[m
+ features/cities/index.ts                           |   3 [32m+[m
+ .../notifications/settings/NotificationsCard.tsx   |  12 [32m+[m
+ features/onboarding/components/Welcome.tsx         |   8 [32m+[m[31m-[m
+ features/onboarding/hooks/useOnboardingGate.ts     |  28 [32m+[m[31m-[m
+ features/search/components/SearchBar.tsx           |   7 [32m+[m[31m-[m
+ features/search/index.ts                           |   4 [32m+[m
+ features/settings/components/LanguageSwitcher.tsx  |   7 [32m+[m
+ .../settings/components/TemperatureUnitToggle.tsx  |   9 [32m+[m
+ features/settings/components/ThemeSwitcher.tsx     |   7 [32m+[m
+ features/ui/components/ToastHost.tsx               |  54 [32m+[m[31m-[m
+ features/weather/components/HourlyForecast.tsx     |  94 [32m+[m[31m---[m
+ features/weather/components/WeatherDetails.tsx     |  64 [32m++[m[31m-[m
+ features/weather/components/WeatherTimeNow.tsx     |  23 [32m+[m[31m-[m
+ features/weather/fetchWeather.ts                   |  13 [32m+[m[31m-[m
+ features/weather/index.ts                          |  10 [32m+[m
+ hooks/useCityManagement.ts                         | 116 [32m++++[m[31m-[m
+ lib/db/suggestion.ts                               |  23 [32m+[m[31m-[m
+ lib/helpers.ts                                     | 459 [32m++++++++++[m[31m-------[m
+ lib/server/weather.ts                              | 230 [32m++++[m[31m-----[m
+ lib/simple-rate-limiter.ts                         |   1 [32m+[m
+ lib/weatherRefresh.ts                              |   8 [32m+[m
+ locales/en.json                                    |  40 [32m+[m[31m-[m
+ locales/he.json                                    |  40 [32m+[m[31m-[m
+ middleware.ts                                      |   3 [32m+[m[31m-[m
+ next.config.ts                                     |  28 [32m+[m[31m-[m
+ prisma/schema.prisma                               |  19 [32m+[m[31m-[m
+ store/useWeatherStore.ts                           | 564 [32m+++++++++[m[31m------------[m
+ styles/globals.css                                 |  78 [32m+++[m
+ tests/fixtures/cityWeather.ts                      |  30 [32m+[m[31m-[m
+ tests/integration/addCity.integration.test.tsx     |   2 [32m+[m[31m-[m
+ .../weatherDisplay.integration.test.tsx            |   5 [32m+[m[31m-[m
+ tests/unit/components/CityInfo.test.tsx            |  20 [32m+[m[31m-[m
+ tests/unit/components/EmptyPage.test.tsx           |   8 [32m+[m[31m-[m
+ tests/unit/components/ForecastList.test.tsx        |   2 [32m+[m[31m-[m
+ tests/unit/components/HomePage.test.tsx            |  10 [32m+[m[31m-[m
+ tests/unit/components/PopularCities.test.tsx       |   2 [32m+[m[31m-[m
+ tests/unit/components/QuickCityAddModal.test.tsx   |  10 [32m+[m[31m-[m
+ tests/unit/components/WeatherList.test.tsx         |   2 [32m+[m[31m-[m
+ tests/unit/components/WeatherListItem.test.tsx     |   2 [32m+[m[31m-[m
+ tests/unit/lib/helpers.test.ts                     |  32 [32m+[m[31m-[m
+ types/api.d.ts                                     |  52 [32m+[m[31m-[m
+ types/store.d.ts                                   |  13 [32m+[m[31m-[m
+ types/weather.d.ts                                 | 246 [32m+++++++[m[31m--[m
+ 86 files changed, 2190 insertions(+), 3335 deletions(-)

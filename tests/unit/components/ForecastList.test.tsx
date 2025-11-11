@@ -1,5 +1,5 @@
 import { render, screen } from '@/tests/utils/renderWithIntl';
-import ForecastList from '@/components/ForecastList/ForecastList';
+import ForecastList from '@/features/weather/components/ForecastList';
 import { describe, it, expect } from 'vitest';
 import type { WeatherForecastItem } from '@/types/weather';
 

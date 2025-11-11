@@ -4,8 +4,10 @@
  */
 
 import { z } from 'zod';
-import { SearchSuggestion, SearchInput, SearchResponse } from '../types';
+
+import { fetchSecure } from '@/lib/fetchSecure';
 import { AppLocale } from '@/types/i18n';
+import { SearchSuggestion, SearchInput, SearchResponse } from '../types';
 
 // Zod schemas for validation
 const SearchSuggestionSchema = z.object({
@@ -48,11 +50,9 @@ export class SearchService {
         lang: validatedInput.locale,
       });
 
-      const response = await fetch(`${this.baseUrl}/suggest?${params}`, {
+      const response = await fetchSecure(`${this.baseUrl}/suggest?${params}`, {
         method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        requireAuth: true,
       });
 
       if (!response.ok) {
@@ -106,11 +106,9 @@ export class SearchService {
         lang: locale,
       });
 
-      const response = await fetch(`${this.baseUrl}/reverse?${params}`, {
+      const response = await fetchSecure(`${this.baseUrl}/reverse?${params}`, {
         method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        requireAuth: true,
       });
 
       if (!response.ok) {

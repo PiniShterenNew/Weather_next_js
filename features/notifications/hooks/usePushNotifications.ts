@@ -1,6 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+
+import { fetchSecure } from '@/lib/fetchSecure';
+
 import { registerForPushNotifications, unregisterFromPushNotifications } from '../sw/registerPush';
 
 export interface PushNotificationState {
@@ -47,13 +50,15 @@ export function usePushNotifications() {
           isSubscribed: !!subscription,
         }));
       }
-    } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error('Error checking subscription status:', error);
+    } catch {
+      setState(prev => ({
+        ...prev,
+        error: 'Failed to verify subscription status',
+      }));
     }
   };
 
-  const subscribe = async (userId?: string): Promise<boolean> => {
+  const subscribe = async (): Promise<boolean> => {
     setState(prev => ({ ...prev, isLoading: true, error: null }));
 
     try {
@@ -64,14 +69,11 @@ export function usePushNotifications() {
       }
 
       // Send subscription to server
-      const response = await fetch('/api/notifications/subscribe', {
+      const response = await fetchSecure('/api/notifications/subscribe', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        requireAuth: true,
         body: JSON.stringify({
           ...subscription,
-          userId,
         }),
       });
 
@@ -104,20 +106,17 @@ export function usePushNotifications() {
     try {
       const unsubscribed = await unregisterFromPushNotifications();
       
-      if (!unsubscribed) {
+      if (!unsubscribed.success || !unsubscribed.endpoint) {
         throw new Error('Failed to unsubscribe from push notifications');
       }
 
-      // Remove from server
-      const response = await fetch('/api/notifications/subscribe', {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
+      const response = await fetchSecure(
+        `/api/notifications/subscribe?endpoint=${encodeURIComponent(unsubscribed.endpoint)}`,
+        {
+          method: 'DELETE',
+          requireAuth: true,
         },
-        body: JSON.stringify({
-          endpoint: 'current-endpoint', // TODO: Get current endpoint
-        }),
-      });
+      );
 
       if (!response.ok) {
         throw new Error('Failed to remove subscription from server');
@@ -153,9 +152,7 @@ export function usePushNotifications() {
         permission,
       }));
       return permission;
-    } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error('Error requesting notification permission:', error);
+    } catch {
       return 'denied';
     }
   };

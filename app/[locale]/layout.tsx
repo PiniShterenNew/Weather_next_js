@@ -8,6 +8,8 @@ import { AppLocale } from '@/types/i18n';
 import { routing } from '@/i18n/routing';
 import { getDirection } from '@/lib/intl';
 import { ThemeAndDirectionProvider } from '@/providers/ThemeAndDirectionProvider';
+import { loadBootstrapData } from '@/lib/server/bootstrap';
+import { redirect } from 'next/navigation';
 import { ToastHost } from '@/features/ui';
 import { LoadingOverlay } from '@/features/ui';
 import { notoSans } from '@/styles/fonts';
@@ -17,6 +19,7 @@ import '../../styles/globals.css';
 import OfflineFallback from '@/components/OfflineFallback/OfflineFallback.lazy';
 import PersistentLayout from '@/components/Layout/PersistentLayout';
 import NotificationHandler from '@/components/NotificationHandler';
+import BootstrapHydrator from '@/providers/BootstrapHydrator';
 import LocationTracker from '@/components/Location/LocationTracker';
 import LocationChangeDialog from '@/components/Location/LocationChangeDialog';
 
@@ -40,6 +43,12 @@ export default async function LocaleLayout({
   // Type assertion to AppLocale since we've validated it's in routing.locales
   const appLocale = locale as AppLocale;
   setRequestLocale(appLocale);
+
+  // Enforce saved user locale across the app
+  const bootstrapData = await loadBootstrapData();
+  if (bootstrapData && bootstrapData.user?.locale && bootstrapData.user.locale !== appLocale) {
+    redirect(`/${bootstrapData.user.locale}`);
+  }
 
   let messages;
   try {
@@ -77,6 +86,7 @@ export default async function LocaleLayout({
         <body className={`${notoSans.variable} antialiased`}>
           <NextIntlClientProvider locale={appLocale} messages={messages}>
             <ThemeAndDirectionProvider locale={appLocale}>
+              <BootstrapHydrator data={bootstrapData} />
               <NotificationHandler />
               <LocationTracker />
               <LocationChangeDialog />

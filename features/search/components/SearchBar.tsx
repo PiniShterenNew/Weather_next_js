@@ -167,7 +167,7 @@ export default function SearchBar({ onSelect, placeholder, className }: SearchBa
         timeoutPromise
       ]);
 
-      const wasAdded = addCity(weatherData);
+      const wasAdded = await addCity(weatherData);
       
       // Only show success toast if city was actually added
       if (wasAdded) {
@@ -255,7 +255,10 @@ export default function SearchBar({ onSelect, placeholder, className }: SearchBa
             onFocus={() => setFocused(true)}
             onBlur={() => setFocused(false)}
             onChange={(e) => {
-              setQuery(e.target.value);
+              // Normalize input to avoid mixed-direction artifacts like "לL oאnבdיoבn"
+              const raw = e.target.value;
+              const normalized = raw.normalize('NFC').replace(/\u200e|\u200f|\u202a|\u202b|\u202c|\u202d|\u202e/g, '');
+              setQuery(normalized);
               if (!focused) setFocused(true);
             }}
             onKeyDown={handleKeyDown}

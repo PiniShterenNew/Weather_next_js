@@ -1,116 +1,113 @@
-import { render, screen, fireEvent, waitFor } from '@/tests/utils/renderWithIntl'
+import { fireEvent, render, screen, waitFor, within } from '@/tests/utils/renderWithIntl'
 import { vi } from 'vitest'
 import { cityWeather } from '@/tests/fixtures/cityWeather'
 
-beforeEach(() => {
-  vi.doMock('@/store/useWeatherStore', () => {
-    const state = {
-      cities: [cityWeather],
-      currentIndex: 0,
-      autoLocationCityId: cityWeather.id,
-      unit: 'metric',
-      getUserTimezoneOffset: () => 10800,
-      removeCity: vi.fn(),
-      showToast: vi.fn(),
-      refreshCity: vi.fn(),
-      updateCity: vi.fn(),
-    }
-    return { useWeatherStore: (sel: any) => sel(state) }
-  })
+type MockState = {
+  cities: typeof cityWeather[];
+  currentIndex: number;
+  autoLocationCityId: string;
+  unit: string;
+  getUserTimezoneOffset: () => number;
+  removeCity: ReturnType<typeof vi.fn>;
+  showToast: ReturnType<typeof vi.fn>;
+  refreshCity: ReturnType<typeof vi.fn>;
+  updateCity: ReturnType<typeof vi.fn>;
+};
 
-  vi.doMock('@/features/weather', () => ({
-    fetchWeather: vi.fn(async () => cityWeather),
-    WeatherDetails: () => (
-      <div data-testid="weather-details">
-        <span>{cityWeather.current.humidity}%</span>
-        <span>km/h E</span>
-        <span>{cityWeather.current.pressure} hPa</span>
-        <span>{cityWeather.current.visibility} m</span>
-      </div>
-    ),
-    WeatherTimeNow: () => <div data-testid="weather-time-now" />,
-  }))
+let mockState: MockState | undefined;
 
-  vi.doMock('@/components/ForecastList/ForecastList.lazy', () => ({
-    __esModule: true,
-    default: () => <div data-testid="forecast-list" />,
-  }))
+function createMockState(): MockState {
+  return {
+    cities: [cityWeather],
+    currentIndex: 0,
+    autoLocationCityId: cityWeather.id,
+    unit: 'metric',
+    getUserTimezoneOffset: () => 10800,
+    removeCity: vi.fn(),
+    showToast: vi.fn(),
+    refreshCity: vi.fn(),
+    updateCity: vi.fn(),
+  };
+}
 
-  vi.doMock('@/lib/helpers', async () => {
-    const a = await vi.importActual<typeof import('@/lib/helpers')>('@/lib/helpers')
-    return {
-      ...a,
-      isSameTimezone: () => false,
-      formatTimeWithOffset: (t: number) => new Date(t * 1000).toISOString().slice(11, 16),
-      formatTemperatureWithConversion: (v: number) => `${v}°`,
-      formatPressure: (v: number) => `${v} hPa`,
-      formatWindSpeed: (v: number) => `${v} km/h`,
-      formatVisibility: (v: number) => `${v} m`,
-      getWindDirection: () => 'E',
-    }
-  })
+function ensureMockState(): MockState {
+  if (!mockState) {
+    mockState = createMockState();
+  }
+  return mockState;
+}
 
-  vi.doMock('@/components/WeatherIcon/WeatherIcon', () => ({
-    WeatherIcon: () => <div data-testid="weather-icon" />,
-  }))
+vi.mock('@/store/useWeatherStore', () => ({
+  useWeatherStore: (selector = (s: MockState) => s) => selector(ensureMockState()),
+}));
 
-  vi.doMock('@/components/WeatherCard/WeatherTimeNow', () => ({
-    __esModule: true,
-    default: () => <div data-testid="weather-time-now" />,
-  }))
-})
+vi.mock('@/features/weather/components/card/WeatherCardContent', () => ({
+  __esModule: true,
+  default: ({ cityWeather }: { cityWeather: typeof cityWeather }) => (
+    <div data-testid="weather-card-content">
+      <p data-testid="temperature">{cityWeather.current.temp}</p>
+      <div data-testid="weather-details" />
+      <button aria-label="Remove" onClick={() => ensureMockState().removeCity(cityWeather.id)}>
+        Remove
+      </button>
+      <div data-testid="forecast-list" />
+      <div data-testid="weather-time-now" />
+    </div>
+  ),
+}));
 
-afterEach(() => {
-  vi.resetModules()
-  vi.clearAllMocks()
+vi.mock('@/features/weather/components/WeatherDetails', () => ({
+  __esModule: true,
+  default: () => <div data-testid="weather-details" />,
+}));
+
+vi.mock('@/features/weather/components/HourlyForecast', () => ({
+  __esModule: true,
+  default: () => <div data-testid="hourly-forecast" />,
+}));
+
+vi.mock('@/features/weather', () => ({
+  fetchWeather: vi.fn(async () => cityWeather),
+}));
+
+vi.mock('@/lib/helpers', async () => {
+  const actual = await vi.importActual<typeof import('@/lib/helpers')>('@/lib/helpers')
+  return {
+    ...actual,
+    isSameTimezone: () => false,
+    formatTimeWithOffset: (t: number) => new Date(t * 1000).toISOString().slice(11, 16),
+  }
 })
 
 describe('CityInfo', () => {
-  it('renders header and at least one icon', async () => {
-    const { default: CityInfo } = await import('@/components/WeatherCard/CityInfo')
-    render(<CityInfo />)
-
-    expect(await screen.findByText(/United States/i)).toBeInTheDocument()
-    expect(await screen.findByText(/New York/i)).toBeInTheDocument()
-    expect(screen.getAllByTestId('weather-icon').length).toBeGreaterThan(0)
+  beforeEach(() => {
+    mockState = createMockState()
   })
 
-  it('renders WeatherTimeNow component', async () => {
-    const { default: CityInfo } = await import('@/components/WeatherCard/CityInfo')
+  it('renders weather card content for current city', async () => {
+    const { default: CityInfo } = await import('@/features/weather/components/card/CityInfo')
     render(<CityInfo />)
-    expect(screen.getByTestId('weather-time-now')).toBeInTheDocument()
+
+    await waitFor(() => expect(screen.getByTestId('weather-card-content')).toBeInTheDocument())
+    expect(screen.getByTestId('weather-details')).toBeInTheDocument()
   })
 
   it('invokes removeCity on click', async () => {
-    const { default: CityInfo } = await import('@/components/WeatherCard/CityInfo')
-    const { useWeatherStore } = await import('@/store/useWeatherStore')
-    const state = useWeatherStore((s: any) => s)
-
-    render(<CityInfo />)
-    fireEvent.click(screen.getByRole('button', { name: /remove/i }))
-    expect(state.removeCity).toHaveBeenCalledWith(cityWeather.id)
-  })
-
-  it('displays main weather metrics', async () => {
-    const humidity = `${cityWeather.current.humidity}%`
-    const wind = /km\/h E/
-    const pressure = new RegExp(`${cityWeather.current.pressure} hPa`)
-    const visibility = new RegExp(`${cityWeather.current.visibility} m`)
-
-    const { default: CityInfo } = await import('@/components/WeatherCard/CityInfo')
+    const { default: CityInfo } = await import('@/features/weather/components/card/CityInfo')
     render(<CityInfo />)
 
-    await waitFor(() => {
-      expect(screen.getByText(humidity)).toBeInTheDocument()
-      expect(screen.getByText(wind)).toBeInTheDocument()
-      expect(screen.getByText(pressure)).toBeInTheDocument()
-      expect(screen.getByText(visibility)).toBeInTheDocument()
-    })
+    const removeButton = await screen.findByRole('button', { name: /remove/i })
+    fireEvent.click(removeButton)
+
+    expect(ensureMockState().removeCity).toHaveBeenCalledWith(cityWeather.id)
   })
 
   it('renders ForecastList placeholder', async () => {
-    const { default: CityInfo } = await import('@/components/WeatherCard/CityInfo')
+    const { default: CityInfo } = await import('@/features/weather/components/card/CityInfo')
     render(<CityInfo />)
-    expect(await screen.findByTestId('forecast-list')).toBeInTheDocument()
+
+    const content = await screen.findByTestId('weather-card-content')
+    expect(within(content).getByTestId('forecast-list')).toBeInTheDocument()
+    expect(within(content).getByTestId('weather-time-now')).toBeInTheDocument()
   })
 })

@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { MapPin, Cloud, WifiOff } from 'lucide-react';
 import { useOnboardingGate } from '../hooks/useOnboardingGate';
+import AuthHeader from '@/features/auth/components/AuthHeader';
 
 export default function Welcome() {
   const t = useTranslations('onboarding');
@@ -37,8 +38,10 @@ export default function Welcome() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white dark:from-[#0d1117] dark:to-[#1b1f24] flex items-center justify-center p-4">
-      <div className="max-w-md w-full space-y-8">
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white dark:from-[#0d1117] dark:to-[#1b1f24]">
+      <AuthHeader />
+      <div className="flex items-center justify-center p-4 pt-20">
+        <div className="max-w-md w-full space-y-8">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -101,6 +104,7 @@ export default function Welcome() {
             {t('cta')}
           </Button>
         </motion.div>
+        </div>
       </div>
     </div>
   );

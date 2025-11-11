@@ -4,6 +4,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
 import { z } from 'zod';
 import { PrismaClient, Prisma } from '@prisma/client';
+
+import { logger } from '@/lib/errors';
+import { findCityById, saveCityToDatabase } from '@/lib/db/suggestion';
+import { getLocationForDB } from '@/lib/helpers';
 import { findMatchingLimiter, getErrorMessage, getRequestIP } from '@/lib/simple-rate-limiter';
 
 const prisma = new PrismaClient();
@@ -38,6 +42,7 @@ export async function POST(request: NextRequest) {
   try {
     await limiter.consume(ip);
   } catch {
+    logger.warn('Rate limit exceeded for /api/user/preferences');
     return NextResponse.json(
       { error: getErrorMessage('en') },
       { status: 429, headers: { 'Retry-After': '60' } }
@@ -65,8 +70,35 @@ export async function POST(request: NextRequest) {
     });
 
     if (!user) {
+      // Create user if doesn't exist (with upsert to handle race conditions)
+      try {
+        logger.debug('Creating new user in database for Clerk integration');
+        user = await prisma.user.create({
+          data: {
+            clerkId: userId,
+            email: null, // Will be updated from Clerk if needed
+            name: null,  // Will be updated from Clerk if needed
+            preferences: {},
+          },
+        });
+        logger.debug('User created successfully for Clerk integration');
+      } catch (error: unknown) {
+        // If user already exists due to race condition, fetch it
+        if (error && typeof error === 'object' && 'code' in error && (error as { code?: string }).code === 'P2002') {
+          logger.debug('User already exists, fetching from database');
+          user = await prisma.user.findUnique({
+            where: { clerkId: userId },
+          });
+        } else {
+          throw error;
+        }
+      }
+    }
+
+    // Narrow type after creation/fetch
+    if (!user) {
       return NextResponse.json(
-        { error: 'User not found. Please sync user first.' },
+        { error: 'User not found' },
         { status: 404 }
       );
     }
@@ -94,44 +126,29 @@ export async function POST(request: NextRequest) {
           id: string;
           lat: number;
           lon: number;
-          name: { en: string; he: string } | string;
-          country: { en: string; he: string } | string;
+          name?: { en: string; he: string } | string;
+          country?: { en: string; he: string } | string;
+          isCurrentLocation?: boolean;
         };
-        
-        // First, ensure the city exists in the City table
-        const city = await prisma.city.upsert({
-          where: { 
-            lat_lon: {
-              lat: cityData.lat,
-              lon: cityData.lon,
-            }
-          },
-          update: {
-            cityEn: typeof cityData.name === 'object' ? cityData.name.en : cityData.name || '',
-            cityHe: typeof cityData.name === 'object' ? cityData.name.he : cityData.name || '',
-            countryEn: typeof cityData.country === 'object' ? cityData.country.en : cityData.country || '',
-            countryHe: typeof cityData.country === 'object' ? cityData.country.he : cityData.country || '',
-          },
-          create: {
-            id: cityData.id,
-            lat: cityData.lat,
-            lon: cityData.lon,
-            cityEn: typeof cityData.name === 'object' ? cityData.name.en : cityData.name || '',
-            cityHe: typeof cityData.name === 'object' ? cityData.name.he : cityData.name || '',
-            countryEn: typeof cityData.country === 'object' ? cityData.country.en : cityData.country || '',
-            countryHe: typeof cityData.country === 'object' ? cityData.country.he : cityData.country || '',
-          },
-        });
 
-        // Then, create the UserCity relationship (use upsert to avoid unique constraint errors)
+        // Ensure city exists with canonical bilingual data
+        let ensured = await findCityById(cityData.id);
+        if (!ensured) {
+          // Resolve bilingual names from Geoapify (server-side) and save once
+          const canonical = await getLocationForDB(cityData.lat, cityData.lon);
+          ensured = await saveCityToDatabase(canonical);
+        }
+
+        // Create the UserCity relationship
         // Since we already deleted all user cities above, this should be a create operation
         // But we'll use upsert just in case there's a race condition
         try {
           await prisma.userCity.create({
             data: {
               userId: user.id,
-              cityId: city.id,
+              cityId: ensured.id,
               sortOrder: i,
+              isCurrentLocation: cityData.isCurrentLocation || false,
             },
           });
         } catch (error) {
@@ -141,11 +158,12 @@ export async function POST(request: NextRequest) {
               where: {
                 userId_cityId: {
                   userId: user.id,
-                  cityId: city.id,
+                  cityId: ensured.id,
                 }
               },
               data: {
                 sortOrder: i,
+                isCurrentLocation: cityData.isCurrentLocation || false,
               },
             });
           } else {
@@ -176,10 +194,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // eslint-disable-next-line no-console
-    console.error('Save preferences error:', error);
+    logger.error('Save preferences error', error as Error);
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Internal server error', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     );
   }

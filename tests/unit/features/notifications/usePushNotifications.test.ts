@@ -6,10 +6,17 @@ import { usePushNotifications } from '@/features/notifications/hooks/usePushNoti
 vi.mock('@/features/notifications/sw/registerPush', () => ({
   registerForPushNotifications: vi.fn(),
   unregisterFromPushNotifications: vi.fn(),
+  isPushNotificationSupported: vi.fn(() => true),
+  requestNotificationPermission: vi.fn(() => 'granted'),
 }));
 
-// Mock fetch
-global.fetch = vi.fn();
+vi.mock('@/lib/fetchSecure', () => ({
+  fetchSecure: vi.fn(),
+}));
+
+import { fetchSecure } from '@/lib/fetchSecure';
+
+const mockFetchSecure = vi.mocked(fetchSecure);
 
 const mockPushManager = {
   getSubscription: vi.fn(),
@@ -54,7 +61,9 @@ Object.defineProperty(global.navigator, 'serviceWorker', {
 describe('usePushNotifications', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    (global.fetch as any).mockClear();
+    mockFetchSecure.mockReset();
+    mockFetchSecure.mockResolvedValue({ ok: true, json: async () => ({}) });
+    global.fetch = vi.fn();
   });
 
   afterEach(() => {
@@ -195,7 +204,7 @@ describe('usePushNotifications', () => {
     const { registerForPushNotifications } = await import('@/features/notifications/sw/registerPush');
     (registerForPushNotifications as any).mockResolvedValue(mockSubscription);
 
-    (global.fetch as any).mockResolvedValue({
+    mockFetchSecure.mockResolvedValue({
       ok: true,
       json: () => Promise.resolve({ success: true }),
     });
@@ -204,7 +213,7 @@ describe('usePushNotifications', () => {
 
     let success: boolean;
     await act(async () => {
-      success = await result.current.subscribe('test-user-id');
+      success = await result.current.subscribe();
     });
 
     expect(success!).toBe(true);
@@ -240,7 +249,7 @@ describe('usePushNotifications', () => {
 
     let success: boolean;
     await act(async () => {
-      success = await result.current.subscribe('test-user-id');
+      success = await result.current.subscribe();
     });
 
     expect(success!).toBe(false);
@@ -269,9 +278,12 @@ describe('usePushNotifications', () => {
     
     // Mock unregisterFromPushNotifications
     const { unregisterFromPushNotifications } = await import('@/features/notifications/sw/registerPush');
-    (unregisterFromPushNotifications as any).mockResolvedValue(true);
+    (unregisterFromPushNotifications as any).mockResolvedValue({
+      success: true,
+      endpoint: 'test-endpoint',
+    });
     
-    (global.fetch as any).mockResolvedValue({
+    mockFetchSecure.mockResolvedValue({
       ok: true,
       json: () => Promise.resolve({ success: true }),
     });

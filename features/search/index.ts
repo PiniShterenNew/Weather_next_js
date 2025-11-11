@@ -8,6 +8,10 @@ export { default as SearchBar } from './components/SearchBar';
 export { SuggestionsList } from './components/SuggestionsList';
 export { SuggestionItem } from './components/SuggestionItem';
 export { RecentSearches } from './components/RecentSearches';
+export { default as QuickCityAddModal } from './components/quickAdd/QuickCityAddModal';
+export { default as QuickAddButton } from './components/quickAdd/QuickAddButton';
+export { default as AddLocation } from './components/quickAdd/AddLocation';
+export { default as PopularCities } from './components/quickAdd/PopularCities';
 
 // API
 export { SearchService, searchService } from './api/searchService';

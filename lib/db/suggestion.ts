@@ -20,20 +20,33 @@ export async function findCityById(id: string): Promise<FullCityEntryServer | nu
 export async function findCitiesByQuery(query: string): Promise<FullCityEntryServer[]> {
   const cleanQuery = query.trim();
   
-  // Search for cities that start with the query (case insensitive)
-  // Use exact word matching to avoid partial matches
+  // Search for cities that contain the query (case insensitive)
+  // Use contains for better Hebrew search support
   const results = await prisma.city.findMany({
     where: {
       OR: [
         { 
           cityHe: { 
-            startsWith: cleanQuery, 
+            contains: cleanQuery, 
             mode: 'insensitive'
           } 
         },
         { 
           cityEn: { 
-            startsWith: cleanQuery, 
+            contains: cleanQuery, 
+            mode: 'insensitive'
+          } 
+        },
+        // Also search in country names for better results
+        { 
+          countryHe: { 
+            contains: cleanQuery, 
+            mode: 'insensitive'
+          } 
+        },
+        { 
+          countryEn: { 
+            contains: cleanQuery, 
             mode: 'insensitive'
           } 
         },
@@ -47,7 +60,7 @@ export async function findCitiesByQuery(query: string): Promise<FullCityEntrySer
       // Then by country to group similar cities
       { countryEn: 'asc' },
     ],
-    take: 8,
+    take: 12, // Increased to get more results for better filtering
   });
 
   // Remove duplicates based on coordinates (same city, different names)

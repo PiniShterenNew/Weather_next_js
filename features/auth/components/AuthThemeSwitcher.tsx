@@ -18,11 +18,11 @@ export default function AuthThemeSwitcher() {
 
   const icon =
     theme === 'light' ? (
-      <Sun size={16} role="presentation" className="text-gray-800 dark:text-white" />
+      <Sun size={16} role="presentation" className="text-white dark:text-gray-800" />
     ) : theme === 'dark' ? (
-      <Moon size={16} role="presentation" className="text-gray-800 dark:text-white" />
+      <Moon size={16} role="presentation" className="text-white dark:text-gray-800" />
     ) : (
-      <Laptop size={16} role="presentation" className="text-gray-800 dark:text-white" />
+      <Laptop size={16} role="presentation" className="text-white dark:text-gray-800" />
     );
 
   return (
@@ -32,7 +32,7 @@ export default function AuthThemeSwitcher() {
         size="icon" 
         onClick={cycleTheme} 
         aria-label={theme === 'light' ? t('light') : theme === 'dark' ? t('dark') : t('system')}
-        className="h-10 w-10 m-4 rounded-full border-2 border-white/20 bg-white/10 hover:bg-white/20 transition-colors backdrop-blur-xl"
+        className="h-8 w-8 lg:h-10 lg:w-10 rounded-full border-2 border-white/20 bg-white/10 hover:bg-white/20 transition-colors backdrop-blur-xl"
       >
         {icon}
       </Button>
