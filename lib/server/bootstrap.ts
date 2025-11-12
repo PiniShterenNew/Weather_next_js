@@ -6,6 +6,7 @@
 import { auth } from '@clerk/nextjs/server';
 import { PrismaClient } from '@prisma/client';
 import { getWeatherCached } from '@/lib/server/weather';
+import type { WeatherCurrent, WeatherForecastItem, WeatherHourlyItem } from '@/types/weather';
 
 const prisma = new PrismaClient();
 
@@ -23,9 +24,9 @@ export interface BootstrapData {
     lon: number;
     isCurrentLocation: boolean;
     lastUpdatedUtc: string;
-    current: unknown;
-    forecast: unknown[];
-    hourly: unknown[];
+    current: WeatherCurrent;
+    forecast: WeatherForecastItem[];
+    hourly: WeatherHourlyItem[];
   }>;
   currentCityId: string | null;
   serverTtlMinutes: number;

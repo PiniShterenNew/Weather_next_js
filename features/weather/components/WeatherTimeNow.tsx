@@ -151,11 +151,15 @@ export default function WeatherTimeNow({
 
   const cityTime =
     timezone !== undefined && timezone !== null
-      ? formatTimeWithTimezone(currentTime, timezone)
+      ? typeof timezone === 'string' 
+        ? formatTimeWithTimezone(currentTime, timezone)
+        : formatTimeWithOffset(currentTime, timezone)
       : '--:--';
   const cityDate =
     timezone !== undefined && timezone !== null
-      ? formatFullDate(currentTime, locale, timezone)
+      ? typeof timezone === 'string'
+        ? formatFullDate(currentTime, locale, timezone)
+        : formatFullDate(currentTime, locale, timezone)
       : fallbackLabel;
   const userTime =
     actualUserTimezoneOffset !== undefined && actualUserTimezoneOffset !== null

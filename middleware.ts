@@ -25,10 +25,10 @@ export default clerkMiddleware(async (auth, request) => {
     return; // No intl middleware
   }
 
-  // Check if route is public (auth pages)
+  // Check if route is public (auth pages and welcome page)
   const isPublic =
-    pathname.match(/^\/(sign-in|sign-up|forgot-password|sso-callback)/) ||
-    pathname.match(/^\/(he|en)\/(sign-in|sign-up|forgot-password|sso-callback)/) ||
+    pathname.match(/^\/(sign-in|sign-up|forgot-password|sso-callback|welcome)/) ||
+    pathname.match(/^\/(he|en)\/(sign-in|sign-up|forgot-password|sso-callback|welcome)/) ||
     pathname.includes('/sign-in/magic-link');
 
   // Allow public routes without authentication

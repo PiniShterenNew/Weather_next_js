@@ -6,7 +6,7 @@ import { motion } from 'framer-motion';
 import { Cloud, Droplets, Sunrise, Sunset, Wind } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 
-import { WeatherIcon } from '@/components/WeatherIcon/WeatherIcon';
+import { WeatherIcon } from '@/features/weather/components/WeatherIcon';
 import { colors, spacing, borderRadius, shadows, typography, iconSizes } from '@/config/tokens';
 import { formatDate, formatTemperatureWithConversion } from '@/lib/helpers';
 import type { AppLocale } from '@/types/i18n';
@@ -119,11 +119,157 @@ const separatorLine: CSSProperties = {
   background: colors.border,
 };
 
-const iconStyle: CSSProperties = {
-  width: iconSizes['3xl'],
-  height: iconSizes['3xl'],
-  color: colors.weather.sunny,
-};
+interface ForecastItemProps {
+  day: WeatherForecastItem;
+  index: number;
+  cityUnit: TemporaryUnit;
+  unit: TemporaryUnit;
+  locale: AppLocale;
+  timeFormatter: Intl.DateTimeFormat;
+  weatherIconPixelSize: number;
+  windUnit: string;
+  percentageUnit: string;
+  t: (key: string, values?: Record<string, string>) => string;
+}
+
+const ForecastItem = React.memo(({
+  day,
+  index,
+  cityUnit,
+  unit,
+  locale,
+  timeFormatter,
+  weatherIconPixelSize,
+  windUnit,
+  percentageUnit,
+  t,
+}: ForecastItemProps) => {
+  const maxValue = formatTemperatureWithConversion(day.max, cityUnit, unit);
+  const minValue = formatTemperatureWithConversion(day.min, cityUnit, unit);
+
+  const tempDiff = day.max - day.min;
+  const isWarming = tempDiff > 10;
+  const isCooling = tempDiff < 5;
+
+  const dateLabel = formatDate(day.date / 1000, locale);
+  const ariaLabel = t('aria.forecastItem', {
+    date: dateLabel,
+    high: maxValue,
+    low: minValue,
+  });
+
+  const sunriseTime = day.sunrise ? timeFormatter.format(new Date(day.sunrise)) : null;
+  const sunsetTime = day.sunset ? timeFormatter.format(new Date(day.sunset)) : null;
+
+  return (
+    <React.Fragment>
+      {index > 0 ? <div style={separatorLine} aria-hidden="true" /> : null}
+      <motion.div
+        data-testid="forecast-item"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: index * 0.05, duration: 0.3 }}
+        style={itemWrapperStyle}
+        role="listitem"
+        aria-label={ariaLabel}
+      >
+        <div style={cardStyle} className="hover-lift">
+          <div style={cardHeaderStyle}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: spacing[3], flex: 1 }}>
+              <p style={dateStyle} data-testid="forecast-date">
+                {dateLabel}
+              </p>
+              <div style={{ display: 'flex', alignItems: 'center', gap: spacing[2] }}>
+                <WeatherIcon
+                  code={null}
+                  icon={day.icon}
+                  alt={day.desc}
+                  size={Number.isNaN(weatherIconPixelSize) ? 48 : weatherIconPixelSize}
+                  title={day.desc}
+                  priority={index < 3}
+                />
+              </div>
+            </div>
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: locale === 'he' ? 'row-reverse' : 'row',
+                alignItems: 'center',
+                gap: spacing[4],
+              }}
+            >
+              <div style={temperatureHighStyle(isWarming)} data-testid="forecast-max">
+                {maxValue}
+              </div>
+              <div style={temperatureLowStyle(isCooling)} data-testid="forecast-min">
+                {minValue}
+              </div>
+            </div>
+          </div>
+
+          {day.wind !== undefined ||
+          day.humidity !== undefined ||
+          day.clouds !== undefined ||
+          sunriseTime ||
+          sunsetTime ? (
+            <div style={metricRowStyle}>
+              {day.wind !== undefined ? (
+                <div style={metricStyle}>
+                  <Wind aria-hidden="true" style={metricIconStyle} />
+                  <span>
+                    {day.wind} {windUnit}
+                  </span>
+                </div>
+              ) : null}
+              {day.humidity !== undefined ? (
+                <div style={metricStyle}>
+                  <Droplets aria-hidden="true" style={metricIconStyle} />
+                  <span>
+                    {day.humidity}
+                    {percentageUnit}
+                  </span>
+                </div>
+              ) : null}
+              {day.clouds !== undefined ? (
+                <div style={metricStyle}>
+                  <Cloud aria-hidden="true" style={metricIconStyle} />
+                  <span>
+                    {day.clouds}
+                    {percentageUnit}
+                  </span>
+                </div>
+              ) : null}
+              {sunriseTime ? (
+                <div style={metricStyle}>
+                  <Sunrise aria-hidden="true" style={metricIconStyle} />
+                  <span>{sunriseTime}</span>
+                </div>
+              ) : null}
+              {sunsetTime ? (
+                <div style={metricStyle}>
+                  <Sunset aria-hidden="true" style={metricIconStyle} />
+                  <span>{sunsetTime}</span>
+                </div>
+              ) : null}
+            </div>
+          ) : null}
+        </div>
+      </motion.div>
+    </React.Fragment>
+  );
+}, (prevProps, nextProps) => {
+  return (
+    prevProps.day.date === nextProps.day.date &&
+    prevProps.day.max === nextProps.day.max &&
+    prevProps.day.min === nextProps.day.min &&
+    prevProps.day.icon === nextProps.day.icon &&
+    prevProps.day.desc === nextProps.day.desc &&
+    prevProps.cityUnit === nextProps.cityUnit &&
+    prevProps.unit === nextProps.unit
+  );
+});
+
+ForecastItem.displayName = 'ForecastItem';
 
 const ForecastList = ({ forecast, cityUnit, unit }: ForecastListProps) => {
   const locale = useLocale() as AppLocale;
@@ -157,122 +303,21 @@ const ForecastList = ({ forecast, cityUnit, unit }: ForecastListProps) => {
         {t('forecast.title')}
       </h3>
       <div style={listStyle} role="list">
-        {forecast.map((day, index) => {
-          const maxValue = formatTemperatureWithConversion(day.max, cityUnit, unit);
-          const minValue = formatTemperatureWithConversion(day.min, cityUnit, unit);
-
-          const tempDiff = day.max - day.min;
-          const isWarming = tempDiff > 10;
-          const isCooling = tempDiff < 5;
-
-          const dateLabel = formatDate(day.date / 1000, locale);
-          const ariaLabel = t('aria.forecastItem', {
-            date: dateLabel,
-            high: maxValue,
-            low: minValue,
-          });
-
-          const sunriseTime = day.sunrise ? timeFormatter.format(new Date(day.sunrise)) : null;
-          const sunsetTime = day.sunset ? timeFormatter.format(new Date(day.sunset)) : null;
-
-          return (
-            <React.Fragment key={`${day.date}-${index}`}>
-              {index > 0 ? <div style={separatorLine} aria-hidden="true" /> : null}
-              <motion.div
-                data-testid="forecast-item"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.05, duration: 0.3 }}
-                style={itemWrapperStyle}
-                role="listitem"
-                aria-label={ariaLabel}
-              >
-                <div style={cardStyle} className="hover-lift">
-                  <div style={cardHeaderStyle}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: spacing[3], flex: 1 }}>
-                      <p style={dateStyle} data-testid="forecast-date">
-                        {dateLabel}
-                      </p>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: spacing[2] }}>
-                        <WeatherIcon
-                          code={null}
-                          icon={day.icon}
-                          alt={day.desc}
-                          size={Number.isNaN(weatherIconPixelSize) ? 48 : weatherIconPixelSize}
-                          title={day.desc}
-                          priority={index < 3}
-                          style={iconStyle}
-                        />
-                      </div>
-                    </div>
-                    <div
-                      style={{
-                        display: 'flex',
-                        flexDirection: locale === 'he' ? 'row-reverse' : 'row',
-                        alignItems: 'center',
-                        gap: spacing[4],
-                      }}
-                    >
-                      <div style={temperatureHighStyle(isWarming)} data-testid="forecast-max">
-                        {maxValue}
-                      </div>
-                      <div style={temperatureLowStyle(isCooling)} data-testid="forecast-min">
-                        {minValue}
-                      </div>
-                    </div>
-                  </div>
-
-                  {day.wind !== undefined ||
-                  day.humidity !== undefined ||
-                  day.clouds !== undefined ||
-                  sunriseTime ||
-                  sunsetTime ? (
-                    <div style={metricRowStyle}>
-                      {day.wind !== undefined ? (
-                        <div style={metricStyle}>
-                          <Wind aria-hidden="true" style={metricIconStyle} />
-                          <span>
-                            {day.wind} {windUnit}
-                          </span>
-                        </div>
-                      ) : null}
-                      {day.humidity !== undefined ? (
-                        <div style={metricStyle}>
-                          <Droplets aria-hidden="true" style={metricIconStyle} />
-                          <span>
-                            {day.humidity}
-                            {percentageUnit}
-                          </span>
-                        </div>
-                      ) : null}
-                      {day.clouds !== undefined ? (
-                        <div style={metricStyle}>
-                          <Cloud aria-hidden="true" style={metricIconStyle} />
-                          <span>
-                            {day.clouds}
-                            {percentageUnit}
-                          </span>
-                        </div>
-                      ) : null}
-                      {sunriseTime ? (
-                        <div style={metricStyle}>
-                          <Sunrise aria-hidden="true" style={metricIconStyle} />
-                          <span>{sunriseTime}</span>
-                        </div>
-                      ) : null}
-                      {sunsetTime ? (
-                        <div style={metricStyle}>
-                          <Sunset aria-hidden="true" style={metricIconStyle} />
-                          <span>{sunsetTime}</span>
-                        </div>
-                      ) : null}
-                    </div>
-                  ) : null}
-                </div>
-              </motion.div>
-            </React.Fragment>
-          );
-        })}
+        {forecast.map((day, index) => (
+          <ForecastItem
+            key={`${day.date}-${index}`}
+            day={day}
+            index={index}
+            cityUnit={cityUnit}
+            unit={unit}
+            locale={locale}
+            timeFormatter={timeFormatter}
+            weatherIconPixelSize={weatherIconPixelSize}
+            windUnit={windUnit}
+            percentageUnit={percentageUnit}
+            t={t}
+          />
+        ))}
       </div>
     </div>
   );

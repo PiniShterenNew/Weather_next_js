@@ -3,8 +3,8 @@
 import { motion } from 'framer-motion';
 import { useLocale, useTranslations } from 'next-intl';
 
-import { Button, type ButtonProps } from '@/components/ui/button';
-import { WeatherIcon } from '@/components/WeatherIcon/WeatherIcon';
+import { Button, type ButtonProperties } from '@/components/ui/button';
+import { WeatherIcon } from '@/features/weather/components/WeatherIcon';
 import { getDirection } from '@/lib/intl';
 import { useAppPreferencesStore } from '@/store/useAppPreferencesStore';
 import { useWeatherActions } from '@/features/weather/hooks/useWeatherActions';
@@ -16,7 +16,7 @@ import { fetchReverse } from '@/features/weather/fetchReverse';
 import { fetchWeather } from '@/features/weather';
 
 interface AddLocationProps {
-  size?: ButtonProps['size'];
+  size?: ButtonProperties['size'];
   type?: 'icon' | 'default';
   dataTestId?: string;
   onComplete?: () => void;
@@ -31,7 +31,7 @@ const getCurrentPositionAsync = (): Promise<GeolocationPosition> =>
     });
   });
 
-const AddLocation = ({ size = 'default', type = 'default', dataTestId, onComplete }: AddLocationProps) => {
+const AddLocation = ({ size = 'md', type = 'default', dataTestId, onComplete }: AddLocationProps) => {
   const t = useTranslations();
   const preferences = useAppPreferencesStore();
   const { addOrReplaceCurrentLocation, setIsLoading, closeQuickAddAndResetLoading } = useWeatherActions();
@@ -61,6 +61,8 @@ const AddLocation = ({ size = 'default', type = 'default', dataTestId, onComplet
       const completeWeatherData = {
         ...weatherData,
         id: cityInfo.id,
+        name: cityInfo.city || weatherData.name,
+        country: cityInfo.country || weatherData.country,
         lastUpdated: Date.now(),
         isCurrentLocation: true,
       };

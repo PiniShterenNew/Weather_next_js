@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
 import { loadBootstrapData } from '@/lib/server/bootstrap';
 import { redirect } from 'next/navigation';
-import ClientHomePage from '@/components/HomePage/ClientHomePage';
+import ClientHomePage from '@/features/home/components/ClientHomePage';
 import { Suspense } from 'react';
 import CityInfoSkeleton from '@/components/skeleton/CityInfoSkeleton';
 

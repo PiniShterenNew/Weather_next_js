@@ -5,7 +5,7 @@ import { useWeatherStore } from '@/store/useWeatherStore';
 import SwipeableCityCard from './SwipeableCityCard';
 import { motion } from 'framer-motion';
 import { CityWeather } from '@/types/weather';
-import { useState, useRef, useEffect } from 'react';
+import { useRef } from 'react';
 
 interface CitiesGridProps {
   filteredCities?: CityWeather[];
@@ -18,23 +18,8 @@ export default function CitiesGrid({ filteredCities, isSearching = false }: Citi
   const currentIndex = useWeatherStore((s) => s.currentIndex);
   const cities = filteredCities !== undefined ? filteredCities : allCities;
   
-  const [swipedCardId, setSwipedCardId] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Handle click outside to cancel swipe
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
-        setSwipedCardId(null);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
-  
   // If user is searching, don't show current city first
   // If not searching, show current city first
   const sortedCities = isSearching 
@@ -72,10 +57,7 @@ export default function CitiesGrid({ filteredCities, isSearching = false }: Citi
               <SwipeableCityCard 
                 key={sortedCities[0].id} 
                 city={sortedCities[0]} 
-                index={currentIndex} 
-                isSwiped={swipedCardId === sortedCities[0].id}
-                onSwipeStart={(cityId) => setSwipedCardId(cityId)}
-                onSwipeEnd={() => setSwipedCardId(null)}
+                index={currentIndex}
               />
             </div>
           </div>
@@ -105,9 +87,6 @@ export default function CitiesGrid({ filteredCities, isSearching = false }: Citi
               key={city.id} 
               city={city} 
               index={originalIndex}
-              isSwiped={swipedCardId === city.id}
-              onSwipeStart={(cityId) => setSwipedCardId(cityId)}
-              onSwipeEnd={() => setSwipedCardId(null)}
             />
           );
         })}

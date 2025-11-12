@@ -33,7 +33,7 @@ export default function BottomNavigation() {
             {/* Mobile buttons with original styling */}
             <Link
               href="/add-city"
-              className={`flex flex-col items-center justify-center py-3 px-4 rounded-xl min-h-touch-target min-w-touch-target transition-all duration-150 active:scale-95 ${
+              className={`flex flex-col items-center justify-center py-3 px-4 rounded-xl min-h-touch-target min-w-touch-target transition-all duration-150 active:scale-95 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 ${
                 isActive('/add-city') 
                   ? 'scale-105 bg-sky-500/10 dark:bg-blue-400/10' 
                   : 'hover:scale-105 hover:bg-gray-100/50 dark:hover:bg-gray-800/50 active:bg-gray-200/50 dark:active:bg-gray-700/50'
@@ -43,17 +43,17 @@ export default function BottomNavigation() {
               onClick={() => hapticButtonPress()}
             >
               <Plus className={`h-7 w-7 mb-1 transition-all duration-150 ${
-                isActive('/add-city') ? 'text-sky-500 dark:text-blue-400' : 'text-gray-600 dark:text-gray-300'
+                isActive('/add-city') ? 'text-sky-500 dark:text-blue-400' : 'text-gray-700 dark:text-gray-200'
               }`} />
               <span className={`text-xs font-medium transition-all duration-150 ${
-                isActive('/add-city') ? 'text-sky-500 dark:text-blue-400 font-bold' : 'text-gray-600 dark:text-gray-300'
+                isActive('/add-city') ? 'text-sky-500 dark:text-blue-400 font-bold' : 'text-gray-700 dark:text-gray-200'
               }`}>
                 {t('search.addCity')}
               </span>
             </Link>
             <Link
               href="/cities"
-              className={`flex flex-col items-center justify-center py-3 px-4 rounded-xl min-h-touch-target min-w-touch-target transition-all duration-150 active:scale-95 ${
+              className={`flex flex-col items-center justify-center py-3 px-4 rounded-xl min-h-touch-target min-w-touch-target transition-all duration-150 active:scale-95 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 ${
                 isActive('/cities') 
                   ? 'scale-105 bg-sky-500/10 dark:bg-blue-400/10' 
                   : 'hover:scale-105 hover:bg-gray-100/50 dark:hover:bg-gray-800/50 active:bg-gray-200/50 dark:active:bg-gray-700/50'
@@ -63,17 +63,17 @@ export default function BottomNavigation() {
               onClick={() => hapticButtonPress()}
             >
               <MapPin className={`h-7 w-7 mb-1 transition-all duration-150 ${
-                isActive('/cities') ? 'text-sky-500 dark:text-blue-400' : 'text-gray-600 dark:text-gray-300'
+                isActive('/cities') ? 'text-sky-500 dark:text-blue-400' : 'text-gray-700 dark:text-gray-200'
               }`} />
               <span className={`text-xs font-medium transition-all duration-150 ${
-                isActive('/cities') ? 'text-sky-500 dark:text-blue-400 font-bold' : 'text-gray-600 dark:text-gray-300'
+                isActive('/cities') ? 'text-sky-500 dark:text-blue-400 font-bold' : 'text-gray-700 dark:text-gray-200'
               }`}>
                 {t('navigation.cities')}
               </span>
             </Link>
             <Link
               href="/"
-              className={`flex flex-col items-center justify-center py-3 px-4 rounded-xl min-h-touch-target min-w-touch-target transition-all duration-150 active:scale-95 ${
+              className={`flex flex-col items-center justify-center py-3 px-4 rounded-xl min-h-touch-target min-w-touch-target transition-all duration-150 active:scale-95 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 ${
                 isActive('/') 
                   ? 'scale-105 bg-sky-500/10 dark:bg-blue-400/10' 
                   : 'hover:scale-105 hover:bg-gray-100/50 dark:hover:bg-gray-800/50 active:bg-gray-200/50 dark:active:bg-gray-700/50'
@@ -83,17 +83,17 @@ export default function BottomNavigation() {
               onClick={() => hapticButtonPress()}
             >
               <Cloud className={`h-7 w-7 mb-1 transition-all duration-150 ${
-                isActive('/') ? 'text-sky-500 dark:text-blue-400' : 'text-gray-600 dark:text-gray-300'
+                isActive('/') ? 'text-sky-500 dark:text-blue-400' : 'text-gray-700 dark:text-gray-200'
               }`} />
               <span className={`text-xs font-medium transition-all duration-150 ${
-                isActive('/') ? 'text-sky-500 dark:text-blue-400 font-bold' : 'text-gray-600 dark:text-gray-300'
+                isActive('/') ? 'text-sky-500 dark:text-blue-400 font-bold' : 'text-gray-700 dark:text-gray-200'
               }`}>
                 {t('navigation.weather')}
               </span>
             </Link>
             <Link
               href="/settings"
-              className={`flex flex-col items-center justify-center py-3 px-4 rounded-xl min-h-touch-target min-w-touch-target transition-all duration-150 active:scale-95 ${
+              className={`flex flex-col items-center justify-center py-3 px-4 rounded-xl min-h-touch-target min-w-touch-target transition-all duration-150 active:scale-95 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 ${
                 isActive('/settings') 
                   ? 'scale-105 bg-sky-500/10 dark:bg-blue-400/10' 
                   : 'hover:scale-105 hover:bg-gray-100/50 dark:hover:bg-gray-800/50 active:bg-gray-200/50 dark:active:bg-gray-700/50'
@@ -103,10 +103,10 @@ export default function BottomNavigation() {
               onClick={() => hapticButtonPress()}
             >
               <Settings className={`h-7 w-7 mb-1 transition-all duration-150 ${
-                isActive('/settings') ? 'text-sky-500 dark:text-blue-400' : 'text-gray-600 dark:text-gray-300'
+                isActive('/settings') ? 'text-sky-500 dark:text-blue-400' : 'text-gray-700 dark:text-gray-200'
               }`} />
               <span className={`text-xs font-medium transition-all duration-150 ${
-                isActive('/settings') ? 'text-sky-500 dark:text-blue-400 font-bold' : 'text-gray-600 dark:text-gray-300'
+                isActive('/settings') ? 'text-sky-500 dark:text-blue-400 font-bold' : 'text-gray-700 dark:text-gray-200'
               }`}>
                 {t('navigation.settings')}
               </span>
@@ -127,16 +127,16 @@ export default function BottomNavigation() {
           {/* Add City Button */}
           <Link
             href="/add-city"
-            className="flex flex-col items-center justify-center transition-all duration-150 hover:opacity-80"
+            className="flex flex-col items-center justify-center transition-all duration-150 hover:opacity-80 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
             aria-label={t('search.addCity')}
             onTouchStart={() => hapticButtonPress()}
             onClick={() => hapticButtonPress()}
           >
             <Plus className={`h-6 w-6 mb-1 transition-all duration-150 ${
-              isActive('/add-city') ? 'text-sky-500 dark:text-blue-400' : 'text-gray-600 dark:text-gray-300'
+              isActive('/add-city') ? 'text-sky-500 dark:text-blue-400' : 'text-gray-700 dark:text-gray-200'
             }`} />
             <span className={`text-xs font-medium transition-all duration-150 ${
-              isActive('/add-city') ? 'text-sky-500 dark:text-blue-400' : 'text-gray-600 dark:text-gray-300'
+              isActive('/add-city') ? 'text-sky-500 dark:text-blue-400' : 'text-gray-700 dark:text-gray-200'
             }`}>
               {t('search.addCity')}
             </span>
@@ -145,16 +145,16 @@ export default function BottomNavigation() {
           {/* Cities List Button */}
           <Link
             href="/cities"
-            className="flex flex-col items-center justify-center transition-all duration-150 hover:opacity-80"
+            className="flex flex-col items-center justify-center transition-all duration-150 hover:opacity-80 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
             aria-label={t('navigation.cities')}
             onTouchStart={() => hapticButtonPress()}
             onClick={() => hapticButtonPress()}
           >
             <MapPin className={`h-6 w-6 mb-1 transition-all duration-150 ${
-              isActive('/cities') ? 'text-sky-500 dark:text-blue-400' : 'text-gray-600 dark:text-gray-300'
+              isActive('/cities') ? 'text-sky-500 dark:text-blue-400' : 'text-gray-700 dark:text-gray-200'
             }`} />
             <span className={`text-xs font-medium transition-all duration-150 ${
-              isActive('/cities') ? 'text-sky-500 dark:text-blue-400' : 'text-gray-600 dark:text-gray-300'
+              isActive('/cities') ? 'text-sky-500 dark:text-blue-400' : 'text-gray-700 dark:text-gray-200'
             }`}>
               {t('navigation.cities')}
             </span>
@@ -163,16 +163,16 @@ export default function BottomNavigation() {
           {/* Weather Button */}
           <Link
             href="/"
-            className="flex flex-col items-center justify-center transition-all duration-150 hover:opacity-80"
+            className="flex flex-col items-center justify-center transition-all duration-150 hover:opacity-80 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
             aria-label={t('navigation.weather')}
             onTouchStart={() => hapticButtonPress()}
             onClick={() => hapticButtonPress()}
           >
             <Cloud className={`h-6 w-6 mb-1 transition-all duration-150 ${
-              isActive('/') ? 'text-sky-500 dark:text-blue-400' : 'text-gray-600 dark:text-gray-300'
+              isActive('/') ? 'text-sky-500 dark:text-blue-400' : 'text-gray-700 dark:text-gray-200'
             }`} />
             <span className={`text-xs font-medium transition-all duration-150 ${
-              isActive('/') ? 'text-sky-500 dark:text-blue-400' : 'text-gray-600 dark:text-gray-300'
+              isActive('/') ? 'text-sky-500 dark:text-blue-400' : 'text-gray-700 dark:text-gray-200'
             }`}>
               {t('navigation.weather')}
             </span>
@@ -181,16 +181,16 @@ export default function BottomNavigation() {
           {/* Settings Button */}
           <Link
             href="/settings"
-            className="flex flex-col items-center justify-center transition-all duration-150 hover:opacity-80"
+            className="flex flex-col items-center justify-center transition-all duration-150 hover:opacity-80 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
             aria-label={t('navigation.settings')}
             onTouchStart={() => hapticButtonPress()}
             onClick={() => hapticButtonPress()}
           >
             <Settings className={`h-6 w-6 mb-1 transition-all duration-150 ${
-              isActive('/settings') ? 'text-sky-500 dark:text-blue-400' : 'text-gray-600 dark:text-gray-300'
+              isActive('/settings') ? 'text-sky-500 dark:text-blue-400' : 'text-gray-700 dark:text-gray-200'
             }`} />
             <span className={`text-xs font-medium transition-all duration-150 ${
-              isActive('/settings') ? 'text-sky-500 dark:text-blue-400' : 'text-gray-600 dark:text-gray-300'
+              isActive('/settings') ? 'text-sky-500 dark:text-blue-400' : 'text-gray-700 dark:text-gray-200'
             }`}>
               {t('navigation.settings')}
             </span>

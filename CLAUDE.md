@@ -150,6 +150,39 @@ Each interactive component includes aria-label and keyboard focus state.
 
 Support RTL/LTR and i18n via next-intl.
 
+### 🧩 RTL & Visual Separation Principles
+
+1. **Structural separation before margin**  
+   Prefer separate containers over manual `margin` spacing.  
+   Each logical area (information vs. actions) should be wrapped in its own structural container with independent layout logic.
+
+2. **Understanding RTL in Tailwind**  
+   In RTL layouts, `mr-*` visually creates spacing **on the left**, while `ml-*` creates spacing **on the right**.  
+   When spacing is required “to the right of a button” in RTL, apply `mr-*` to that button.
+
+3. **Use flexbox layout logic**  
+   - `justify-between` → separates major regions.  
+   - `justify-end` → aligns action buttons to one side.  
+   Structural grouping provides more predictable spacing and alignment.
+
+4. **Group related elements**  
+   - Info group: icon + label + value  
+   - Actions group: refresh + delete  
+   Each group should live in its own container for layout clarity.
+
+5. **Prefer structural solutions over conditional hacks**  
+   Avoid conditional margins like `${condition ? 'ml-6' : ''}`.  
+   Instead, design a structure that naturally handles spacing cases through layout hierarchy.
+
+6. **Check direction before applying spacing**  
+   Always verify layout direction (`dir="rtl"` or `dir="ltr"`) before deciding between `mr-*` or `ml-*`.  
+   Apply margins relative to the actual reading flow, not visual assumption.
+
+7. **Visual separation equals structural separation**  
+   Whenever a visual gap is needed, implement it through clear DOM structure (nested containers or flex separation),  
+   not by stacking spacing utilities on unrelated siblings.
+
+
 Default theme: dark.
 
 Support theme toggle via useGlobalStore.

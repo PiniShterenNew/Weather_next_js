@@ -64,7 +64,7 @@ export default function SettingsPage({ isAuthenticated = false, onSignOut }: Set
   };
 
   return (
-    <div className="!max-h-[calc(100vh-10rem)] overflow-y-auto overflow-x-hidden scroll-smooth scrollbar-none bg-gradient-to-b from-blue-50 to-white dark:from-[#0d1117] dark:to-[#1b1f24]">
+    <div className="!max-h-[calc(100vh-10rem)] overflow-y-auto overflow-x-hidden scroll-smooth scrollbar-hide bg-gradient-to-b from-blue-50 to-white dark:from-[#0d1117] dark:to-[#1b1f24]">
       <div className="flex flex-col space-y-6 px-4 sm:px-6 pt-6 w-full">
         {/* Header */}
         <motion.div
@@ -75,7 +75,7 @@ export default function SettingsPage({ isAuthenticated = false, onSignOut }: Set
         <h1 className="text-2xl font-bold text-neutral-800 dark:text-white/90">
           {t('navigation.settings')}
         </h1>
-        <p className="text-sm text-neutral-600 dark:text-white/60 mt-1">
+        <p className="text-sm text-neutral-600 dark:text-white/80 mt-1">
           {t('settings.description')}
         </p>
       </motion.div>
@@ -93,7 +93,7 @@ export default function SettingsPage({ isAuthenticated = false, onSignOut }: Set
         </h2>
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm text-neutral-600 dark:text-white/60">
+            <p className="text-sm text-neutral-600 dark:text-white/80">
               {t('settings.languageDescription')}
             </p>
           </div>
@@ -115,7 +115,7 @@ export default function SettingsPage({ isAuthenticated = false, onSignOut }: Set
         </h2>
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm text-neutral-600 dark:text-white/60">
+            <p className="text-sm text-neutral-600 dark:text-white/80">
               {t('settings.themeDescription')}
             </p>
           </div>
@@ -137,7 +137,7 @@ export default function SettingsPage({ isAuthenticated = false, onSignOut }: Set
         </h2>
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm text-neutral-600 dark:text-white/60">
+            <p className="text-sm text-neutral-600 dark:text-white/80">
               {t('settings.temperatureUnitDescription')}
             </p>
           </div>
@@ -164,7 +164,7 @@ export default function SettingsPage({ isAuthenticated = false, onSignOut }: Set
               <p className="text-sm font-medium text-neutral-800 dark:text-white/90">
                 {t('settings.clearCache')}
               </p>
-              <p className="text-sm text-neutral-600 dark:text-white/60">
+              <p className="text-sm text-neutral-600 dark:text-white/80">
                 {t('settings.clearCacheDescription')}
               </p>
             </div>
@@ -185,7 +185,7 @@ export default function SettingsPage({ isAuthenticated = false, onSignOut }: Set
               <p className="text-sm font-medium text-neutral-800 dark:text-white/90">
                 {t('settings.resetStore')}
               </p>
-              <p className="text-sm text-neutral-600 dark:text-white/60">
+              <p className="text-sm text-neutral-600 dark:text-white/80">
                 {t('settings.resetStoreDescription')}
               </p>
             </div>
@@ -219,7 +219,7 @@ export default function SettingsPage({ isAuthenticated = false, onSignOut }: Set
           </h2>
           <div className="flex flex-col space-y-3 rtl:gap-3">
             <div>
-              <p className="text-sm text-neutral-600 dark:text-white/60">
+              <p className="text-sm text-neutral-600 dark:text-white/80">
                 {t('about.appName')} - {t('about.version')} {process.env.NEXT_PUBLIC_APP_VERSION || '0.1.0'}
               </p>
             </div>
@@ -249,7 +249,7 @@ export default function SettingsPage({ isAuthenticated = false, onSignOut }: Set
           </h2>
           <div className="space-y-3">
             <div>
-              <p className="text-sm text-neutral-600 dark:text-white/60 text-center">
+              <p className="text-sm text-neutral-600 dark:text-white/80 text-center">
                 {t('onboarding.resetWelcomeDescription')}
               </p>
             </div>
@@ -281,7 +281,7 @@ export default function SettingsPage({ isAuthenticated = false, onSignOut }: Set
           </h2>
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-neutral-600 dark:text-white/60">
+              <p className="text-sm text-neutral-600 dark:text-white/80">
                 {t('settings.signOutDescription')}
               </p>
             </div>

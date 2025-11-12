@@ -66,45 +66,122 @@ export async function fetchOpenMeteo(lat: number, lon: number): Promise<WeatherB
 function mapOpenMeteoResponse(data: OpenMeteoResponse, lat: number, lon: number): WeatherBundle {
   const tz = data.timezone;
 
-  // Helper functions for safe array access
-  const H = (key: keyof OpenMeteoResponse['hourly'], i: number, def: unknown = null): unknown => 
-    data.hourly?.[key]?.[i] ?? def;
-  const D = (key: keyof OpenMeteoResponse['daily'], i: number, def: unknown = null): unknown => 
-    data.daily?.[key]?.[i] ?? def;
+  type HourlyNumberKey = Exclude<keyof OpenMeteoResponse['hourly'], 'time'>;
+  type DailyNumberKey = Exclude<keyof OpenMeteoResponse['daily'], 'time' | 'sunrise' | 'sunset'>;
+  type DailyStringKey = Extract<keyof OpenMeteoResponse['daily'], 'sunrise' | 'sunset'>;
+
+  const getHourlyNumber = (key: HourlyNumberKey, index: number): number | null => {
+    const value = data.hourly?.[key]?.[index];
+    return typeof value === 'number' ? value : null;
+  };
+
+  const getDailyNumber = (key: DailyNumberKey, index: number): number | null => {
+    const value = data.daily?.[key]?.[index];
+    return typeof value === 'number' ? value : null;
+  };
+
+  const getDailyString = (key: DailyStringKey, index: number): string | null => {
+    const value = data.daily?.[key]?.[index];
+    return typeof value === 'string' ? value : null;
+  };
 
   // Find current weather index in hourly data
-  const nowIso = data.current_weather?.time as string;
-  const idx = data.hourly?.time?.indexOf(nowIso) ?? -1;
+  // Calculate current time in city's timezone (same format as hourly.time from API)
+  // hourly.time comes in ISO format according to the city's timezone (e.g., "2024-01-01T14:00")
+  const now = new Date();
+  const cityTimeFormatter = new Intl.DateTimeFormat('en-CA', {
+    timeZone: tz,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false
+  });
+  
+  // Format current time in city timezone as ISO-like string (YYYY-MM-DDTHH:MM)
+  const cityTimeParts = cityTimeFormatter.formatToParts(now);
+  const getValue = (type: string) => cityTimeParts.find(p => p.type === type)?.value || '0';
+  
+  // Round down to nearest hour (remove minutes/seconds)
+  const cityHour = parseInt(getValue('hour'));
+  const cityNowIso = `${getValue('year')}-${getValue('month')}-${getValue('day')}T${cityHour.toString().padStart(2, '0')}:00`;
+  
+  // Try to find exact match first
+  let idx = data.hourly?.time?.indexOf(cityNowIso) ?? -1;
+  
+  // If exact match not found, find the closest future hour
+  if (idx === -1 && data.hourly?.time) {
+    const cityNowTime = new Date(cityNowIso).getTime();
+    let closestIndex = 0;
+    let minDiff = Infinity;
+    
+    data.hourly.time.forEach((hourTime, index) => {
+      const hourTimeMs = new Date(hourTime).getTime();
+      const diff = hourTimeMs - cityNowTime;
+      // Find the first future hour (or current hour if within 30 minutes)
+      if (diff >= -1800000 && diff < minDiff) { // -30 minutes to future
+        minDiff = diff;
+        closestIndex = index;
+      }
+    });
+    
+    idx = closestIndex;
+  }
+  
+  // Fallback to 0 if still not found
+  if (idx === -1) {
+    idx = 0;
+  }
   
   // Debug logging (only in development)
   if (process.env.NODE_ENV === 'development') {
     // eslint-disable-next-line no-console
     console.debug('🔍 Mapping Debug:', {
-      nowIso,
+      timezone: tz,
+      cityNowIso,
+      apiCurrentWeather: data.current_weather?.time,
       idx,
-      hourly_time_sample: data.hourly?.time?.slice(0, 3)
+      hourly_time_sample: data.hourly?.time?.slice(0, 5),
+      found_hour: data.hourly?.time?.[idx]
     });
   }
 
   // Map current weather
   const current = {
-    time: nowIso,
+    time: data.current_weather?.time || cityNowIso,
     temp: data.current_weather?.temperature ?? 0,
-    feels_like: idx >= 0 ? H('apparent_temperature', idx, null) : (data.hourly?.apparent_temperature?.[0] ?? null),
+    feels_like: idx >= 0
+      ? getHourlyNumber('apparent_temperature', idx)
+      : getHourlyNumber('apparent_temperature', 0),
     wind_speed: data.current_weather?.windspeed ?? 0,
     wind_deg: data.current_weather?.winddirection ?? 0,
-    wind_gust: idx >= 0 ? H('wind_gusts_10m', idx, null) : (data.hourly?.wind_gusts_10m?.[0] ?? null),
-    humidity: idx >= 0 ? H('relative_humidity_2m', idx, null) : (data.hourly?.relative_humidity_2m?.[0] ?? null),
-    pressure: idx >= 0 ? H('pressure_msl', idx, null) : (data.hourly?.pressure_msl?.[0] ?? null),
-    clouds: idx >= 0 ? H('cloud_cover', idx, null) : (data.hourly?.cloud_cover?.[0] ?? null),
-    pop: idx >= 0 ? H('precipitation_probability', idx, null) : (data.hourly?.precipitation_probability?.[0] ?? null),
-    visibility: idx >= 0 ? H('visibility', idx, null) : (data.hourly?.visibility?.[0] ?? null),
-    uvi: idx >= 0 ? H('uv_index', idx, null) : (data.hourly?.uv_index?.[0] ?? null),
-    dew_point: idx >= 0 ? H('dew_point_2m', idx, null) : (data.hourly?.dew_point_2m?.[0] ?? null),
+    wind_gust: idx >= 0
+      ? getHourlyNumber('wind_gusts_10m', idx)
+      : getHourlyNumber('wind_gusts_10m', 0),
+    humidity: idx >= 0
+      ? getHourlyNumber('relative_humidity_2m', idx)
+      : getHourlyNumber('relative_humidity_2m', 0),
+    pressure: idx >= 0
+      ? getHourlyNumber('pressure_msl', idx)
+      : getHourlyNumber('pressure_msl', 0),
+    clouds: idx >= 0
+      ? getHourlyNumber('cloud_cover', idx)
+      : getHourlyNumber('cloud_cover', 0),
+    pop: idx >= 0
+      ? getHourlyNumber('precipitation_probability', idx)
+      : getHourlyNumber('precipitation_probability', 0),
+    visibility: idx >= 0
+      ? getHourlyNumber('visibility', idx)
+      : getHourlyNumber('visibility', 0),
+    uvi: idx >= 0 ? getHourlyNumber('uv_index', idx) : getHourlyNumber('uv_index', 0),
+    dew_point: idx >= 0
+      ? getHourlyNumber('dew_point_2m', idx)
+      : getHourlyNumber('dew_point_2m', 0),
     weather_code: data.current_weather?.weathercode ?? 0,
-    is_day: idx >= 0 ? Boolean(H('is_day', idx, null)) : (data.hourly?.is_day?.[0] === 1),
-    sunrise: D('sunrise', 0, null),
-    sunset: D('sunset', 0, null),
+    is_day: idx >= 0 ? Boolean(getHourlyNumber('is_day', idx)) : getHourlyNumber('is_day', 0) === 1,
+    sunrise: getDailyString('sunrise', 0),
+    sunset: getDailyString('sunset', 0),
   };
 
   // Map hourly data (limit to 48 hours for performance)
@@ -112,23 +189,23 @@ function mapOpenMeteoResponse(data: OpenMeteoResponse, lat: number, lon: number)
     .slice(0, 48)
     .map((t: string, i: number) => ({
       time: t,
-      temp: H('temperature_2m', i, null),
-      feels_like: H('apparent_temperature', i, null),
-      humidity: H('relative_humidity_2m', i, null),
-      pressure: H('pressure_msl', i, null),
-      clouds: H('cloud_cover', i, null),
-      pop: H('precipitation_probability', i, null),
-      precip_mm: H('precipitation', i, null),
-      rain_mm: H('rain', i, null),
-      snow_mm: H('snowfall', i, null),
-      wind_speed: H('wind_speed_10m', i, null),
-      wind_gust: H('wind_gusts_10m', i, null),
-      wind_deg: H('wind_direction_10m', i, null),
-      uvi: H('uv_index', i, null),
-      dew_point: H('dew_point_2m', i, null),
-      visibility: H('visibility', i, null),
-      weather_code: H('weathercode', i, null),
-      is_day: H('is_day', i, null) === 1,
+      temp: getHourlyNumber('temperature_2m', i) ?? 0,
+      feels_like: getHourlyNumber('apparent_temperature', i),
+      humidity: getHourlyNumber('relative_humidity_2m', i),
+      pressure: getHourlyNumber('pressure_msl', i),
+      clouds: getHourlyNumber('cloud_cover', i),
+      pop: getHourlyNumber('precipitation_probability', i),
+      precip_mm: getHourlyNumber('precipitation', i),
+      rain_mm: getHourlyNumber('rain', i),
+      snow_mm: getHourlyNumber('snowfall', i),
+      wind_speed: getHourlyNumber('wind_speed_10m', i),
+      wind_gust: getHourlyNumber('wind_gusts_10m', i),
+      wind_deg: getHourlyNumber('wind_direction_10m', i),
+      uvi: getHourlyNumber('uv_index', i),
+      dew_point: getHourlyNumber('dew_point_2m', i),
+      visibility: getHourlyNumber('visibility', i),
+      weather_code: getHourlyNumber('weathercode', i),
+      is_day: getHourlyNumber('is_day', i) === 1,
     }));
 
   // Map daily data (limit to 7 days)
@@ -136,18 +213,18 @@ function mapOpenMeteoResponse(data: OpenMeteoResponse, lat: number, lon: number)
     .slice(0, 7)
     .map((t: string, i: number) => ({
       date: t,
-      min: D('temperature_2m_min', i, null),
-      max: D('temperature_2m_max', i, null),
-      feels_like_min: D('apparent_temperature_min', i, null),
-      feels_like_max: D('apparent_temperature_max', i, null),
-      pop_max: D('precipitation_probability_max', i, null),
-      precip_sum_mm: D('precipitation_sum', i, null),
-      wind_speed_max: D('windspeed_10m_max', i, null),
-      wind_gust_max: D('windgusts_10m_max', i, null),
-      sunrise: D('sunrise', i, null),
-      sunset: D('sunset', i, null),
-      uvi_max: D('uv_index_max', i, null),
-      weather_code: D('weathercode', i, null),
+      min: getDailyNumber('temperature_2m_min', i) ?? 0,
+      max: getDailyNumber('temperature_2m_max', i) ?? 0,
+      feels_like_min: getDailyNumber('apparent_temperature_min', i),
+      feels_like_max: getDailyNumber('apparent_temperature_max', i),
+      pop_max: getDailyNumber('precipitation_probability_max', i),
+      precip_sum_mm: getDailyNumber('precipitation_sum', i),
+      wind_speed_max: getDailyNumber('windspeed_10m_max', i),
+      wind_gust_max: getDailyNumber('windgusts_10m_max', i),
+      sunrise: getDailyString('sunrise', i),
+      sunset: getDailyString('sunset', i),
+      uvi_max: getDailyNumber('uv_index_max', i),
+      weather_code: getDailyNumber('weathercode', i),
     }));
 
   // Debug logging (only in development)
@@ -167,6 +244,6 @@ function mapOpenMeteoResponse(data: OpenMeteoResponse, lat: number, lon: number)
     current, 
     hourly, 
     daily, 
-    meta: { lat, lon, tz } 
+    meta: { lat, lon, tz, currentHourIndex: idx >= 0 ? idx : 0, offsetSec: data.utc_offset_seconds } 
   };
 }

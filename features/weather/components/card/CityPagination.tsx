@@ -38,7 +38,7 @@ const CityPagination = () => {
                 transition={{ duration: 0.3, ease: 'easeOut' }}
               >
                 <MapPin
-                  className={isActive ? 'text-brand-500' : 'text-gray-400 dark:text-white/30 transition-colors'}
+                  className={isActive ? 'text-brand-500' : 'text-gray-400 dark:text-white/50 transition-colors'}
                   size={isActive ? 16 : 12}
                   fill={isActive ? 'currentColor' : 'none'}
                   strokeWidth={2}
@@ -48,7 +48,7 @@ const CityPagination = () => {
             ) : (
               <motion.div
                 className={`rounded-full transition-colors ${
-                  isActive ? 'bg-brand-500' : 'bg-gray-400 hover:bg-gray-600 dark:bg-white/30 dark:hover:bg-white/50'
+                  isActive ? 'bg-brand-500' : 'bg-gray-400 hover:bg-gray-600 dark:bg-white/50 dark:hover:bg-white/70'
                 }`}
                 initial={false}
                 animate={{ width: isActive ? 32 : 8, height: 8 }}

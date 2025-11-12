@@ -27,7 +27,9 @@ export const existingCity: CityWeather = {
     clouds: 0,
     sunrise: 1640995200,
     sunset: 1641034800,
-    timezone: -18000
+    timezone: 'America/New_York',
+    uvIndex: null,
+    rainProbability: null
   },
   forecast: [
     {
@@ -36,7 +38,10 @@ export const existingCity: CityWeather = {
       max: 26,
       icon: '01d',
       desc: 'Sunny',
-      codeId: 800
+      codeId: 800,
+      humidity: null,
+      wind: null,
+      clouds: null
     }
   ],
   hourly: [

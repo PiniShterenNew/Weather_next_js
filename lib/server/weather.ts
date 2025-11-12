@@ -143,7 +143,7 @@ async function fetchFromOpenMeteo(
         rainProbability: weatherBundle.current.pop
       },
       forecast: processDailyData(weatherBundle.daily),
-      hourly: processHourlyData(weatherBundle.hourly),
+      hourly: processHourlyData(weatherBundle.hourly, weatherBundle.meta.currentHourIndex, (weatherBundle as any).meta.offsetSec),
       lastUpdated: Date.now(),
       unit: 'metric'
     };
@@ -191,18 +191,34 @@ function processDailyData(dailyData: DayPoint[]): WeatherForecastItem[] {
 
 /**
  * Process hourly data from Open-Meteo
+ * @param hourlyData - Array of hourly data points
+ * @param currentHourIndex - Index of the current hour in the hourly array (0-based)
+ * @param offsetSec - UTC offset in seconds for the city's timezone
+ * @returns Array of hourly weather items starting from the current hour
  */
-function processHourlyData(hourlyData: HourPoint[]): WeatherHourlyItem[] {
+function processHourlyData(hourlyData: HourPoint[], currentHourIndex: number = 0, offsetSec: number = 0): WeatherHourlyItem[] {
+  // Start from current hour index, take next 24 hours
+  const startIndex = Math.max(0, currentHourIndex);
   return hourlyData
-    .slice(0, 24) // Next 24 hours
-    .map((hour) => ({
-      time: new Date(hour.time).getTime(),
-      temp: hour.temp,
-      icon: getWeatherIcon(hour.weather_code || 0, hour.is_day),
-      desc: getWeatherDescription(hour.weather_code || 0),
-      codeId: hour.weather_code || 0,
-      wind: hour.wind_speed,
-      humidity: hour.humidity,
-    }));
+    .slice(startIndex, startIndex + 24)
+    .map((hour) => {
+      // hour.time is in format YYYY-MM-DDTHH:MM (local city time)
+      // We must convert it to UTC epoch correctly using the city's offset
+      const [datePart, timePart] = hour.time.split('T');
+      const [year, month, day] = datePart.split('-').map((v) => parseInt(v, 10));
+      const [h, m] = timePart.split(':').map((v) => parseInt(v, 10));
+      // Compute UTC epoch: city local time minus offset
+      const utcMs = Date.UTC(year, (month || 1) - 1, day || 1, h || 0, m || 0) - (offsetSec || 0) * 1000;
+
+      return {
+        time: utcMs,
+        temp: hour.temp,
+        icon: getWeatherIcon(hour.weather_code || 0, hour.is_day),
+        desc: getWeatherDescription(hour.weather_code || 0),
+        codeId: hour.weather_code || 0,
+        wind: hour.wind_speed,
+        humidity: hour.humidity,
+      };
+    });
 }
 

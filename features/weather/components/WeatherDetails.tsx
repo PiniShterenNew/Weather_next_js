@@ -188,7 +188,7 @@ export default function WeatherDetails({ cityLocale, _locale }: WeatherDetailsPr
     {
       id: "wind",
       icon: Wind,
-      accent: colors.ui.windy,
+      accent: colors.ui.wind,
       label: t("wind"),
       value: windSpeedConverted,
       unit: windUnit,

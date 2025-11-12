@@ -10,7 +10,8 @@ import { cn } from '@/lib/utils';
 import { useWeatherStore } from '@/store/useWeatherStore';
 import type { AppLocale } from '@/types/i18n';
 import type { CityWeather, CityWeatherCurrent } from '@/types/weather';
-import { WeatherIcon } from '@/components/WeatherIcon/WeatherIcon';
+import type { TemporaryUnit } from '@/types/ui';
+import { WeatherIcon } from '@/features/weather/components/WeatherIcon';
 
 interface WeatherListItemProps {
   cityCurrent: CityWeatherCurrent;
@@ -98,7 +99,7 @@ const WeatherListItem = forwardRef<HTMLButtonElement, WeatherListItemProps>(
 
           <div className="flex items-baseline gap-2">
             <p className="text-5xl font-bold text-gray-900 tabular-nums leading-none dark:text-white">
-              {formatTemperatureWithConversion(cityCurrent.current.temp, cityCurrent.unit, unit).replace('°', '')}
+              {formatTemperatureWithConversion(cityCurrent.current.temp, cityCurrent.unit as TemporaryUnit, unit as TemporaryUnit).replace('°', '')}
             </p>
             <span className="text-3xl font-light text-gray-700 dark:text-gray-300">°</span>
           </div>
@@ -115,12 +116,12 @@ const WeatherListItem = forwardRef<HTMLButtonElement, WeatherListItemProps>(
                 label: t('humidity'),
               },
               {
-                value: `${formatWindSpeed(cityCurrent.current.wind, unit).split(' ')[0]}`,
+                value: `${formatWindSpeed(cityCurrent.current.wind, unit as TemporaryUnit).split(' ')[0]}`,
                 icon: <Wind className="h-4 w-4 text-teal-500 dark:text-teal-400" />,
                 label: 'km/h',
               },
               {
-                value: formatVisibility(cityCurrent.current.visibility).split(' ')[0],
+                value: cityCurrent.current.visibility ? formatVisibility(cityCurrent.current.visibility).split(' ')[0] : '--',
                 icon: <Eye className="h-4 w-4 text-amber-500 dark:text-amber-400" />,
                 label: 'km',
               },

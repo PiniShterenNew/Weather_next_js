@@ -14,8 +14,10 @@ export function triggerHapticFeedback(type: HapticFeedbackType = 'light'): void 
   if (typeof window === 'undefined') return;
 
   try {
+    const hasNavigator = typeof navigator !== 'undefined';
+
     // Modern browsers with Vibration API
-    if ('vibrate' in navigator) {
+    if (hasNavigator && 'vibrate' in navigator) {
       const patterns = {
         light: [10],
         medium: [20],
@@ -30,9 +32,10 @@ export function triggerHapticFeedback(type: HapticFeedbackType = 'light'): void 
     }
 
     // iOS Safari with haptic feedback (iOS 10+)
-    if ('ontouchstart' in window) {
+    if ('ontouchstart' in window && hasNavigator && 'userAgent' in navigator) {
       // Try to use the iOS haptic feedback API if available
-      const iOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+      const userAgent = navigator.userAgent ?? '';
+      const iOS = /iPad|iPhone|iPod/.test(userAgent);
       if (iOS) {
         // This is a fallback - actual iOS haptic feedback requires native app
         // For web apps, we use a very short vibration

@@ -29,7 +29,7 @@ const CityInfo = () => {
         exit={{ opacity: 0, scale: 0.98 }}
         transition={{ duration: 0.2, ease: 'easeInOut' }}
         className="flex h-full w-full flex-col"
-        style={{ touchAction: 'manipulation' }}
+        style={{ height: '100%' }}
       >
         <WeatherCardContent cityWeather={cityWeather} cityLocale={cityWeather} locale={locale} />
       </motion.div>

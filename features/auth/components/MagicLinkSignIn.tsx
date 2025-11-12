@@ -48,7 +48,7 @@ export default function MagicLinkSignIn() {
       });
 
       // Step 2: Check if email_link is supported
-      const hasMagicLink = attempt.supported_first_factors?.some(
+      const hasMagicLink = attempt.supportedFirstFactors?.some(
         (f) => f.strategy === 'email_link'
       );
 
@@ -63,21 +63,20 @@ export default function MagicLinkSignIn() {
         return;
       }
 
-      // Step 3: Find email_address_id from supported_first_factors
-      const emailId = attempt.supported_first_factors?.find(
+      // Step 3: Find emailAddressId from supportedFirstFactors
+      const emailId = attempt.supportedFirstFactors?.find(
         (f) => f.strategy === 'email_link'
-      )?.email_address_id;
+      )?.emailAddressId;
 
       if (!emailId) {
         throw new Error('Email address ID missing');
       }
 
-      // Step 4: Prepare first factor with email_address_id
+      // Step 4: Prepare first factor with emailAddressId
       await signIn.prepareFirstFactor({
         strategy: 'email_link',
-        email_address_id: emailId,
+        emailAddressId: emailId,
         redirectUrl: `/${locale}/sso-callback`,
-        redirectUrlComplete: `/${locale}`,
       });
 
       setMagicLinkSent(true);

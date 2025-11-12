@@ -37,7 +37,7 @@ export interface WeatherDetailsProps {
 }
 
 export interface WeatherTimeNowProps {
-  timezone: number;
+  timezone: string | number;
   userTimezoneOffset?: number;
   isSameTimezone?: boolean;
   className?: string;

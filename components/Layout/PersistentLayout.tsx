@@ -49,7 +49,7 @@ export default function PersistentLayout({ children }: PersistentLayoutProps) {
   if (!isLoaded) {
     return (
       <div className="flex flex-col h-screen">
-        <main className="flex-1 overflow-y-auto">
+        <main className="flex-1 overflow-y-auto scrollbar-hide">
           {children}
         </main>
       </div>
@@ -60,7 +60,7 @@ export default function PersistentLayout({ children }: PersistentLayoutProps) {
   if (!showLayout) {
     return (
       <div className="flex flex-col h-screen">
-        <main className="flex-1 overflow-y-auto">
+        <main className="flex-1 overflow-y-auto scrollbar-hide">
           {children}
         </main>
       </div>
@@ -77,7 +77,7 @@ export default function PersistentLayout({ children }: PersistentLayoutProps) {
 
       {/* Main Content - Fixed height minus header and bottom nav */}
       <main 
-        className={`${isProfilePage || isAboutPage ? 'flex-1 overflow-y-auto pb-16' : 'h-[calc(100vh-5rem)] pt-16 pb-12 overflow-y-auto'}`}
+        className={`${isProfilePage || isAboutPage ? 'flex-1 overflow-y-auto pb-16 scrollbar-hide' : 'h-[calc(100vh-5rem)] pt-16 pb-12 overflow-y-auto scrollbar-hide'}`}
         style={{ touchAction: 'pan-y pan-x' }}
       >
         {children}

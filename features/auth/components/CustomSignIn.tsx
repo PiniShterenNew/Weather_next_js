@@ -7,10 +7,12 @@ import { useTranslations, useLocale } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
-import { Thermometer, Mail, Lock, Loader2 } from 'lucide-react';
+import { Thermometer, Mail, Loader2 } from 'lucide-react';
 import { AppLocale } from '@/types/i18n';
 import { Link } from '@/i18n/navigation';
 import AuthHeader from './AuthHeader';
+import AuthErrorMessage from './AuthErrorMessage';
+import PasswordField from './PasswordField';
 
 export default function CustomSignIn() {
   const { signIn, isLoaded, setActive } = useSignIn();
@@ -96,11 +98,7 @@ export default function CustomSignIn() {
         </div>
 
         {/* Error Message */}
-        {error && (
-          <div className="p-3 rounded-lg bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800">
-            <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
-          </div>
-        )}
+        <AuthErrorMessage message={error} />
 
         {/* OAuth Buttons */}
         <div className="space-y-2 lg:space-y-3">
@@ -169,24 +167,16 @@ export default function CustomSignIn() {
             </div>
           </div>
 
-          <div>
-            <label htmlFor="password" className="block text-xs lg:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 lg:mb-2">
-              {t('password')}
-            </label>
-            <div className="relative">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 lg:h-5 lg:w-5 text-gray-400" />
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder={t('passwordPlaceholder')}
-                className="pl-9 lg:pl-10 h-10 lg:h-12 text-sm lg:text-base"
-                required
-                disabled={isLoading}
-              />
-            </div>
-          </div>
+          <PasswordField
+            id="password"
+            value={password}
+            onChange={setPassword}
+            placeholder={t('passwordPlaceholder')}
+            required
+            disabled={isLoading}
+            label={t('password')}
+            showRequirements={false}
+          />
 
           {/* Forgot Password Link */}
           <div className="flex justify-end">

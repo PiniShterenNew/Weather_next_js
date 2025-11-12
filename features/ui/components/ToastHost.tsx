@@ -24,12 +24,16 @@ function getToastIcon(type: string) {
 }
 
 
-function ToastItem({ id, message, values, type = 'info', duration = 3000 }: {
+function ToastItem({ id, message, values, type = 'info', duration = 3000, action }: {
   id: number;
   message: string;
   values?: Record<string, string | number>;
   type?: string;
   duration?: number;
+  action?: {
+    label: string;
+    onClick: () => void;
+  };
 }) {
   const t = useTranslations();
   const hideToast = useWeatherStore((s) => s.hideToast);
@@ -42,6 +46,11 @@ function ToastItem({ id, message, values, type = 'info', duration = 3000 }: {
     }, duration);
     return () => clearTimeout(timeout);
   }, [id, hideToast, duration]);
+
+  const handleActionClick = () => {
+    action?.onClick();
+    hideToast(id);
+  };
 
   return (
     <motion.div
@@ -67,6 +76,21 @@ function ToastItem({ id, message, values, type = 'info', duration = 3000 }: {
           {t(message, values)}
         </p>
       </div>
+
+      {action && (
+        <button
+          onClick={handleActionClick}
+          className={cn(
+            'flex-shrink-0 px-3 py-1.5 rounded-lg text-sm font-medium',
+            'transition-colors duration-200',
+            'bg-gray-900 text-white hover:bg-gray-800',
+            'dark:bg-gray-100 dark:text-gray-900 dark:hover:bg-gray-200',
+            isRtl ? 'mr-2' : 'ml-2'
+          )}
+        >
+          {action.label}
+        </button>
+      )}
     </motion.div>
   );
 }

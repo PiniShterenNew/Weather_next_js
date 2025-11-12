@@ -70,7 +70,7 @@ export async function GET(request: NextRequest) {
     // Try to find city in database first
     const existing = await findCityById(cityId);
     if (existing) {
-      logger.debug(`Found existing city in database for coordinates: lat=${latNum}, lon=${lonNum}, id=${cityId}, city: ${existing.cityEn || existing.cityHe}`);
+      logger.debug(`Found existing city in database for coordinates: lat=${latNum}, lon=${lonNum}, id=${cityId}, city: ${existing.city.en || existing.city.he}`);
       
       // Validate stored coordinates match requested coordinates (within reasonable tolerance)
       const coordDiff = Math.abs(existing.lat - latNum) + Math.abs(existing.lon - lonNum);
@@ -98,7 +98,7 @@ export async function GET(request: NextRequest) {
       // Save to database
       try {
         const saved = await saveCityToDatabase(primaryInfo);
-        logger.debug(`Successfully saved city to database: ${saved.id}, city: ${saved.cityEn || saved.cityHe}`);
+        logger.debug(`Successfully saved city to database: ${saved.id}, city: ${saved.city.en || saved.city.he}`);
         return NextResponse.json(saved);
       } catch (saveError: unknown) {
         const message = saveError instanceof Error ? saveError.message : 'Unknown error';

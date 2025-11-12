@@ -61,7 +61,7 @@ export interface WeatherBundle {
   current: CurrentWeather;
   hourly: HourPoint[];
   daily: DayPoint[];
-  meta: { lat: number; lon: number; tz: string };
+  meta: { lat: number; lon: number; tz: string; currentHourIndex: number; offsetSec: number };
 }
 
 // Legacy types for backward compatibility
@@ -101,7 +101,7 @@ export interface CityWeather {
   forecast: WeatherForecastItem[];
   hourly: WeatherHourlyItem[];
   lastUpdated: number;
-  unit: string;
+  unit: 'metric' | 'imperial';
 }
 
 export interface WeatherForecastItem {
@@ -139,7 +139,7 @@ export interface CityWeatherCurrent {
   forecast: WeatherForecastItem[];
   hourly: WeatherHourlyItem[];
   lastUpdated: number;
-  unit: string;
+  unit: 'metric' | 'imperial';
   lat: number;
   lon: number;
 }
