@@ -11,7 +11,7 @@ import { useWeatherStore } from '@/store/useWeatherStore';
 import type { AppLocale } from '@/types/i18n';
 import type { CityWeather, CityWeatherCurrent } from '@/types/weather';
 import type { TemporaryUnit } from '@/types/ui';
-import { WeatherIcon } from '@/components/WeatherIcon/WeatherIcon';
+import { WeatherIcon } from '@/features/weather/components/WeatherIcon';
 
 interface WeatherListItemProps {
   cityCurrent: CityWeatherCurrent;

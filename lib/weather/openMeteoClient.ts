@@ -86,22 +86,70 @@ function mapOpenMeteoResponse(data: OpenMeteoResponse, lat: number, lon: number)
   };
 
   // Find current weather index in hourly data
-  const nowIso = data.current_weather?.time as string;
-  const idx = data.hourly?.time?.indexOf(nowIso) ?? -1;
+  // Calculate current time in city's timezone (same format as hourly.time from API)
+  // hourly.time comes in ISO format according to the city's timezone (e.g., "2024-01-01T14:00")
+  const now = new Date();
+  const cityTimeFormatter = new Intl.DateTimeFormat('en-CA', {
+    timeZone: tz,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false
+  });
+  
+  // Format current time in city timezone as ISO-like string (YYYY-MM-DDTHH:MM)
+  const cityTimeParts = cityTimeFormatter.formatToParts(now);
+  const getValue = (type: string) => cityTimeParts.find(p => p.type === type)?.value || '0';
+  
+  // Round down to nearest hour (remove minutes/seconds)
+  const cityHour = parseInt(getValue('hour'));
+  const cityNowIso = `${getValue('year')}-${getValue('month')}-${getValue('day')}T${cityHour.toString().padStart(2, '0')}:00`;
+  
+  // Try to find exact match first
+  let idx = data.hourly?.time?.indexOf(cityNowIso) ?? -1;
+  
+  // If exact match not found, find the closest future hour
+  if (idx === -1 && data.hourly?.time) {
+    const cityNowTime = new Date(cityNowIso).getTime();
+    let closestIndex = 0;
+    let minDiff = Infinity;
+    
+    data.hourly.time.forEach((hourTime, index) => {
+      const hourTimeMs = new Date(hourTime).getTime();
+      const diff = hourTimeMs - cityNowTime;
+      // Find the first future hour (or current hour if within 30 minutes)
+      if (diff >= -1800000 && diff < minDiff) { // -30 minutes to future
+        minDiff = diff;
+        closestIndex = index;
+      }
+    });
+    
+    idx = closestIndex;
+  }
+  
+  // Fallback to 0 if still not found
+  if (idx === -1) {
+    idx = 0;
+  }
   
   // Debug logging (only in development)
   if (process.env.NODE_ENV === 'development') {
     // eslint-disable-next-line no-console
     console.debug('🔍 Mapping Debug:', {
-      nowIso,
+      timezone: tz,
+      cityNowIso,
+      apiCurrentWeather: data.current_weather?.time,
       idx,
-      hourly_time_sample: data.hourly?.time?.slice(0, 3)
+      hourly_time_sample: data.hourly?.time?.slice(0, 5),
+      found_hour: data.hourly?.time?.[idx]
     });
   }
 
   // Map current weather
   const current = {
-    time: nowIso,
+    time: data.current_weather?.time || cityNowIso,
     temp: data.current_weather?.temperature ?? 0,
     feels_like: idx >= 0
       ? getHourlyNumber('apparent_temperature', idx)
@@ -196,6 +244,6 @@ function mapOpenMeteoResponse(data: OpenMeteoResponse, lat: number, lon: number)
     current, 
     hourly, 
     daily, 
-    meta: { lat, lon, tz } 
+    meta: { lat, lon, tz, currentHourIndex: idx >= 0 ? idx : 0, offsetSec: data.utc_offset_seconds } 
   };
 }

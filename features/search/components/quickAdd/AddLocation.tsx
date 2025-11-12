@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { useLocale, useTranslations } from 'next-intl';
 
 import { Button, type ButtonProperties } from '@/components/ui/button';
-import { WeatherIcon } from '@/components/WeatherIcon/WeatherIcon';
+import { WeatherIcon } from '@/features/weather/components/WeatherIcon';
 import { getDirection } from '@/lib/intl';
 import { useAppPreferencesStore } from '@/store/useAppPreferencesStore';
 import { useWeatherActions } from '@/features/weather/hooks/useWeatherActions';
@@ -61,6 +61,8 @@ const AddLocation = ({ size = 'md', type = 'default', dataTestId, onComplete }: 
       const completeWeatherData = {
         ...weatherData,
         id: cityInfo.id,
+        name: cityInfo.city || weatherData.name,
+        country: cityInfo.country || weatherData.country,
         lastUpdated: Date.now(),
         isCurrentLocation: true,
       };

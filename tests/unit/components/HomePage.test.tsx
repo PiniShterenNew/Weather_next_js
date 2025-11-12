@@ -10,7 +10,7 @@ vi.mock('@/features/weather/components/card/SwipeableWeatherCard', () => ({
     __esModule: true,
     default: () => <div data-testid="city-info" />,
 }));
-vi.mock('@/components/EmptyPage/EmptyPage', () => ({
+vi.mock('@/features/ui/components/EmptyPage', () => ({
     __esModule: true,
     default: () => <div data-testid="weather-empty" />,
 }));
@@ -21,7 +21,12 @@ vi.mock('@/components/LoadingOverlay', () => ({
 }));
 vi.mock('@/features/search/components/quickAdd/QuickCityAddModal', () => ({
     __esModule: true,
-    default: () => <div data-testid="quick-add-modal" />,
+    default: () => (
+        <div data-testid="quick-add-modal" role="dialog" aria-labelledby="dialog-title" aria-describedby="dialog-description">
+            <div id="dialog-title" role="heading">Quick Add</div>
+            <div id="dialog-description">Add a city quickly</div>
+        </div>
+    ),
 }));
 vi.mock('@/components/Settings/SettingsModal', () => ({
     __esModule: true,
@@ -32,7 +37,7 @@ vi.mock('@/features/search/components/quickAdd/AddLocation', () => ({
     default: () => <button data-testid="add-location" />,
 }));
 
-import HomePage from '@/components/HomePage/HomePage';
+import HomePage from '@/features/home/components/HomePage';
 import { act } from 'react';
 
 let mockStore: Record<string, any> = {
@@ -70,7 +75,9 @@ describe('HomePage', () => {
             vi.advanceTimersByTime(200);
         });
 
+        // The div with data-testid="weather-list" contains SwipeableWeatherCard
         expect(screen.getByTestId('weather-list')).toBeInTheDocument();
+        // SwipeableWeatherCard is mocked and renders as city-info
         expect(screen.getByTestId('city-info')).toBeInTheDocument();
     });
 
@@ -100,10 +107,12 @@ describe('HomePage', () => {
         expect(screen.getByTestId('loading-overlay')).toBeInTheDocument();
     });
 
-    it('triggers slow network warning toast after 5s if still loading', () => {
+    it('triggers slow network warning toast after 5s if still loading', async () => {
         mockStore.isLoading = true;
         render(<HomePage />);
-        vi.advanceTimersByTime(5000);
+        await act(async () => {
+            vi.advanceTimersByTime(5000);
+        });
         expect(mockStore.showToast).toHaveBeenCalledWith({
             message: 'toasts.slowNetwork',
             type: 'warning',
@@ -111,12 +120,16 @@ describe('HomePage', () => {
         });
     });
 
-    it('does not trigger toast again after loading completes', () => {
+    it('does not trigger toast again after loading completes', async () => {
         mockStore.isLoading = true;
         render(<HomePage />);
-        vi.advanceTimersByTime(5100);
+        await act(async () => {
+            vi.advanceTimersByTime(5100);
+        });
         mockStore.isLoading = false;
-        render(<HomePage />);
+        await act(async () => {
+            render(<HomePage />);
+        });
         expect(mockStore.showToast).toHaveBeenCalledTimes(1);
     });
 });

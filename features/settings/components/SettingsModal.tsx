@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import dynamic from 'next/dynamic';
 import { Settings } from 'lucide-react';
 import {
   Dialog,
@@ -11,10 +12,20 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import { useTranslations } from 'next-intl';
-import ThemeSwitcher from './ThemeSwitcher';
-import TemperatureUnitToggle from './TemperatureUnitToggle';
-import LanguageSwitcher from './LanguageSwitcher';
 import { motion } from 'framer-motion';
+
+// Lazy load settings components - only load when modal opens
+const ThemeSwitcher = dynamic(() => import('./ThemeSwitcher'), {
+  loading: () => <div className="h-10 w-32 animate-pulse bg-gray-200 dark:bg-gray-700 rounded" />,
+});
+
+const TemperatureUnitToggle = dynamic(() => import('./TemperatureUnitToggle'), {
+  loading: () => <div className="h-10 w-32 animate-pulse bg-gray-200 dark:bg-gray-700 rounded" />,
+});
+
+const LanguageSwitcher = dynamic(() => import('./LanguageSwitcher'), {
+  loading: () => <div className="h-10 w-24 animate-pulse bg-gray-200 dark:bg-gray-700 rounded" />,
+});
 
 export default function SettingsModal() {
   const [open, setOpen] = useState(false);
@@ -43,19 +54,19 @@ export default function SettingsModal() {
         </DialogHeader>
         <div className="space-y-6 py-4">
           <div className="space-y-3">
-            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-200">
               {t('settings.language')}
             </h3>
             <LanguageSwitcher />
           </div>
           <div className="space-y-3">
-            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-200">
               {t('settings.temperature')}
             </h3>
             <TemperatureUnitToggle />
           </div>
           <div className="space-y-3">
-            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-200">
               {t('settings.theme')}
             </h3>
             <ThemeSwitcher />

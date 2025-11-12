@@ -1,9 +1,9 @@
 'use client';
 
-import { formatTemperatureWithConversion } from '@/lib/helpers';
+import { formatTemperatureWithConversion, formatTimeWithTimezone } from '@/lib/helpers';
 import { WeatherHourlyItem } from '@/types/weather';
 import { TemporaryUnit } from '@/types/ui';
-import { WeatherIcon } from '@/components/WeatherIcon/WeatherIcon';
+import { WeatherIcon } from '@/features/weather/components/WeatherIcon';
 import { motion } from 'framer-motion';
 import { useLocale } from 'next-intl';
 import { Wind } from 'lucide-react';
@@ -13,14 +13,18 @@ interface HourlyForecastProps {
   hourly: WeatherHourlyItem[];
   cityUnit: TemporaryUnit;
   unit: TemporaryUnit;
+  timezone: string;
 }
 
-export default function HourlyForecast({ hourly, cityUnit, unit }: HourlyForecastProps) {
+export default function HourlyForecast({ hourly, cityUnit, unit, timezone }: HourlyForecastProps) {
   const locale = useLocale() as AppLocale;
 
   if (!hourly || hourly.length === 0) {
     return null;
   }
+
+  // Get current time in seconds for comparison
+  const now = Math.floor(Date.now() / 1000);
 
   return (
     <div className="animate-fade-in bg-blue-50/30 dark:bg-blue-950/20 rounded-2xl p-4 border border-blue-200/30 dark:border-blue-800/30" data-testid="hourly-forecast">
@@ -32,15 +36,18 @@ export default function HourlyForecast({ hourly, cityUnit, unit }: HourlyForecas
       {/* גלילה אופקית - לכל הגדלים */}
       <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
         {hourly.slice(0, 12).map((hour, index) => {
-          const hourTime = new Date(hour.time);
-          const isNow = index === 0;
+          // Convert timestamp (milliseconds) to seconds for formatTimeWithTimezone
+          const hourTimeSeconds = Math.floor(hour.time / 1000);
+          const formattedTime = formatTimeWithTimezone(hourTimeSeconds, timezone);
+          // Check if this hour is within the current hour (within 1 hour from now)
+          const isNow = index === 0 && Math.abs(hourTimeSeconds - now) < 3600;
           
           return (
             <motion.div
               key={hour.time}
-              initial={{ opacity: 0, x: 20 }}
+              initial={{ opacity: 0, x: 10 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: index * 0.05, duration: 0.3 }}
+              transition={{ delay: Math.min(index * 0.03, 0.3), duration: 0.2 }}
               className="flex-shrink-0 w-20"
             >
               <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl rounded-2xl p-3 transition-all hover-lift border border-gray-200/50 dark:border-gray-700/50 text-center">
@@ -48,11 +55,7 @@ export default function HourlyForecast({ hourly, cityUnit, unit }: HourlyForecas
                 <p className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-2">
                   {isNow 
                     ? (locale === 'he' ? 'עכשיו' : 'Now')
-                    : hourTime.toLocaleTimeString(locale === 'he' ? 'he-IL' : 'en-US', {
-                        hour: '2-digit',
-                        minute: '2-digit',
-                        hour12: false
-                      })
+                    : formattedTime
                   }
                 </p>
                 

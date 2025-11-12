@@ -81,29 +81,32 @@ const addOrReplaceCurrentLocation = async (city: CityWeather) => {
   const dataStore = useWeatherDataStore.getState();
   const { showToast } = useToastStore.getState();
 
-  if (city.isCurrentLocation) {
+  // Check if this city is already the current location
+  if (city.id === dataStore.autoLocationCityId) {
+    // City is already the current location, no need to update
     return;
   }
 
   setLoading(true);
+  
+  // Add city to store first (optimistic update)
+  dataStore.addOrReplaceCurrentLocation(city);
+  
   try {
-    const filtered = dataStore.cities.filter(
-      (existing) => existing.id !== city.id && existing.id !== dataStore.autoLocationCityId,
-    );
+    // Get updated cities after adding (which already has the new city as first)
+    const updatedCities = useWeatherDataStore.getState().cities;
+    
+    // Build payload for persistence (cities are already in correct order)
+    const updated = updatedCities.map((c) => ({
+      ...c,
+      isCurrentLocation: c.id === city.id,
+    }));
 
-    const updated = [
-      {
-        ...city,
-        isCurrentLocation: true,
-      },
-      ...filtered,
-    ];
-
+    // Try to persist to server (non-blocking - city is already in store)
     await persistPreferencesIfAuthenticated(updated);
-
-    dataStore.addOrReplaceCurrentLocation(city);
-  } catch {
-    showToast({ message: 'toasts.error', type: 'error' });
+  } catch (error) {
+    // Silently fail - city is already in store, persistence is optional
+    console.error('Failed to persist current location to server:', error);
   } finally {
     setLoading(false);
   }

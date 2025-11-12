@@ -42,7 +42,16 @@ export function useUserSync() {
       
       if (!isSignedIn) {
         // User not signed in, redirect to sign in
+        // BUT: Don't redirect if on welcome page or auth pages
         const currentPath = window.location.pathname;
+        const isWelcomePage = currentPath.includes('/welcome');
+        const isAuthPage = currentPath.includes('/sign-in') || currentPath.includes('/sign-up') || currentPath.includes('/forgot-password');
+        const isPublicPage = isWelcomePage || isAuthPage;
+        
+        if (isPublicPage) {
+          return; // Allow access to welcome/auth pages
+        }
+        
         const locale = currentPath.startsWith('/en') ? 'en' : 'he';
         router.push(`/${locale}/sign-in`);
         return;

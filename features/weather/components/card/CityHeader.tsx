@@ -4,7 +4,7 @@ import { Loader2, MapPin, Navigation, RotateCcw, Trash } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 
 import { Button } from '@/components/ui/button';
-import { WeatherIcon } from '@/components/WeatherIcon/WeatherIcon';
+import { WeatherIcon } from '@/features/weather/components/WeatherIcon';
 import WeatherTimeNow from '@/features/weather/components/WeatherTimeNow';
 import { formatTemperatureWithConversion, isSameTimezone } from '@/lib/helpers';
 import { useWeatherStore } from '@/store/useWeatherStore';
@@ -60,7 +60,7 @@ const CityHeader = ({
                 title={t('cities.refreshLocation')}
                 disabled={isRefreshingLocation}
                 aria-label={t('cities.refreshLocation')}
-                className={`h-8 w-8 transition-all hover:bg-blue-100 hover-scale text-gray-900 dark:text-white dark:hover:bg-blue-900/20 ${
+                className={`h-10 w-10 min-h-[44px] min-w-[44px] transition-all hover:bg-blue-100 hover-scale text-gray-900 dark:text-white dark:hover:bg-blue-900/20 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 ${
                   isRefreshingLocation ? 'animate-pulse' : ''
                 }`}
               >
@@ -80,7 +80,7 @@ const CityHeader = ({
               disabled={isRefreshing}
               aria-label={`${t('refresh')} ${cityWeather.name[locale] || cityWeather.name.en}`}
               aria-busy={isRefreshing}
-              className={`h-8 w-8 transition-all hover:bg-gray-100 hover-scale text-gray-900 dark:text-white dark:hover:bg-white/10 ${
+              className={`h-10 w-10 min-h-[44px] min-w-[44px] transition-all hover:bg-gray-100 hover-scale text-gray-900 dark:text-white dark:hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 ${
                 isRefreshing ? 'refresh-rotate animate-pulse ring-2 ring-brand-400/50' : ''
               }`}
             >
@@ -97,7 +97,7 @@ const CityHeader = ({
               onClick={onRemove}
               title={t('remove')}
               aria-label={`${t('remove')} ${cityWeather.name[locale] || cityWeather.name.en}`}
-              className="h-8 w-8 hover-scale text-gray-900 transition-all hover:bg-gray-100 dark:text-white dark:hover:bg-white/10"
+              className="h-10 w-10 min-h-[44px] min-w-[44px] hover-scale text-gray-900 transition-all hover:bg-gray-100 dark:text-white dark:hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
             >
               <Trash className="h-4 w-4" aria-hidden="true" />
             </Button>
@@ -108,7 +108,7 @@ const CityHeader = ({
       <div className="flex flex-col items-center gap-4 py-2 lg:hidden" data-drag-handle>
         <div className="flex items-center gap-3 animate-fade-in">
           <WeatherIcon code={String(cityLocale.current.codeId)} icon={cityLocale.current.icon} size={50} className="text-5xl text-brand-400" />
-          <p className="text-sm font-medium text-gray-600 dark:text-white/70">{cityWeather.country[locale]}</p>
+          <p className="text-sm font-medium text-gray-600 dark:text-white/85">{cityWeather.country[locale]}</p>
         </div>
 
         <div className="text-center animate-scale-in">
@@ -117,7 +117,7 @@ const CityHeader = ({
           </p>
           <p className="mt-2 text-base font-medium capitalize text-gray-700 dark:text-white/80">{cityLocale.current.desc}</p>
           <div className="mt-3 text-center">
-            <p className="text-sm text-gray-600 dark:text-white/60">
+            <p className="text-sm text-gray-600 dark:text-white/80">
               {t('feelsLike')} {cityLocale.current.feelsLike !== null ? formatTemperatureWithConversion(cityLocale.current.feelsLike, cityLocale.unit as TemporaryUnit, currentUnit as TemporaryUnit) : '--'}
             </p>
           </div>
@@ -132,7 +132,8 @@ const CityHeader = ({
         {cityLocale.current.tempMin !== undefined && cityLocale.current.tempMax !== undefined ? (
           <div className="flex items-center gap-4 text-sm tabular-nums animate-fade-in">
             <div className="hover-scale flex items-center gap-2 rounded-xl border border-red-500/30 bg-red-50 px-4 py-3 transition-all dark:bg-black/40">
-              <span className="text-lg font-bold text-red-500 dark:text-red-400" aria-label={t('high')}>
+              <span className="sr-only">{t('high')}</span>
+              <span className="text-lg font-bold text-red-500 dark:text-red-400" aria-hidden="true">
                 ↑
               </span>
               <span className="text-lg font-bold text-gray-900 dark:text-white">
@@ -140,7 +141,8 @@ const CityHeader = ({
               </span>
             </div>
             <div className="hover-scale flex items-center gap-2 rounded-xl border border-blue-500/30 bg-blue-50 px-4 py-3 transition-all dark:bg-black/40">
-              <span className="text-lg font-bold text-blue-500 dark:text-blue-400" aria-label={t('low')}>
+              <span className="sr-only">{t('low')}</span>
+              <span className="text-lg font-bold text-blue-500 dark:text-blue-400" aria-hidden="true">
                 ↓
               </span>
               <span className="text-lg font-bold text-gray-900 dark:text-white">
@@ -155,8 +157,8 @@ const CityHeader = ({
         <div className="flex items-center gap-6 animate-fade-in">
           <WeatherIcon code={String(cityLocale.current.codeId)} icon={cityLocale.current.icon} size={80} className="text-7xl text-brand-400" />
           <div className="flex flex-col gap-2">
-            <p className="text-xl font-medium capitalize text-gray-700 dark:text-white/80">{cityLocale.current.desc}</p>
-            <p className="text-base font-medium text-gray-600 dark:text-white/70">{cityWeather.country[locale]}</p>
+            <p className="text-xl font-medium capitalize text-gray-700 dark:text-white/85">{cityLocale.current.desc}</p>
+            <p className="text-base font-medium text-gray-600 dark:text-white/85">{cityWeather.country[locale]}</p>
             <WeatherTimeNow
               timezone={cityLocale.current.timezone}
               userTimezoneOffset={getUserTimezoneOffset()}
@@ -170,14 +172,15 @@ const CityHeader = ({
             {formatTemperatureWithConversion(cityLocale.current.temp, cityLocale.unit as TemporaryUnit, currentUnit as TemporaryUnit)}
           </p>
           <div className="mt-2 text-center">
-            <p className="text-lg text-gray-600 dark:text-white/60">
+            <p className="text-lg text-gray-600 dark:text-white/80">
               {t('feelsLike')} {cityLocale.current.feelsLike !== null ? formatTemperatureWithConversion(cityLocale.current.feelsLike, cityLocale.unit as TemporaryUnit, currentUnit as TemporaryUnit) : '--'}
             </p>
           </div>
           {cityLocale.current.tempMin !== undefined && cityLocale.current.tempMax !== undefined ? (
-            <div className="hover-scale mt-4 flex items-center justify-center gap-4 text-sm tabular-nums animate-fade-in">
+              <div className="hover-scale mt-4 flex items-center justify-center gap-4 text-sm tabular-nums animate-fade-in">
               <div className="flex items-center gap-2 rounded-xl border border-red-500/30 bg-red-50 px-4 py-3 transition-all dark:bg-black/40">
-                <span className="text-lg font-bold text-red-500 dark:text-red-400" aria-label={t('high')}>
+                <span className="sr-only">{t('high')}</span>
+                <span className="text-lg font-bold text-red-500 dark:text-red-400" aria-hidden="true">
                   ↑
                 </span>
                 <span className="text-lg font-bold text-gray-900 dark:text-white">
@@ -185,7 +188,8 @@ const CityHeader = ({
                 </span>
               </div>
               <div className="flex items-center gap-2 rounded-xl border border-blue-500/30 bg-blue-50 px-4 py-3 transition-all dark:bg-black/40">
-                <span className="text-lg font-bold text-blue-500 dark:text-blue-400" aria-label={t('low')}>
+                <span className="sr-only">{t('low')}</span>
+                <span className="text-lg font-bold text-blue-500 dark:text-blue-400" aria-hidden="true">
                   ↓
                 </span>
                 <span className="text-lg font-bold text-gray-900 dark:text-white">

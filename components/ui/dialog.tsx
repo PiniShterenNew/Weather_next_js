@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { useId } from "react"
 import * as DialogPrimitive from "@radix-ui/react-dialog"
 import { HTMLMotionProps, motion } from "framer-motion"
 import { cn } from "@/lib/utils"
@@ -32,23 +33,39 @@ DialogOverlay.displayName = DialogPrimitive.Overlay.displayName
 const DialogContent = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
->(({ className, children, ...props }, ref) => (
-  <DialogPortal>
-    <DialogOverlay />
-    <DialogPrimitive.Content
-      ref={ref}
-      className={cn(
-        "fixed left-1/2 top-1/2 z-[1400] grid w-[calc(100vw-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 gap-4 border border-border bg-background p-4 text-foreground shadow-elevation-3 duration-200 focus:outline-none data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] data-[state=open]:zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=closed]:zoom-out-95 sm:w-[calc(100vw-3rem)] sm:max-w-xl sm:rounded-xl sm:p-6 lg:max-w-2xl lg:p-8 xl:max-w-[42rem]",
-        className
-      )}
-      aria-modal="true"
-      {...props}
-      data-dialog-content="true"
-    >
-      {children}
-    </DialogPrimitive.Content>
-  </DialogPortal>
-))
+>(({ className, children, ...props }, ref) => {
+  const fallbackDescId = useId()
+  const describedBy = (props as any)["aria-describedby"]
+  const labelledByProp = (props as any)["aria-labelledby"]
+  const fallbackLabelId = useId()
+  const labelledBy = labelledByProp ?? fallbackLabelId
+
+  return (
+    <DialogPortal>
+      <DialogOverlay />
+      <DialogPrimitive.Content
+        ref={ref}
+        className={cn(
+          "fixed left-1/2 top-1/2 z-[1400] grid w-[calc(100vw-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 gap-4 border border-border bg-background p-4 text-foreground shadow-elevation-3 duration-200 focus:outline-none data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] data-[state=open]:zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=closed]:zoom-out-95 sm:w-[calc(100vw-3rem)] sm:max-w-xl sm:rounded-xl sm:p-6 lg:max-w-2xl lg:p-8 xl:max-w-[42rem]",
+          className
+        )}
+        aria-modal="true"
+        aria-labelledby={labelledBy}
+        aria-describedby={describedBy ?? fallbackDescId}
+        {...props}
+        data-dialog-content="true"
+      >
+        {children}
+        {labelledByProp == null && (
+          <DialogTitle id={fallbackLabelId} className="sr-only" />
+        )}
+        {!describedBy && (
+          <DialogDescription id={fallbackDescId} className="sr-only" />
+        )}
+      </DialogPrimitive.Content>
+    </DialogPortal>
+  )
+})
 DialogContent.displayName = DialogPrimitive.Content.displayName
 
 const DialogHeader = ({

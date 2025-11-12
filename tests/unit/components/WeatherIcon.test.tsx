@@ -2,7 +2,7 @@
 import { render, screen } from '@/tests/utils/renderWithIntl'
 import { vi } from 'vitest'
 import { weatherIconMapLight } from '@/lib/weatherIconMap'
-import { WeatherIcon } from '@/components/WeatherIcon/WeatherIcon'
+import { WeatherIcon } from '@/features/weather/components/WeatherIcon'
 
 // mock the theme as "light" so the component always picks weatherIconMapLight
 vi.mock('@/store/useWeatherStore', () => ({

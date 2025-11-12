@@ -1,0 +1,58 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - main [ref=e3]:
+    - generic [ref=e4]:
+      - generic [ref=e7]:
+        - generic [ref=e8]:
+          - img [ref=e10]
+          - heading "Weather App" [level=1] [ref=e12]
+        - generic [ref=e13]:
+          - button "System" [ref=e15] [cursor=pointer]
+          - combobox [ref=e17] [cursor=pointer]:
+            - img [ref=e18]
+      - generic [ref=e21]:
+        - generic [ref=e22]:
+          - img [ref=e24]
+          - generic [ref=e26]:
+            - heading "Sign In" [level=1] [ref=e27]
+            - paragraph [ref=e28]: Sign in to save your preferences and access them from any device
+        - button "Sign in with Google" [ref=e30] [cursor=pointer]:
+          - img
+          - text: Sign in with Google
+        - generic [ref=e35]: or continue with email
+        - generic [ref=e36]:
+          - generic [ref=e37]:
+            - generic [ref=e38]: Email
+            - generic [ref=e39]:
+              - img [ref=e40]
+              - textbox "Email" [ref=e43]:
+                - /placeholder: your.email@example.com
+          - generic [ref=e44]:
+            - generic [ref=e45]: Password
+            - generic [ref=e46]:
+              - img [ref=e47]
+              - textbox "Password" [ref=e50]:
+                - /placeholder: Enter your password
+              - generic [ref=e51]:
+                - button "Generate secure password" [ref=e52] [cursor=pointer]:
+                  - img
+                - button "Show password" [ref=e53] [cursor=pointer]:
+                  - img
+          - link "Forgot Password?" [ref=e55] [cursor=pointer]:
+            - /url: /en/forgot-password
+          - button "Sign In" [ref=e56] [cursor=pointer]
+        - generic [ref=e57]:
+          - paragraph [ref=e58]: or continue with email
+          - link "Send magic link →" [ref=e59] [cursor=pointer]:
+            - /url: /en/sign-in/magic-link
+        - paragraph [ref=e61]:
+          - text: Don't have an account?
+          - link "Sign Up" [ref=e62] [cursor=pointer]:
+            - /url: /en/sign-up
+        - paragraph [ref=e63]: By signing in, you agree to our Terms of Service and Privacy Policy
+  - button "Open Next.js Dev Tools" [ref=e69] [cursor=pointer]:
+    - img [ref=e70]
+  - alert [ref=e73]
+```

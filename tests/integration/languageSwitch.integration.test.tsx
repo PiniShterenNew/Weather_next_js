@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { NextIntlClientProvider } from "next-intl";
 import heMessages from "@/locales/he.json";
@@ -35,13 +35,14 @@ describe("Language Switch Integration Flow", () => {
                 <TestLanguageComponent />
             </NextIntlClientProvider>
         );
-        const switchButton = screen.getByText("he");
-        await user.click(switchButton);
-        expect(screen.getByText("he")).toBeInTheDocument();
+        // Assert initial locale
+        expect(screen.getByTestId("current-locale")).toHaveTextContent("he");
 
         const switchButton2 = screen.getByText("עבור לאנגלית");
         await user.click(switchButton2);
-        expect(screen.getByText("en")).toBeInTheDocument();
+        await waitFor(() => {
+            expect(screen.getByTestId("current-locale")).toHaveTextContent("en");
+        });
     })
     it("should show data in both languages", async () => {
         const user = userEvent.setup();
@@ -52,11 +53,15 @@ describe("Language Switch Integration Flow", () => {
         );
         const switchButton = screen.getByText("עבור לאנגלית");
         await user.click(switchButton);
-        expect(screen.getByText("en")).toBeInTheDocument();
+        await waitFor(() => {
+            expect(screen.getByTestId("current-locale")).toHaveTextContent("en");
+        });
 
         const switchButton2 = screen.getByText("Switch to Hebrew");
         await user.click(switchButton2);
-        expect(screen.getByText("he")).toBeInTheDocument();
+        await waitFor(() => {
+            expect(screen.getByTestId("current-locale")).toHaveTextContent("he");
+        });
     })
     it("should handle edge cases of language", async () => {
         const user = userEvent.setup();
@@ -65,12 +70,13 @@ describe("Language Switch Integration Flow", () => {
                 <TestLanguageComponent />
             </NextIntlClientProvider>
         );
-        const switchButton = screen.getByText("he");
-        await user.click(switchButton);
-        expect(screen.getByText("he")).toBeInTheDocument();
+        // Initial assertion
+        expect(screen.getByTestId("current-locale")).toHaveTextContent("he");
 
         const switchButton2 = screen.getByText("עבור לאנגלית");
         await user.click(switchButton2);
-        expect(screen.getByText("en")).toBeInTheDocument();
+        await waitFor(() => {
+            expect(screen.getByTestId("current-locale")).toHaveTextContent("en");
+        });
     })
 })

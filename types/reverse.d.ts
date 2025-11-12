@@ -1,9 +1,15 @@
 // types/reverse.d.ts
 
 export interface CityInfo {
-  name: string;
-  country: string;
+  id: string;
   lat: number;
   lon: number;
-  id: string;
+  city: {
+    en: string;
+    he: string;
+  };
+  country: {
+    en: string;
+    he: string;
+  };
 }

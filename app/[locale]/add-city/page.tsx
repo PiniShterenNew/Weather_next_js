@@ -17,10 +17,11 @@ export default function AddCityPage() {
   const locale = useLocale() as AppLocale;
   const router = useRouter();
   const direction = getDirection(locale);
-  const { cities } = useWeatherStore();
+  const { cities, autoLocationCityId } = useWeatherStore();
   
   // Show add location button only if there's no current location city in the list
-  const hasCurrentLocationCity = cities.some(city => city.isCurrentLocation === true);
+  // Check both isCurrentLocation flag and autoLocationCityId to be safe
+  const hasCurrentLocationCity = autoLocationCityId !== undefined || cities.some(city => city.isCurrentLocation === true);
   const showAddLocation = !hasCurrentLocationCity;
 
   const handleCitySelect = () => {
@@ -29,7 +30,7 @@ export default function AddCityPage() {
   };
 
   return (
-    <div className="bg-gradient-to-b from-blue-50 to-white dark:from-[#0d1117] dark:to-[#1b1f24] overflow-x-hidden scrollbar-none">
+    <div className="bg-gradient-to-b from-blue-50 to-white dark:from-[#0d1117] dark:to-[#1b1f24] overflow-x-hidden overflow-y-auto scrollbar-hide">
       {/* Header */}
       <div className="flex items-center justify-between p-6 pb-4 w-full">
         <h1 className="text-2xl font-bold text-neutral-800 dark:text-white/90 flex items-center gap-3">
@@ -38,7 +39,7 @@ export default function AddCityPage() {
         </h1>
       </div>
 
-      <div className="px-6 pb-32 space-y-6 w-full">
+      <div className="px-6 space-y-6 w-full">
         {/* Search Input */}
         <div className="relative">
           <Suspense fallback={<Skeleton className="h-12 w-full rounded-lg" />}>

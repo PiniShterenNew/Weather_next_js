@@ -7,10 +7,12 @@ import { useTranslations, useLocale } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
-import { Thermometer, Mail, Lock, User, Loader2 } from 'lucide-react';
+import { Thermometer, Mail, Loader2 } from 'lucide-react';
 import { AppLocale } from '@/types/i18n';
 import { Link } from '@/i18n/navigation';
 import AuthHeader from './AuthHeader';
+import AuthErrorMessage from './AuthErrorMessage';
+import PasswordField from './PasswordField';
 
 export default function CustomSignUp() {
   const { signUp, isLoaded, setActive } = useSignUp();
@@ -19,15 +21,14 @@ export default function CustomSignUp() {
   const t = useTranslations('auth');
   const locale = useLocale() as AppLocale;
   
-  // Redirect if already signed in
+  // Redirect if already signed in (but not during verification flow)
   useEffect(() => {
-    if (userLoaded && isSignedIn) {
-      router.push(`/${locale}`);
+    if (userLoaded && isSignedIn && !verifying) {
+      // Use window.location to avoid React Router hook issues
+      window.location.href = `/${locale}`;
     }
-  }, [userLoaded, isSignedIn, router, locale]);
+  }, [userLoaded, isSignedIn, locale, verifying]);
   
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -40,14 +41,25 @@ export default function CustomSignUp() {
     
     if (!isLoaded) return;
     
+    // Validate inputs
+    const trimmedEmail = email.trim();
+    
+    if (!trimmedEmail) {
+      setError(locale === 'he' ? 'אימייל נדרש' : 'Email is required');
+      return;
+    }
+    
+    if (!password || password.length < 8) {
+      setError(locale === 'he' ? 'הסיסמה חייבת להכיל לפחות 8 תווים' : 'Password must be at least 8 characters');
+      return;
+    }
+    
     setIsLoading(true);
     setError('');
 
     try {
       await signUp.create({
-        firstName,
-        lastName,
-        emailAddress: email,
+        emailAddress: trimmedEmail,
         password,
       });
 
@@ -55,8 +67,59 @@ export default function CustomSignUp() {
       await signUp.prepareEmailAddressVerification({ strategy: 'email_code' });
       setVerifying(true);
     } catch (err: unknown) {
-      const error = err as { errors?: Array<{ message: string }> };
-      setError(error.errors?.[0]?.message || t('signUpError'));
+      // Only log errors in development, not the raw error message to user
+      if (process.env.NODE_ENV === 'development') {
+        console.error('Sign up error:', err);
+      }
+      
+      // Handle ClerkError format
+      if (err && typeof err === 'object') {
+        const clerkError = err as {
+          errors?: Array<{ 
+            message: string; 
+            long_message?: string;  // Clerk uses snake_case
+            longMessage?: string;   // Fallback for camelCase
+            code?: string;
+            meta?: Record<string, unknown>;
+          }>;
+          message?: string;
+          status?: number;
+        };
+        
+        if (!clerkError.errors || clerkError.errors.length === 0) {
+          setError(clerkError.message || t('signUpError'));
+          return;
+        }
+        
+        // Collect all meaningful error messages
+        const errorMessages: string[] = [];
+        
+        for (const error of clerkError.errors) {
+          const errorCode = error.code || '';
+          const errorMessage = error.long_message || error.longMessage || error.message || '';
+          
+          if (errorCode === 'form_password_pwned') {
+            errorMessages.push(locale === 'he' 
+              ? 'הסיסמה שנבחרה נמצאה בפריצת נתונים. אנא בחר סיסמה אחרת.' 
+              : 'Password has been found in an online data breach. Please use a different password.');
+          } else if (errorCode === 'form_identifier_exists') {
+            errorMessages.push(locale === 'he' 
+              ? 'כתובת האימייל כבר רשומה במערכת' 
+              : 'This email address is already registered');
+          } else if (errorMessage) {
+            errorMessages.push(errorMessage);
+          }
+        }
+        
+        // Display the most relevant error (or combine them)
+        if (errorMessages.length > 0) {
+          setError(errorMessages[0]); // Show the first/most important error
+        } else {
+          setError(t('signUpError'));
+        }
+      } else {
+        setError(t('signUpError'));
+      }
     } finally {
       setIsLoading(false);
     }
@@ -77,11 +140,29 @@ export default function CustomSignUp() {
 
       if (result.status === 'complete') {
         await setActive({ session: result.createdSessionId });
-        router.push(`/${locale}`);
+        // Use window.location to avoid React Router hook issues during redirect
+        window.location.href = `/${locale}`;
       }
     } catch (err: unknown) {
-      const error = err as { errors?: Array<{ message: string }> };
-      setError(error.errors?.[0]?.message || t('verificationError'));
+      console.error('Verification error:', err);
+      
+      // Handle ClerkError format
+      if (err && typeof err === 'object') {
+        const clerkError = err as {
+          errors?: Array<{ message: string; longMessage?: string; code?: string }>;
+          message?: string;
+        };
+        
+        const errorMessage = 
+          clerkError.errors?.[0]?.longMessage || 
+          clerkError.errors?.[0]?.message || 
+          clerkError.message ||
+          t('verificationError');
+        
+        setError(errorMessage);
+      } else {
+        setError(t('verificationError'));
+      }
     } finally {
       setIsLoading(false);
     }
@@ -91,6 +172,7 @@ export default function CustomSignUp() {
     if (!isLoaded) return;
 
     setIsLoading(true);
+    setError('');
     try {
       await signUp.authenticateWithRedirect({
         strategy,
@@ -98,8 +180,25 @@ export default function CustomSignUp() {
         redirectUrlComplete: `/${locale}`,
       });
     } catch (err: unknown) {
-      const error = err as { errors?: Array<{ message: string }> };
-      setError(error.errors?.[0]?.message || t('signUpError'));
+      console.error('OAuth sign up error:', err);
+      
+      // Handle ClerkError format
+      if (err && typeof err === 'object') {
+        const clerkError = err as {
+          errors?: Array<{ message: string; longMessage?: string; code?: string }>;
+          message?: string;
+        };
+        
+        const errorMessage = 
+          clerkError.errors?.[0]?.longMessage || 
+          clerkError.errors?.[0]?.message || 
+          clerkError.message ||
+          t('signUpError');
+        
+        setError(errorMessage);
+      } else {
+        setError(t('signUpError'));
+      }
       setIsLoading(false);
     }
   };
@@ -124,11 +223,7 @@ export default function CustomSignUp() {
             </div>
           </div>
 
-          {error && (
-            <div className="p-3 rounded-lg bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800">
-              <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
-            </div>
-          )}
+          <AuthErrorMessage message={error} />
 
           <form onSubmit={handleVerification} className="space-y-4">
             <div>
@@ -199,11 +294,7 @@ export default function CustomSignUp() {
         </div>
 
         {/* Error Message */}
-        {error && (
-          <div className="p-3 rounded-lg bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800">
-            <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
-          </div>
-        )}
+        <AuthErrorMessage message={error} />
 
         {/* OAuth Buttons */}
         <div className="space-y-2 lg:space-y-3">
@@ -253,43 +344,9 @@ export default function CustomSignUp() {
 
         {/* Email/Password Form */}
         <form onSubmit={handleEmailSignUp} className="space-y-3 lg:space-y-4">
-          <div className="grid grid-cols-2 gap-3 lg:gap-4">
-            <div>
-              <label htmlFor="firstName" className="block text-xs lg:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 lg:mb-2">
-                {t('firstName')}
-              </label>
-              <div className="relative">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 lg:h-5 lg:w-5 text-gray-400" />
-                <Input
-                  id="firstName"
-                  type="text"
-                  value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
-                  placeholder={t('firstNamePlaceholder')}
-                  className="pl-9 lg:pl-10 h-10 lg:h-12 text-sm lg:text-base"
-                  required
-                  disabled={isLoading}
-                />
-              </div>
-            </div>
-
-            <div>
-              <label htmlFor="lastName" className="block text-xs lg:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 lg:mb-2">
-                {t('lastName')}
-              </label>
-              <Input
-                id="lastName"
-                type="text"
-                value={lastName}
-                onChange={(e) => setLastName(e.target.value)}
-                placeholder={t('lastNamePlaceholder')}
-                className="h-10 lg:h-12 text-sm lg:text-base"
-                required
-                disabled={isLoading}
-              />
-            </div>
-          </div>
-
+          {/* Clerk CAPTCHA widget container */}
+          <div id="clerk-captcha" className="sr-only" aria-hidden="true" />
+          
           <div>
             <label htmlFor="email" className="block text-xs lg:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 lg:mb-2">
               {t('email')}
@@ -309,28 +366,17 @@ export default function CustomSignUp() {
             </div>
           </div>
 
-          <div>
-            <label htmlFor="password" className="block text-xs lg:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 lg:mb-2">
-              {t('password')}
-            </label>
-            <div className="relative">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 lg:h-5 lg:w-5 text-gray-400" />
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder={t('passwordPlaceholder')}
-                className="pl-9 lg:pl-10 h-10 lg:h-12 text-sm lg:text-base"
-                required
-                disabled={isLoading}
-                minLength={8}
-              />
-            </div>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-              {t('passwordRequirements')}
-            </p>
-          </div>
+          <PasswordField
+            id="password"
+            value={password}
+            onChange={setPassword}
+            placeholder={t('passwordPlaceholder')}
+            required
+            disabled={isLoading}
+            minLength={8}
+            label={t('password')}
+            showRequirements
+          />
 
           <Button
             type="submit"

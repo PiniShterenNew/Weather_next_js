@@ -71,13 +71,22 @@ export const useWeatherDataStore = create<WeatherDataStore>((set, get) => ({
     }),
   addOrReplaceCurrentLocation: (city) =>
     set((state) => {
+      // Remove the old current location and the new city if it already exists
       const filtered = state.cities.filter((existing) => existing.id !== city.id && existing.id !== state.autoLocationCityId);
+      
+      // Remove isCurrentLocation flag from all remaining cities
+      const citiesWithoutCurrentLocation = filtered.map((c) => ({
+        ...c,
+        isCurrentLocation: false,
+      }));
+      
       const updatedCity: CityWeather = {
         ...city,
         isCurrentLocation: true,
       };
+      
       return {
-        cities: [updatedCity, ...filtered],
+        cities: [updatedCity, ...citiesWithoutCurrentLocation],
         currentIndex: 0,
         autoLocationCityId: updatedCity.id,
       };
@@ -90,6 +99,7 @@ export const useWeatherDataStore = create<WeatherDataStore>((set, get) => ({
     set((state) => {
       const filtered = state.cities.filter((city) => city.id !== id);
       const removedIndex = state.cities.findIndex((city) => city.id === id);
+      const isRemovingCurrentLocation = id === state.autoLocationCityId;
       let nextIndex = state.currentIndex;
 
       if (removedIndex === state.currentIndex) {
@@ -102,10 +112,15 @@ export const useWeatherDataStore = create<WeatherDataStore>((set, get) => ({
         nextIndex = 0;
       }
 
+      // If removing current location, remove isCurrentLocation flag from all remaining cities
+      const updatedCities = isRemovingCurrentLocation
+        ? filtered.map((city) => ({ ...city, isCurrentLocation: false }))
+        : filtered;
+
       return {
-        cities: filtered,
+        cities: updatedCities,
         currentIndex: nextIndex,
-        autoLocationCityId: id === state.autoLocationCityId ? undefined : state.autoLocationCityId,
+        autoLocationCityId: isRemovingCurrentLocation ? undefined : state.autoLocationCityId,
       };
     }),
   setCurrentIndex: (index) => {

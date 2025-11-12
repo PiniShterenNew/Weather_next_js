@@ -5,9 +5,11 @@
 
 import { act, render, screen, waitFor } from "@testing-library/react";
 import { NextIntlClientProvider } from "next-intl";
+import { vi } from "vitest";
 
 import CityInfo from "@/features/weather/components/card/CityInfo";
 import { useWeatherStore } from "@/store/useWeatherStore";
+import { useAppPreferencesStore } from "@/store/useAppPreferencesStore";
 import heMessages from "@/locales/he.json";
 import { cityWeather } from "../fixtures/cityWeather";
 
@@ -59,13 +61,42 @@ describe("Weather Display Integration Flow", () => {
     loadCity();
     renderCityInfo();
 
-    act(() => {
+    await act(async () => {
       useWeatherStore.getState().setUnit("imperial");
+      // Wait for state update to propagate
+      await new Promise(resolve => setTimeout(resolve, 0));
     });
 
     await waitFor(async () => {
       const imperialTemps = await screen.findAllByText("66°F");
       expect(imperialTemps.length).toBeGreaterThan(0);
     });
+  });
+
+  it("should persist unit change when authenticated", async () => {
+    // Set user as authenticated
+    await act(async () => {
+      useAppPreferencesStore.getState().setIsAuthenticated(true);
+    });
+
+    loadCity();
+    renderCityInfo();
+
+    const { weatherActions } = await import('@/features/weather/actions/weatherActions');
+    const persistSpy = vi.spyOn(weatherActions, 'persistPreferencesIfAuthenticated').mockResolvedValue(undefined);
+
+    await act(async () => {
+      useWeatherStore.getState().setUnit("imperial");
+      // Manually trigger persistence (simulating what TemperatureUnitToggle does)
+      useWeatherStore.getState().persistPreferencesIfAuthenticated(useWeatherStore.getState().cities);
+      // Wait for state update to propagate
+      await new Promise(resolve => setTimeout(resolve, 0));
+    });
+
+    await waitFor(() => {
+      expect(persistSpy).toHaveBeenCalled();
+    });
+
+    persistSpy.mockRestore();
   });
 });

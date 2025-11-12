@@ -28,6 +28,9 @@ export function SuggestionItem({
     }
   };
 
+  const cityName = suggestion.city[locale] || suggestion.city.en;
+  const countryName = suggestion.country[locale] || suggestion.country.en;
+
   return (
     <button
       type="button"
@@ -35,7 +38,7 @@ export function SuggestionItem({
       onKeyDown={handleKeyDown}
       disabled={isAdding}
       className={cn(
-        "w-full px-4 py-3 hover:bg-muted/50 focus:bg-muted/50 focus:outline-none transition-colors",
+        "w-full px-4 py-3 hover:bg-muted/50 focus:bg-muted/50 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 transition-colors",
         "first:rounded-t-lg last:rounded-b-lg",
         direction === 'rtl' ? 'text-right' : 'text-left',
         isSelected && "bg-muted/50",
@@ -43,6 +46,7 @@ export function SuggestionItem({
         className
       )}
       aria-selected={isSelected}
+      aria-label={`${cityName}, ${countryName}`}
       role="option"
     >
       <div className={cn(

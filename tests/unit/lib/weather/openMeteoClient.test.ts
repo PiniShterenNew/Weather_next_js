@@ -177,7 +177,9 @@ describe('fetchOpenMeteo', () => {
       meta: {
         lat: 32.0853,
         lon: 34.7818,
-        tz: 'Asia/Jerusalem'
+        tz: 'Asia/Jerusalem',
+        currentHourIndex: expect.any(Number),
+        offsetSec: 10800
       }
     });
   });

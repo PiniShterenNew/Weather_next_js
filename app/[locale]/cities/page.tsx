@@ -17,7 +17,7 @@ export default function CitiesPage() {
   }, []);
 
   return (
-    <div className="h-full bg-gradient-to-b from-blue-50 to-white dark:from-[#0d1117] dark:to-[#1b1f24]">
+    <div className="h-full bg-gradient-to-b from-blue-50 to-white dark:from-[#0d1117] dark:to-[#1b1f24] overflow-y-auto scrollbar-hide">
       {/* Header */}
       <div className="flex items-center justify-between p-6 pb-4">
         <h1 className="text-2xl font-semibold text-neutral-800 dark:text-white/90">
@@ -25,7 +25,7 @@ export default function CitiesPage() {
         </h1>
       </div>
 
-      <div className="px-6 pb-20 space-y-6">
+      <div className="px-6 pb-12 space-y-6">
         {/* Cities Search Bar */}
         <div className="relative">
           <Suspense fallback={<Skeleton className="h-12 w-full rounded-xl" />}>

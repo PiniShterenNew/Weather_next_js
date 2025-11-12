@@ -8,4 +8,8 @@ export interface ToastMessage {
   type?: 'success' | 'error' | 'warning' | 'info';
   duration?: number;
   values?: Record<string, string>;
+  action?: {
+    label: string;
+    onClick: () => void;
+  };
 }

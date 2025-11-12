@@ -259,3 +259,36 @@ vi.mock('@/lib/helpers', async () => {
         }),
     };
 });
+
+// Mock useLocationRefresh hook
+vi.mock('@/features/location/hooks/useLocationRefresh', () => ({
+    useLocationRefresh: () => ({
+        isRefreshingLocation: false,
+        handleRefreshLocation: vi.fn(),
+    }),
+}));
+
+// Silence specific, known noisy warnings in tests (Radix Dialog a11y guidance and React act())
+const originalError = console.error;
+const originalWarn = console.warn;
+const noisyPatterns = [
+    /DialogContent.*requires a `DialogTitle`/i,
+    /Missing `Description`.*aria-describedby/i,
+    /not wrapped in act\(.*\)/i,
+];
+console.error = (...args: unknown[]) => {
+    const msg = (args[0] as string) ?? '';
+    if (typeof msg === 'string' && noisyPatterns.some((p) => p.test(msg))) {
+        return;
+    }
+    // @ts-expect-error pass-through
+    originalError(...args);
+};
+console.warn = (...args: unknown[]) => {
+    const msg = (args[0] as string) ?? '';
+    if (typeof msg === 'string' && noisyPatterns.some((p) => p.test(msg))) {
+        return;
+    }
+    // @ts-expect-error pass-through
+    originalWarn(...args);
+};

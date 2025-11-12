@@ -61,7 +61,7 @@ export interface WeatherBundle {
   current: CurrentWeather;
   hourly: HourPoint[];
   daily: DayPoint[];
-  meta: { lat: number; lon: number; tz: string };
+  meta: { lat: number; lon: number; tz: string; currentHourIndex: number; offsetSec: number };
 }
 
 // Legacy types for backward compatibility

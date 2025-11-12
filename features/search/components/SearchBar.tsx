@@ -2,17 +2,19 @@
 
 import React from 'react';
 import { useEffect, useState, useRef, Suspense } from 'react';
-import { fetchSuggestions, fetchWeather } from '@/features/weather';
+import { fetchWeather } from '@/features/weather';
 import { useWeatherStore } from '@/store/useWeatherStore';
-import { Input } from '@/components/ui/input';
-import { Search, X, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 import type { CitySuggestion } from '@/types/suggestion';
-import { useDebounce } from '@/lib/useDebounce';
+import { useDebounce } from '@/hooks/useDebounce';
 import { AppLocale } from '@/types/i18n';
 import { getDirection } from '@/lib/intl';
 import { cn } from '@/lib/utils';
 import { SuggestionsList } from './SuggestionsList';
+import SearchInput from './SearchInput';
+import { useSearchKeyboard } from '../hooks/useSearchKeyboard';
+import { useSearchSuggestions } from '../hooks/useSearchSuggestions';
 import { SearchBarProps } from '../types';
 
 /**
@@ -26,12 +28,7 @@ export default function SearchBar({ onSelect, placeholder, className }: SearchBa
   const [query, setQuery] = useState('');
   const debouncedQuery = useDebounce(query, 400);
 
-  const [suggestions, setSuggestions] = useState<CitySuggestion[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [hasSearched, setHasSearched] = useState(false);
-  const [selectedIndex, setSelectedIndex] = useState(-1);
   const [isAdding, setIsAdding] = useState<string | null>(null);
-
   const [showDropdown, setShowDropdown] = useState(false);
   const [focused, setFocused] = useState(false);
 
@@ -43,46 +40,8 @@ export default function SearchBar({ onSelect, placeholder, className }: SearchBa
   const showToast = useWeatherStore((s) => s.showToast);
   const setIsLoading = useWeatherStore((s) => s.setIsLoading);
 
-  // Handle search input
-  useEffect(() => {
-    if (!debouncedQuery || debouncedQuery.length < 2) {
-      setSuggestions([]);
-      setHasSearched(false);
-      setSelectedIndex(-1);
-      setLoading(false);
-      return;
-    }
-
-    setLoading(true);
-    setSelectedIndex(-1);
-
-    let isCurrentRequest = true;
-
-    fetchSuggestions(debouncedQuery, locale)
-      .then((results) => {
-        // Only update state if this is still the current request
-        if (isCurrentRequest) {
-          setSuggestions(results);
-          setHasSearched(true);
-        }
-      })
-      .catch(() => {
-        if (isCurrentRequest) {
-          setSuggestions([]);
-          setHasSearched(true);
-        }
-      })
-      .finally(() => {
-        if (isCurrentRequest) {
-          setLoading(false);
-        }
-      });
-
-    // Cleanup function to cancel outdated requests
-    return () => {
-      isCurrentRequest = false;
-    };
-  }, [debouncedQuery, locale]); // Remove loading dependency to prevent infinite loop
+  const { suggestions, loading, hasSearched } = useSearchSuggestions(debouncedQuery, locale);
+  const { selectedIndex, handleKeyDown: handleKeyboardKeyDown, setSelectedIndex } = useSearchKeyboard();
 
   // Handle dropdown display
   useEffect(() => {
@@ -112,32 +71,14 @@ export default function SearchBar({ onSelect, placeholder, className }: SearchBa
     };
   }, [query.length, showDropdown, focused]);
 
+  // Reset selected index when suggestions change
+  useEffect(() => {
+    setSelectedIndex(-1);
+  }, [suggestions, setSelectedIndex]);
+
   // Handle keyboard navigation
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (!showDropdown || suggestions.length === 0) return;
-
-    switch (e.key) {
-      case 'ArrowDown':
-        e.preventDefault();
-        setSelectedIndex(prev =>
-          prev < suggestions.length - 1 ? prev + 1 : prev
-        );
-        break;
-      case 'ArrowUp':
-        e.preventDefault();
-        setSelectedIndex(prev => prev > 0 ? prev - 1 : -1);
-        break;
-      case 'Enter':
-        e.preventDefault();
-        if (selectedIndex >= 0 && selectedIndex < suggestions.length) {
-          handleSelect(suggestions[selectedIndex]);
-        }
-        break;
-      case 'Escape':
-        setShowDropdown(false);
-        inputRef.current?.blur();
-        break;
-    }
+    handleKeyboardKeyDown(e, suggestions, handleSelect, inputRef, showDropdown, setShowDropdown);
   };
 
   // Handle city selection
@@ -222,8 +163,6 @@ export default function SearchBar({ onSelect, placeholder, className }: SearchBa
   // Clear search input
   const clearSearch = () => {
     setQuery('');
-    setSuggestions([]);
-    setHasSearched(false);
     setSelectedIndex(-1);
     setShowDropdown(false);
     inputRef.current?.blur();
@@ -246,59 +185,18 @@ export default function SearchBar({ onSelect, placeholder, className }: SearchBa
   return (
     <div className={`relative w-full ${className || ''}`} dir={direction}>
       <div className="flex items-center gap-2">
-        <div className="relative flex-grow">
-          <Input
-            ref={inputRef}
-            type="text"
-            value={query}
-            data-testid="city-search-input"
-            onFocus={() => setFocused(true)}
-            onBlur={() => setFocused(false)}
-            onChange={(e) => {
-              // Normalize input to avoid mixed-direction artifacts like "לL oאnבdיoבn"
-              const raw = e.target.value;
-              const normalized = raw.normalize('NFC').replace(/\u200e|\u200f|\u202a|\u202b|\u202c|\u202d|\u202e/g, '');
-              setQuery(normalized);
-              if (!focused) setFocused(true);
-            }}
-            onKeyDown={handleKeyDown}
-            placeholder={placeholder || t('search.placeholder')}
-            aria-label={placeholder || t('search.placeholder')}
-            className={cn(
-              "w-full h-12 !text-lg shadow-sm transition-all rounded-2xl",
-              "bg-white/60 dark:bg-white/5 backdrop-blur-md border border-white/10",
-              "focus-visible:ring-sky-500/30 focus-visible:ring-2",
-              "focus-visible:border-sky-500/50",
-              direction === 'rtl' ? 'text-right pl-12 pr-8' : 'text-left pl-12 pr-8'
-            )}
-          />
-          <div className={cn(
-            "absolute top-1/2 transform -translate-y-1/2 transition-all duration-200",
-            direction === 'rtl' ? 'right-3' : 'left-3'
-          )}>
-            {loading ? (
-              <Loader2 className="h-5 w-5 animate-spin text-primary" role="status">
-                <span className="sr-only">{t('search.loading')}</span>
-              </Loader2>
-            ) : (
-              <Search className="h-5 w-5 text-muted-foreground" />
-            )}
-          </div>
-          {query && (
-            <button
-              type="button"
-              onClick={clearSearch}
-              className={cn(
-                "absolute top-1/2 transform -translate-y-1/2 p-1 rounded-full hover:bg-muted transition-colors",
-                direction === 'rtl' ? 'left-3' : 'right-3'
-              )}
-              title={t('search.clear')}
-              aria-label={t('search.clear')}
-            >
-              <X className="h-4 w-4 text-muted-foreground hover:text-foreground" role="presentation" />
-            </button>
-          )}
-        </div>
+        <SearchInput
+          query={query}
+          loading={loading}
+          locale={locale}
+          direction={direction}
+          placeholder={placeholder}
+          onQueryChange={setQuery}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
+          onKeyDown={handleKeyDown}
+          onClear={clearSearch}
+        />
       </div>
 
       {showDropdown && (

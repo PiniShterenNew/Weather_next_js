@@ -20,8 +20,8 @@ import OfflineFallback from '@/components/OfflineFallback/OfflineFallback.lazy';
 import PersistentLayout from '@/components/Layout/PersistentLayout';
 import NotificationHandler from '@/components/NotificationHandler';
 import BootstrapHydrator from '@/providers/BootstrapHydrator';
-import LocationTracker from '@/components/Location/LocationTracker';
-import LocationChangeDialog from '@/components/Location/LocationChangeDialog';
+import LocationTracker from '@/features/location/components/LocationTracker';
+import LocationChangeDialog from '@/features/location/components/LocationChangeDialog';
 
 // Updated type definition for Next.js 15 - params is now a Promise
 type LayoutProps<T> = {

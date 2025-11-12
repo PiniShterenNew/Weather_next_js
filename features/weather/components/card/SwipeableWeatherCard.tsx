@@ -40,7 +40,13 @@ const SwipeableWeatherCard = () => {
 
     const target = event.target as HTMLElement;
 
-    if (target.closest('button') || target.closest('[role="button"]') || target.closest('input') || target.closest('select')) {
+    // Don't interfere with buttons, inputs, or selects
+    if (
+      target.closest('button') ||
+      target.closest('[role="button"]') ||
+      target.closest('input') ||
+      target.closest('select')
+    ) {
       return;
     }
 
@@ -51,6 +57,8 @@ const SwipeableWeatherCard = () => {
       return;
     }
 
+    // For touch, allow swipe detection even on scrollable areas
+    // We'll determine direction in handlePointerMove
     pointerStateRef.current = {
       id: event.pointerId,
       x: event.clientX,
@@ -148,7 +156,7 @@ const SwipeableWeatherCard = () => {
   return (
     <motion.div
       ref={containerRef}
-      className="select-none overflow-hidden rounded-3xl border border-white/20 bg-white/80 shadow-sm backdrop-blur-xl dark:border-gray-700/30 dark:bg-gray-900/80"
+      className="select-none rounded-3xl border border-white/20 bg-white/80 shadow-sm backdrop-blur-xl dark:border-gray-700/30 dark:bg-gray-900/80"
       role="region"
       aria-label="Weather information"
       aria-live="polite"
@@ -168,7 +176,8 @@ const SwipeableWeatherCard = () => {
         scale,
         userSelect: 'none',
         WebkitUserSelect: 'none',
-        touchAction: 'pan-x pan-y',
+        touchAction: 'pan-x',
+        height: '100%',
       }}
       transition={{
         type: 'spring',

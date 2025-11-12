@@ -9,10 +9,20 @@ export default function TemperatureUnitToggle() {
   const unitTranslations = useTranslations('unit');
   const unit = useWeatherStore((s) => s.unit);
   const setUnit = useWeatherStore((s) => s.setUnit);
+  const persistPreferencesIfAuthenticated = useWeatherStore((s) => s.persistPreferencesIfAuthenticated);
+  const cities = useWeatherStore((s) => s.cities);
 
-  const handleUnitChange = (newUnit: 'metric' | 'imperial') => {
+  const handleUnitChange = async (newUnit: 'metric' | 'imperial') => {
     if (newUnit === unit) return;
     setUnit(newUnit);
+    
+    // Persist preferences to server if authenticated
+    try {
+      await persistPreferencesIfAuthenticated(cities);
+    } catch (error) {
+      // Silently fail - the unit change is still applied locally
+      console.error('Failed to persist unit preference:', error);
+    }
     
     // Show toast notification
     useWeatherStore.getState().showToast({
