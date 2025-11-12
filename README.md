@@ -9,7 +9,7 @@ Production‑ready, bilingual (HE/EN) weather PWA. Built with Next.js 15 (App Ro
 - **State**: **Zustand** with selectors; minimal global store, per‑feature stores.
 - **i18n + RTL**: `next-intl`, automatic direction handling, Hebrew/English UIs.
 - **PWA**: Offline mode, installable, Workbox service workers.
-- **Testing**: 420+ passing tests (Vitest unit/integration, Playwright E2E).
+- **Testing**: 450+ passing tests (Vitest unit/integration, Playwright E2E).
 - **Accessibility**: WCAG 2.2 AA baseline, keyboard and aria support.
 
 ### Key Features
@@ -47,4 +47,30 @@ tests/, e2e/          Unit/integration (Vitest) and E2E (Playwright)
 - Files kept under 300 LOC; large components split into sub‑components.
 - RTL spacing and layout handled with structural separation over ad‑hoc margins.
 
-If you’re reviewing for hiring: this codebase showcases production‑minded structure, internationalization depth, accessibility care, and reliable test coverage in a modern React/Next stack.
+---
+
+## Troubleshooting • פתרון תקלות
+
+| Symptom | Possible Cause | Fix |
+| --- | --- | --- |
+| `[ERROR] Bootstrap request errored "Authorization token is required..."` | Clerk session missing, AdBlock blocking requests, network change | Ensure you're signed in, disable blocking extensions, confirm `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` / `CLERK_SECRET_KEY` and retry (auto backoff runs 3 times before redirect). |
+| City search returns empty | `GEOAPIFY_KEY` missing/invalid | Add key, restart dev server. |
+| Swipe feels stuck / vertical scroll disabled | Check `SwipeableWeatherCard` pointer capture | Fixed in current build – ensure you pulled latest or clear browser cache. |
+| Duplicate/weather icons overlapped | Clear browser cache + ensure CSS compiled. If persists, verify `WeatherIcon` usage (only single icon per slot). |
+| Prisma errors on start | `DATABASE_URL` not set | Use SQLite default: `DATABASE_URL="file:./dev.db"` or your DB connection string. |
+
+---
+
+## Contributing • תרומה
+
+1. Fork + branch (`feature/your-change`).  
+2. Run `npm run lint && npm run test`.  
+3. Submit PR with summary + screenshots (RTL + LTR).  
+
+תהליכי הפיתוח (RTL, Zustand, Clerk, בדיקות) מתועדים תחת `/features/*/ARCHITECTURE.md`.
+
+---
+
+If you're reviewing for hiring: this codebase showcases production‑minded structure, internationalization depth, accessibility care, and reliable test coverage in a modern React/Next stack.
+
+Enjoy the storm. 🌩️ | תיהנו מהסערה. 🌧️
