@@ -84,6 +84,7 @@ export function useLocationRefresh(): UseLocationRefreshReturn {
               });
             } catch (weatherError) {
               // If weather fetch fails, still show success but log error
+              // eslint-disable-next-line no-console
               console.error('Failed to fetch weather for new location:', weatherError);
               showToast({
                 message: 'toasts.locationUpdated',

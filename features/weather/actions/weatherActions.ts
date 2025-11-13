@@ -79,7 +79,6 @@ const addCity = async (city: CityWeather, options: AddCityOptions = {}) => {
 
 const addOrReplaceCurrentLocation = async (city: CityWeather) => {
   const dataStore = useWeatherDataStore.getState();
-  const { showToast } = useToastStore.getState();
 
   // Check if this city is already the current location
   if (city.id === dataStore.autoLocationCityId) {
@@ -106,6 +105,7 @@ const addOrReplaceCurrentLocation = async (city: CityWeather) => {
     await persistPreferencesIfAuthenticated(updated);
   } catch (error) {
     // Silently fail - city is already in store, persistence is optional
+    // eslint-disable-next-line no-console
     console.error('Failed to persist current location to server:', error);
   } finally {
     setLoading(false);

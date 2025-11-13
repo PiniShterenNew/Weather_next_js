@@ -6,7 +6,7 @@ import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
-import { Thermometer, Mail, Loader2, ArrowLeft } from 'lucide-react';
+import { Thermometer, Mail, Loader2, ArrowLeft, Lock } from 'lucide-react';
 import { Link } from '@/i18n/navigation';
 import AuthHeader from './AuthHeader';
 import AuthErrorMessage from './AuthErrorMessage';

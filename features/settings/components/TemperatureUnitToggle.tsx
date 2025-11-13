@@ -21,6 +21,7 @@ export default function TemperatureUnitToggle() {
       await persistPreferencesIfAuthenticated(cities);
     } catch (error) {
       // Silently fail - the unit change is still applied locally
+      // eslint-disable-next-line no-console
       console.error('Failed to persist unit preference:', error);
     }
     

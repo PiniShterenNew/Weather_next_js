@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { useEffect, useState, useRef, Suspense } from 'react';
+import { useEffect, useState, useRef, useCallback, Suspense } from 'react';
 import { fetchWeather } from '@/features/weather';
 import { useWeatherStore } from '@/store/useWeatherStore';
 import { Loader2 } from 'lucide-react';
@@ -161,12 +161,12 @@ export default function SearchBar({ onSelect, placeholder, className }: SearchBa
   };
 
   // Clear search input
-  const clearSearch = () => {
+  const clearSearch = useCallback(() => {
     setQuery('');
     setSelectedIndex(-1);
     setShowDropdown(false);
     inputRef.current?.blur();
-  };
+  }, [setSelectedIndex]);
 
   // Handle click outside to close dropdown
   useEffect(() => {
@@ -180,15 +180,15 @@ export default function SearchBar({ onSelect, placeholder, className }: SearchBa
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, []);
+  }, [clearSearch]);
 
   return (
     <div className={`relative w-full ${className || ''}`} dir={direction}>
       <div className="flex items-center gap-2">
         <SearchInput
+          ref={inputRef}
           query={query}
           loading={loading}
-          locale={locale}
           direction={direction}
           placeholder={placeholder}
           onQueryChange={setQuery}

@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { useSignUp, useUser } from '@clerk/nextjs';
-import { useRouter } from 'next/navigation';
 import { useTranslations, useLocale } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,9 +16,16 @@ import PasswordField from './PasswordField';
 export default function CustomSignUp() {
   const { signUp, isLoaded, setActive } = useSignUp();
   const { isSignedIn, isLoaded: userLoaded } = useUser();
-  const router = useRouter();
   const t = useTranslations('auth');
   const locale = useLocale() as AppLocale;
+  
+  // State declarations - must be before useEffect that uses them
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [verifying, setVerifying] = useState(false);
+  const [code, setCode] = useState('');
   
   // Redirect if already signed in (but not during verification flow)
   useEffect(() => {
@@ -28,13 +34,6 @@ export default function CustomSignUp() {
       window.location.href = `/${locale}`;
     }
   }, [userLoaded, isSignedIn, locale, verifying]);
-  
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [verifying, setVerifying] = useState(false);
-  const [code, setCode] = useState('');
 
   const handleEmailSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -69,6 +68,7 @@ export default function CustomSignUp() {
     } catch (err: unknown) {
       // Only log errors in development, not the raw error message to user
       if (process.env.NODE_ENV === 'development') {
+        // eslint-disable-next-line no-console
         console.error('Sign up error:', err);
       }
       
@@ -144,6 +144,7 @@ export default function CustomSignUp() {
         window.location.href = `/${locale}`;
       }
     } catch (err: unknown) {
+      // eslint-disable-next-line no-console
       console.error('Verification error:', err);
       
       // Handle ClerkError format
@@ -180,6 +181,7 @@ export default function CustomSignUp() {
         redirectUrlComplete: `/${locale}`,
       });
     } catch (err: unknown) {
+      // eslint-disable-next-line no-console
       console.error('OAuth sign up error:', err);
       
       // Handle ClerkError format
