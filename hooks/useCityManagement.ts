@@ -1,27 +1,19 @@
 import type { MouseEvent as ReactMouseEvent } from "react";
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 import { useTranslations } from "next-intl";
 
 import { useCityRefresh } from "@/features/weather/hooks/useCityRefresh";
 import { useWeatherActions } from "@/features/weather/hooks/useWeatherActions";
-import { useWeatherDataStore } from "@/features/weather/store/useWeatherDataStore";
 import { useToastStore } from "@/features/ui/store/useToastStore";
-import { useLocationStore } from "@/features/location/store/useLocationStore";
 import { useLocationRefresh } from "@/features/location/hooks/useLocationRefresh";
-import { useAppPreferencesStore } from "@/store/useAppPreferencesStore";
-import { fetchSecure } from "@/lib/fetchSecure";
 import { shouldAutoRefresh } from "@/lib/weatherRefresh";
-import { fetchWeather } from "@/features/weather";
 import { AppLocale } from "@/types/i18n";
 import { CityWeather } from "@/types/weather";
-import { TemporaryUnit } from "@/types/ui";
 
 export function useCityManagement(cityWeather: CityWeather, locale: AppLocale) {
   const t = useTranslations();
-  const { removeCity, addOrReplaceCurrentLocation, addCity } = useWeatherActions();
+  const { removeCity, addCity } = useWeatherActions();
   const showToast = useToastStore((state) => state.showToast);
-  const autoLocationCityId = useWeatherDataStore((state) => state.autoLocationCityId);
   const { refreshCityIfNeeded, isRefreshing } = useCityRefresh();
   const { isRefreshingLocation, handleRefreshLocation } = useLocationRefresh();
 

@@ -1,9 +1,10 @@
+import type React from 'react';
 import { useState, useCallback } from 'react';
 import type { CitySuggestion } from '@/types/suggestion';
 
 export interface UseSearchKeyboardReturn {
   selectedIndex: number;
-  handleKeyDown: (e: React.KeyboardEvent, suggestions: CitySuggestion[], onSelect: (city: CitySuggestion) => void, inputRef: React.RefObject<HTMLInputElement>, showDropdown: boolean, setShowDropdown: (show: boolean) => void) => void;
+  handleKeyDown: (e: React.KeyboardEvent, suggestions: CitySuggestion[], onSelect: (city: CitySuggestion) => void, inputRef: React.RefObject<HTMLInputElement | null>, showDropdown: boolean, setShowDropdown: (show: boolean) => void) => void;
   setSelectedIndex: (index: number) => void;
 }
 
@@ -14,7 +15,7 @@ export function useSearchKeyboard(): UseSearchKeyboardReturn {
     e: React.KeyboardEvent,
     suggestions: CitySuggestion[],
     onSelect: (city: CitySuggestion) => void,
-    inputRef: React.RefObject<HTMLInputElement>,
+    inputRef: React.RefObject<HTMLInputElement | null>,
     showDropdown: boolean,
     setShowDropdown: (show: boolean) => void
   ) => {

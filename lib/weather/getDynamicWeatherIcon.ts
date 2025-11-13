@@ -55,6 +55,7 @@ export function getDynamicWeatherIcon(city: CityWeather): string {
       return getWeatherIcon(weatherCode, !isNight);
     } catch (error) {
       // Fallback to stored icon if calculation fails
+      // eslint-disable-next-line no-console
       console.error('Failed to calculate dynamic icon:', error);
       return city.current?.icon || getWeatherIcon(weatherCode, true);
     }

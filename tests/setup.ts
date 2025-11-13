@@ -269,26 +269,28 @@ vi.mock('@/features/location/hooks/useLocationRefresh', () => ({
 }));
 
 // Silence specific, known noisy warnings in tests (Radix Dialog a11y guidance and React act())
+// eslint-disable-next-line no-console
 const originalError = console.error;
+// eslint-disable-next-line no-console
 const originalWarn = console.warn;
 const noisyPatterns = [
     /DialogContent.*requires a `DialogTitle`/i,
     /Missing `Description`.*aria-describedby/i,
     /not wrapped in act\(.*\)/i,
 ];
+// eslint-disable-next-line no-console
 console.error = (...args: unknown[]) => {
     const msg = (args[0] as string) ?? '';
     if (typeof msg === 'string' && noisyPatterns.some((p) => p.test(msg))) {
         return;
     }
-    // @ts-expect-error pass-through
     originalError(...args);
 };
+// eslint-disable-next-line no-console
 console.warn = (...args: unknown[]) => {
     const msg = (args[0] as string) ?? '';
     if (typeof msg === 'string' && noisyPatterns.some((p) => p.test(msg))) {
         return;
     }
-    // @ts-expect-error pass-through
     originalWarn(...args);
 };

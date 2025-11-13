@@ -1,5 +1,6 @@
 'use client';
 
+import type React from 'react';
 import { useTranslations } from 'next-intl';
 import { Navigation, Trash2, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';

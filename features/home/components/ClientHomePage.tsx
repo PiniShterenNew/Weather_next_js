@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import { useWeatherStore } from '@/store/useWeatherStore';
 import dynamic from 'next/dynamic';
-import CityInfoSkeleton from '../skeleton/CityInfoSkeleton';
+import CityInfoSkeleton from '@/components/skeleton/CityInfoSkeleton';
 import EmptyPage from '@/features/ui/components/EmptyPage';
 import { getWeatherBackground, isNightTime } from '@/lib/helpers';
 import { useBackgroundRefresh } from '@/hooks/useBackgroundRefresh';

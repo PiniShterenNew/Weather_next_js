@@ -1,17 +1,15 @@
 'use client';
 
-import { useRef } from 'react';
+import type React from 'react';
+import { forwardRef } from 'react';
 import { Search, X, Loader2 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
-import { getDirection } from '@/lib/intl';
-import type { AppLocale } from '@/types/i18n';
 
 export interface SearchInputProps {
   query: string;
   loading: boolean;
-  locale: AppLocale;
   direction: 'ltr' | 'rtl';
   placeholder?: string;
   onQueryChange: (query: string) => void;
@@ -21,10 +19,9 @@ export interface SearchInputProps {
   onClear: () => void;
 }
 
-export default function SearchInput({
+const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(({
   query,
   loading,
-  locale,
   direction,
   placeholder,
   onQueryChange,
@@ -32,14 +29,13 @@ export default function SearchInput({
   onBlur,
   onKeyDown,
   onClear
-}: SearchInputProps) {
+}, ref) => {
   const t = useTranslations();
-  const inputRef = useRef<HTMLInputElement>(null);
 
   return (
     <div className="relative flex-grow">
       <Input
-        ref={inputRef}
+        ref={ref}
         type="text"
         value={query}
         data-testid="city-search-input"
@@ -50,7 +46,6 @@ export default function SearchInput({
           const raw = e.target.value;
           const normalized = raw.normalize('NFC').replace(/\u200e|\u200f|\u202a|\u202b|\u202c|\u202d|\u202e/g, '');
           onQueryChange(normalized);
-          if (!inputRef.current?.matches(':focus')) onFocus();
         }}
         onKeyDown={onKeyDown}
         placeholder={placeholder || t('search.placeholder')}
@@ -91,5 +86,9 @@ export default function SearchInput({
       )}
     </div>
   );
-}
+});
+
+SearchInput.displayName = 'SearchInput';
+
+export default SearchInput;
 

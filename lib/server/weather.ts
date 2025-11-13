@@ -143,7 +143,7 @@ async function fetchFromOpenMeteo(
         rainProbability: weatherBundle.current.pop
       },
       forecast: processDailyData(weatherBundle.daily),
-      hourly: processHourlyData(weatherBundle.hourly, weatherBundle.meta.currentHourIndex, (weatherBundle as any).meta.offsetSec),
+      hourly: processHourlyData(weatherBundle.hourly, weatherBundle.meta.currentHourIndex, weatherBundle.meta.offsetSec ?? 0),
       lastUpdated: Date.now(),
       unit: 'metric'
     };

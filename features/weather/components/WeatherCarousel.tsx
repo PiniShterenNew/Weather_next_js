@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { useWeatherStore } from '@/store/useWeatherStore';
 import { useWeatherLocale } from '@/hooks/useWeatherLocale';
 import type { CityWeather } from '@/types/weather';
@@ -59,7 +59,8 @@ export default function WeatherCarousel() {
     const target = slidesRef.current[currentIndex + 1];
     if (!container || !target) return;
     target.scrollIntoView({ behavior: 'auto', block: 'nearest', inline: 'center' });
-  }, [loopedSlides.length]); // on mount/changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loopedSlides.length]); // on mount/changes only, not on currentIndex changes
 
   // Scroll to currentIndex when it changes programmatically
   useEffect(() => {
@@ -67,7 +68,7 @@ export default function WeatherCarousel() {
     const target = slidesRef.current[currentIndex + 1];
     if (!container || !target) return;
     target.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-  }, [currentIndex]);
+  }, [currentIndex, loopedSlides.length]);
 
   // Mouse drag-to-scroll support
   useEffect(() => {
@@ -156,11 +157,11 @@ export default function WeatherCarousel() {
     const container = listRef.current;
     if (!container) return;
 
-    let ticking = false;
-    const onScroll = () => {
-      if (ticking) return;
-      ticking = true;
-      requestAnimationFrame(() => {
+      let ticking = false;
+      const onScroll = () => {
+        if (ticking) return;
+        ticking = true;
+        window.requestAnimationFrame(() => {
         ticking = false;
         const n = cities.length;
         if (n === 0) return;
@@ -231,7 +232,7 @@ export default function WeatherCarousel() {
         {loopedSlides.map(({ key, city }, idx) => (
           <div
             key={key}
-            ref={(el) => (slidesRef.current[idx] = el)}
+            ref={(el) => { slidesRef.current[idx] = el; }}
             data-loop-index={idx}
             className="min-w-full h-full flex items-stretch"
             style={{ height: '100%' }}

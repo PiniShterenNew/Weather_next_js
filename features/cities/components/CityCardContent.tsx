@@ -1,6 +1,5 @@
 'use client';
 
-import { useLocale } from 'next-intl';
 import { MapPin } from 'lucide-react';
 import { WeatherIcon } from '@/features/weather/components/WeatherIcon';
 import { formatTemperatureWithConversion } from '@/lib/helpers/formatters';

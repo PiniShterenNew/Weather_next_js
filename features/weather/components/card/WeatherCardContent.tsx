@@ -2,7 +2,6 @@
 
 import dynamic from 'next/dynamic';
 import { useTranslations } from 'next-intl';
-import { motion } from 'framer-motion';
 import { Loader2, MapPin, Navigation, RotateCcw, Sunrise, Sunset, Trash } from 'lucide-react';
 
 import ForecastListSkeleton from '@/components/skeleton/ForecastListSkeleton';
@@ -48,7 +47,6 @@ const WeatherCardContent = ({ cityWeather, locale, cityLocale }: WeatherCardCont
   const unit = useWeatherStore((state) => state.unit);
   const autoLocationCityId = useWeatherStore((state) => state.autoLocationCityId);
   const getUserTimezoneOffset = useWeatherStore((state) => state.getUserTimezoneOffset);
-  const cityName = cityWeather.name[locale] || cityWeather.name.en;
   const isCurrentLocation = cityWeather.id === autoLocationCityId;
 
   return (
@@ -231,7 +229,7 @@ const WeatherCardContent = ({ cityWeather, locale, cityLocale }: WeatherCardCont
                       disabled={isRefreshingLocation}
                     >
                       {isRefreshingLocation ? (
-                        <Loader2 className="h-4 w-4 animate-spin" style={{ color: colors.colors?.info || 'hsl(var(--brand-500))' }} aria-hidden="true" />
+                        <Loader2 className="h-4 w-4 animate-spin" style={{ color: colors.info || 'hsl(var(--brand-500))' }} aria-hidden="true" />
                       ) : (
                         <Navigation className="h-4 w-4" style={{ color: '#FACC15' }} aria-hidden="true" />
                       )}
