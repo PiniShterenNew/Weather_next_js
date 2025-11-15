@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { useEffect, useState, useRef, useCallback, Suspense } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { fetchWeather } from '@/features/weather';
 import { useWeatherStore } from '@/store/useWeatherStore';
 import { Loader2 } from 'lucide-react';
@@ -203,29 +203,20 @@ export default function SearchBar({ onSelect, placeholder, className }: SearchBa
         <div
           ref={dropdownRef}
           className={cn(
-            "absolute top-full mt-2 w-full z-[9999] border rounded-lg shadow-2xl bg-card backdrop-blur-md border-border animate-in fade-in-0 zoom-in-95 duration-200",
+            "absolute top-full mt-2 w-full z-[9999] border rounded-2xl shadow-2xl bg-card backdrop-blur-md border-border animate-in fade-in-0 zoom-in-95 duration-200",
             direction === 'rtl' ? 'right-0' : 'left-0'
           )}
         >
-          <Suspense fallback={
-            <div className="p-6 text-center">
-              <Loader2 className="h-6 w-6 animate-spin text-primary mx-auto mb-2" role="status">
-                <span className="sr-only">{t('search.loading')}</span>
-              </Loader2>
-              <p className="text-sm text-muted-foreground font-medium">
-                {t('search.searching')}
-              </p>
-            </div>
-          }>
-            <SuggestionsList
-              suggestions={suggestions}
-              loading={loading}
-              hasSearched={hasSearched}
-              selectedIndex={selectedIndex}
-              isAdding={isAdding}
-              handleSelect={handleSelect}
-            />
-          </Suspense>
+          <SuggestionsList
+            suggestions={suggestions}
+            loading={loading}
+            hasSearched={hasSearched}
+            selectedIndex={selectedIndex}
+            isAdding={isAdding}
+            handleSelect={handleSelect}
+            className="p-1"
+            direction={direction}
+          />
         </div>
       )}
     </div>

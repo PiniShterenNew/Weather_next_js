@@ -451,7 +451,8 @@
   },
   "language": {
     "he": "עברית",
-    "en": "English"
+    "en": "English",
+    "switchLanguage": "Switch language"
   },
   "theme": {
     "light": "Light",

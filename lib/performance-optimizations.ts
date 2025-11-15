@@ -116,6 +116,12 @@ export async function registerServiceWorker(): Promise<ServiceWorkerRegistration
     return null;
   }
 
+  if (process.env.NODE_ENV !== 'production' || window.location.protocol !== 'https:') {
+    // eslint-disable-next-line no-console
+    console.warn('Skipping service worker registration in development/HTTP to avoid Workbox warnings.');
+    return null;
+  }
+
   try {
     const registration = await navigator.serviceWorker.register('/sw.js');
     // eslint-disable-next-line no-console

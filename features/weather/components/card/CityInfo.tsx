@@ -16,6 +16,8 @@ const CityInfo = () => {
 
   const { locale, cityLocale } = useWeatherLocale(cityWeather);
 
+  // אם אין בכלל נתוני עיר – מציגים סקלטון
+  // ברגע שיש עיר + cityLocale, תמיד מציגים את הכרטיס, גם בזמן רקע/טעינה
   if (!cityWeather || !cityLocale) {
     return <WeatherCardSkeleton />;
   }
@@ -31,7 +33,7 @@ const CityInfo = () => {
         className="flex h-full w-full flex-col"
         style={{ height: '100%' }}
       >
-        <WeatherCardContent cityWeather={cityWeather} cityLocale={cityWeather} locale={locale} />
+        <WeatherCardContent cityWeather={cityWeather} cityLocale={cityLocale} locale={locale} />
       </motion.div>
     </Suspense>
   );

@@ -76,3 +76,51 @@ export const logger = {
     }
   },
 };
+
+// Suppress MetaMask errors from browser extension (not our code)
+if (typeof window !== 'undefined') {
+  const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
+    const message =
+      typeof event.reason === 'string'
+        ? event.reason
+        : (event.reason && (event.reason.message || event.reason.toString())) || '';
+    
+    // Check error stack trace for MetaMask extension references
+    const stack = event.reason?.stack || '';
+    const isMetaMaskError = 
+      message.toLowerCase().includes('metamask') || 
+      message.toLowerCase().includes('wallet') ||
+      stack.includes('chrome-extension://nkbihfbeogaeaoehlefnkodbefgpgknn') ||
+      stack.includes('metamask') ||
+      (event.reason && typeof event.reason === 'object' && 'code' in event.reason && event.reason.code === 4001);
+    
+    // Ignore MetaMask extension errors
+    if (isMetaMaskError) {
+      event.preventDefault();
+      event.stopPropagation();
+      return;
+    }
+  };
+
+  const handleError = (event: ErrorEvent) => {
+    const message = event.message || '';
+    const stack = event.error?.stack || '';
+    
+    // Check if error is from MetaMask extension
+    const isMetaMaskError = 
+      message.toLowerCase().includes('metamask') ||
+      message.toLowerCase().includes('wallet') ||
+      stack.includes('chrome-extension://nkbihfbeogaeaoehlefnkodbefgpgknn') ||
+      stack.includes('metamask');
+    
+    if (isMetaMaskError) {
+      event.preventDefault();
+      event.stopPropagation();
+      return true; // Suppress the error
+    }
+    return false;
+  };
+
+  window.addEventListener('unhandledrejection', handleUnhandledRejection);
+  window.addEventListener('error', handleError);
+}

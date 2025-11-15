@@ -4,7 +4,8 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { Eye, EyeOff, Lock, Sparkles } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
+import { AppLocale } from '@/types/i18n';
 import {
   Tooltip,
   TooltipContent,
@@ -23,6 +24,7 @@ interface PasswordFieldProps {
   className?: string;
   label?: string;
   showRequirements?: boolean;
+  error?: string;
 }
 
 /**
@@ -65,11 +67,13 @@ export default function PasswordField({
   className = '',
   label,
   showRequirements = true,
+  error,
 }: PasswordFieldProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [showGeneratorTooltip, setShowGeneratorTooltip] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const t = useTranslations('auth');
+  const locale = useLocale() as AppLocale;
 
   // Ensure component only renders interactive elements after hydration
   useEffect(() => {
@@ -90,39 +94,41 @@ export default function PasswordField({
   return (
     <div className={className}>
       {label && (
-        <label htmlFor={id} className="block text-xs lg:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 lg:mb-2">
+        <label htmlFor={id} className={`block text-sm lg:text-sm font-medium text-gray-900 dark:text-gray-100 mb-2 ${locale === 'he' ? 'text-right' : 'text-left'}`}>
           {label}
         </label>
       )}
       <div className="relative">
-        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 lg:h-5 lg:w-5 text-gray-400 z-10" />
+        <Lock className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500 pointer-events-none z-10" aria-hidden="true" />
         <Input
           id={id}
           type={isMounted && showPassword ? 'text' : 'password'}
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
-          className={`pl-9 lg:pl-10 pr-20 lg:pr-24 h-10 lg:h-12 text-sm lg:text-base ${className}`}
+          className={`pr-12 pl-24 h-12 lg:h-12 text-base lg:text-base border-2 ${error ? 'border-red-500 dark:border-red-400' : 'border-gray-300 dark:border-gray-600'} focus:border-blue-500 dark:focus:border-blue-400 focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-900/30 disabled:bg-gray-50 dark:disabled:bg-gray-900/50 disabled:cursor-not-allowed transition-colors duration-150 ${className}`}
           required={required}
           disabled={disabled}
           minLength={minLength}
-          autoComplete={isMounted ? 'new-password' : 'off'}
+          autoComplete={isMounted ? 'current-password' : 'off'}
+          dir="rtl"
+          aria-invalid={!!error}
+          aria-describedby={error ? `${id}-error` : undefined}
         />
         {isMounted && (
-          <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+          <div className="absolute left-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
                     type="button"
                     variant="ghost"
-                    size="sm"
                     onClick={handleGeneratePassword}
                     disabled={disabled}
-                    className="h-7 w-7 lg:h-8 lg:w-8 p-0 hover:bg-gray-100 dark:hover:bg-gray-700"
+                    className="w-10 h-10 flex items-center justify-center rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 active:bg-gray-200 dark:active:bg-gray-600 transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-blue-500 focus-visible:outline-offset-2"
                     aria-label={t('generatePassword') || 'Generate secure password'}
                   >
-                    <Sparkles className="h-3.5 w-3.5 lg:h-4 lg:w-4 text-gray-500 dark:text-gray-400" />
+                    <Sparkles className="w-5 h-5 text-gray-600 dark:text-gray-400" />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent side="top" className="max-w-xs">
@@ -138,22 +144,21 @@ export default function PasswordField({
             <Button
               type="button"
               variant="ghost"
-              size="sm"
               onClick={togglePasswordVisibility}
               disabled={disabled}
-              className="h-7 w-7 lg:h-8 lg:w-8 p-0 hover:bg-gray-100 dark:hover:bg-gray-700"
+              className="w-10 h-10 flex items-center justify-center rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 active:bg-gray-200 dark:active:bg-gray-600 transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-blue-500 focus-visible:outline-offset-2"
               aria-label={showPassword ? (t('hidePassword') || 'Hide password') : (t('showPassword') || 'Show password')}
             >
               {showPassword ? (
-                <EyeOff className="h-3.5 w-3.5 lg:h-4 lg:w-4 text-gray-500 dark:text-gray-400" />
+                <EyeOff className="w-5 h-5 text-gray-600 dark:text-gray-400" />
               ) : (
-                <Eye className="h-3.5 w-3.5 lg:h-4 lg:w-4 text-gray-500 dark:text-gray-400" />
+                <Eye className="w-5 h-5 text-gray-600 dark:text-gray-400" />
               )}
             </Button>
           </div>
         )}
       </div>
-      {showRequirements && (
+      {showRequirements && !error && (
         <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
           {t('passwordRequirements') || 'At least 8 characters'}
         </p>

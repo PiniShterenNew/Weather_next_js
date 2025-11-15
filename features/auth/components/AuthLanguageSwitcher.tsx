@@ -40,8 +40,11 @@ export default function AuthLanguageSwitcher() {
   return (
     <div>
       <Select value={localeStore} onValueChange={handleLocaleChange}>
-        <SelectTrigger className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-full h-8 w-8 lg:h-10 lg:w-10 flex items-center justify-center text-sm font-medium shadow-lg hover-scale transition-all duration-200 [&>svg:last-child]:hidden [&>span]:hidden">
-          <Globe className="h-3 w-3 lg:h-4 lg:w-4 text-white dark:text-gray-800" />
+        <SelectTrigger 
+          className="w-10 h-10 bg-white/10 backdrop-blur-xl border-2 border-white/20 rounded-lg flex items-center justify-center text-sm font-medium shadow-lg hover:bg-white/20 active:bg-white/30 transition-all duration-150 focus-visible:outline-2 focus-visible:outline-white focus-visible:outline-offset-2 [&>svg:last-child]:hidden [&>span]:hidden"
+          aria-label={t('switchLanguage')}
+        >
+          <Globe className="w-5 h-5 text-white dark:text-gray-800" aria-hidden="true" />
         </SelectTrigger>
         <SelectContent className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl border border-gray-200/50 dark:border-gray-700/50 rounded-2xl shadow-[0_10px_40px_rgb(0,0,0,0.15)] dark:shadow-[0_10px_40px_rgb(0,0,0,0.4)] animate-slide-up">
           <SelectItem value="he" className="cursor-pointer hover:bg-brand-50 dark:hover:bg-brand-950/30 rounded-xl transition-all">

@@ -452,7 +452,8 @@
   },
   "language": {
     "he": "עברית",
-    "en": "English"
+    "en": "English",
+    "switchLanguage": "החלף שפה"
   },
   "theme": {
     "light": "בהיר",

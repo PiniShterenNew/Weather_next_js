@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import { useUser } from '@clerk/nextjs';
 
+import { Skeleton } from './skeleton';
+
 interface UserAvatarProps {
   size?: 'sm' | 'md' | 'lg';
   className?: string;
@@ -21,11 +23,17 @@ export default function UserAvatar({
   // Get first letter of name for fallback
   const firstLetter = user?.firstName?.charAt(0) || user?.username?.charAt(0) || 'U';
 
-  const sizeClasses = {
-    sm: 'w-8 h-8 text-xs',
-    md: 'w-10 h-10 text-sm',
-    lg: 'w-12 h-12 text-base',
-  };
+const sizeClasses = {
+  sm: 'w-8 h-8 text-xs',
+  md: 'w-10 h-10 text-sm',
+  lg: 'w-12 h-12 text-base',
+};
+
+const sizePixels: Record<'sm' | 'md' | 'lg', number> = {
+  sm: 32,
+  md: 40,
+  lg: 48,
+};
 
   const handleImageError = () => {
     setImageError(true);
@@ -39,30 +47,33 @@ export default function UserAvatar({
 
   return (
     <button
+      type="button"
       onClick={onClick}
-      className={`${sizeClasses[size]} rounded-full overflow-hidden border border-gray-300 dark:border-white/10 hover:border-gray-400 dark:hover:border-white/20 p-0 transition-all duration-200 bg-gray-100 dark:bg-white/10 shrink-0 ${className}`}
+      className={`${sizeClasses[size]} shrink-0 rounded-full border border-gray-300 bg-gray-100 p-0 transition-all duration-200 dark:border-white/10 dark:bg-white/10 hover:border-gray-400 dark:hover:border-white/20 ${className}`}
       aria-label="User profile"
     >
-      {user?.imageUrl && !imageError ? (
-        <>
-          {isLoading && (
-            <div className="w-full h-full flex items-center justify-center text-gray-900 dark:text-white font-semibold">
-              <div className="animate-spin rounded-full h-4 w-4 border-2 border-gray-300 border-t-gray-600"></div>
-            </div>
-          )}
-          <img
-            src={user.imageUrl}
-            alt={user.fullName || 'User'}
-            className={`w-full h-full object-cover object-center rounded-full ${isLoading ? 'hidden' : 'block'}`}
-            onError={handleImageError}
-            onLoad={handleImageLoad}
-          />
-        </>
-      ) : (
-        <div className="w-full h-full flex items-center justify-center text-gray-900 dark:text-white font-semibold">
-          {firstLetter}
-        </div>
-      )}
+      <div className="relative h-full w-full overflow-hidden rounded-full">
+        {user?.imageUrl && !imageError ? (
+          <>
+            {isLoading && <Skeleton className="absolute inset-0 h-full w-full rounded-full" aria-hidden="true" />}
+            <img
+              src={user.imageUrl}
+              alt={user.fullName || 'User'}
+              width={sizePixels[size]}
+              height={sizePixels[size]}
+              loading="lazy"
+              className="h-full w-full rounded-full object-cover object-center transition-opacity duration-200"
+              style={{ opacity: isLoading ? 0 : 1 }}
+              onError={handleImageError}
+              onLoad={handleImageLoad}
+            />
+          </>
+        ) : (
+          <div className="flex h-full w-full items-center justify-center text-gray-900 dark:text-white font-semibold">
+            {firstLetter}
+          </div>
+        )}
+      </div>
     </button>
   );
 }

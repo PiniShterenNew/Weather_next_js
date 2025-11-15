@@ -1,6 +1,10 @@
 'use client';
 
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useCallback, useId, useRef, useState } from 'react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useTranslations } from 'next-intl';
+import useEmblaCarousel from 'embla-carousel-react';
+
 import { useWeatherStore } from '@/store/useWeatherStore';
 import { useWeatherLocale } from '@/hooks/useWeatherLocale';
 import type { CityWeather } from '@/types/weather';
@@ -12,13 +16,21 @@ interface SlideProps {
 }
 
 function Slide({ city }: SlideProps) {
-  const { locale, cityLocale } = useWeatherLocale(city);
-  if (!cityLocale) {
+  // Guard against undefined/null city
+  if (!city || !city.id || !city.name) {
     return <WeatherCardSkeleton />;
   }
+
+  const { locale, cityLocale } = useWeatherLocale(city);
+
+  // If we somehow don't have localized name or locale data, treat as missing city
+  if (!cityLocale || !city.name[locale]) {
+    return <WeatherCardSkeleton />;
+  }
+
   return (
     <div
-      className="snap-center shrink-0 w-full h-full max-w-full overflow-x-hidden"
+      className="shrink-0 w-full h-full max-w-full overflow-x-hidden"
       role="group"
       aria-roledescription="slide"
       aria-label={`${city.name[locale]} weather`}
@@ -28,221 +40,224 @@ function Slide({ city }: SlideProps) {
         className="select-none rounded-3xl border border-white/20 bg-white/80 shadow-sm backdrop-blur-xl dark:border-gray-700/30 dark:bg-gray-900/80 h-full w-full max-w-full overflow-x-hidden"
         style={{ height: '100%', width: '100%' }}
       >
-        <WeatherCardContent cityWeather={city} cityLocale={city} locale={locale} />
+        <WeatherCardContent cityWeather={city} cityLocale={cityLocale} locale={locale} />
       </div>
     </div>
   );
 }
 
-export default function WeatherCarousel() {
-  const listRef = useRef<HTMLDivElement | null>(null);
-  const slidesRef = useRef<Array<HTMLDivElement | null>>([]);
+// Wrapper to ensure component always has valid props for React DevTools
+function WeatherCarouselInternal() {
+  const t = useTranslations();
+
+  // Canonical state from store – single source of truth
   const cities = useWeatherStore((s) => s.cities);
   const currentIndex = useWeatherStore((s) => s.currentIndex);
   const setCurrentIndex = useWeatherStore((s) => s.setCurrentIndex);
+  const direction = useWeatherStore((s) => s.direction);
 
-  // Build looped slides: [clone(last), ...cities..., clone(first)]
-  const loopedSlides = useMemo(() => {
-    if (cities.length === 0) return [];
-    const first = cities[0];
-    const last = cities[cities.length - 1];
-    return [
-      { key: `clone-${last.id}`, city: last, isClone: true, cloneOf: cities.length - 1 },
-      ...cities.map((c, idx) => ({ key: c.id, city: c, isClone: false, cloneOf: idx })),
-      { key: `clone-${first.id}`, city: first, isClone: true, cloneOf: 0 },
-    ];
-  }, [cities]);
+  const isRtl = direction === 'rtl';
+  const carouselId = useId();
+  const isProgrammaticScrollRef = useRef(false);
+  const [isMounted, setIsMounted] = useState(false);
 
-  // Ensure we start on the "real" currentIndex (offset by 1 due to leading clone)
   useEffect(() => {
-    const container = listRef.current;
-    const target = slidesRef.current[currentIndex + 1];
-    if (!container || !target) return;
-    target.scrollIntoView({ behavior: 'auto', block: 'nearest', inline: 'center' });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loopedSlides.length]); // on mount/changes only, not on currentIndex changes
-
-  // Scroll to currentIndex when it changes programmatically
-  useEffect(() => {
-    const container = listRef.current;
-    const target = slidesRef.current[currentIndex + 1];
-    if (!container || !target) return;
-    target.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-  }, [currentIndex, loopedSlides.length]);
-
-  // Mouse drag-to-scroll support
-  useEffect(() => {
-    const container = listRef.current;
-    if (!container) return;
-    let isDown = false;
-    let startX = 0;
-    let scrollStart = 0;
-
-    const onMouseDown = (e: MouseEvent) => {
-      isDown = true;
-      container.classList.add('cursor-grabbing');
-      startX = e.clientX;
-      scrollStart = container.scrollLeft;
-      e.preventDefault();
-    };
-    const onMouseMove = (e: MouseEvent) => {
-      if (!isDown) return;
-      const dx = e.clientX - startX;
-      container.scrollLeft = scrollStart - dx;
-    };
-    const endDrag = () => {
-      if (!isDown) return;
-      isDown = false;
-      container.classList.remove('cursor-grabbing');
-    };
-
-    container.addEventListener('mousedown', onMouseDown);
-    window.addEventListener('mousemove', onMouseMove);
-    window.addEventListener('mouseup', endDrag);
-    return () => {
-      container.removeEventListener('mousedown', onMouseDown);
-      window.removeEventListener('mousemove', onMouseMove);
-      window.removeEventListener('mouseup', endDrag);
-    };
+    setIsMounted(true);
   }, []);
 
-  // Observe slide visibility to update current index when user scrolls
-  useEffect(() => {
-    const container = listRef.current;
-    if (!container) return;
+  // Normalize cities and index – no undefined/null in downstream logic
+  const safeCities = Array.isArray(cities)
+    ? cities.filter((city) => city && city.id)
+    : [];
 
-    const options: IntersectionObserverInit = {
-      root: container,
-      rootMargin: '0px',
-      threshold: 0.6, // consider selected when 60% of slide is visible
+  const hasCities = safeCities.length > 0;
+  const safeCurrentIndex =
+    hasCities && typeof currentIndex === 'number'
+      ? Math.min(Math.max(currentIndex, 0), safeCities.length - 1)
+      : 0;
+
+  // If אין ערים בכלל – משתמשים בסקלטון הבית האחיד
+  if (!hasCities) {
+    return <WeatherCardSkeleton />;
+  }
+
+  // Hardening: Embla תמיד מקבל אובייקט ואוסף תוספים תקף
+  const emblaOptions = {
+    loop: isMounted && safeCities.length > 1,
+    direction: (isRtl ? 'rtl' : 'ltr') as 'rtl' | 'ltr',
+    align: 'center' as const,
+    dragFree: false,
+  };
+
+  const emblaPlugins: never[] = [];
+
+  const [emblaRef, emblaApi] = useEmblaCarousel(emblaOptions, emblaPlugins);
+
+  // Initialize Embla to correct index when ready (reset when Embla reinitializes)
+  const hasInitializedRef = useRef(false);
+  const lastEmblaKeyRef = useRef<string>('');
+  
+  useEffect(() => {
+    if (!emblaApi || !isMounted || !hasCities) return;
+    
+    const currentKey = `embla-${isRtl ? 'rtl' : 'ltr'}`;
+    // Reset initialization flag if Embla was recreated (RTL changed)
+    if (lastEmblaKeyRef.current !== currentKey) {
+      hasInitializedRef.current = false;
+      lastEmblaKeyRef.current = currentKey;
+    }
+    
+    if (hasInitializedRef.current) return;
+    
+    // Wait for Embla to be fully ready
+    const initializeIndex = () => {
+      if (!emblaApi) return;
+      const selectedIndex = emblaApi.selectedScrollSnap();
+      if (selectedIndex !== safeCurrentIndex) {
+        isProgrammaticScrollRef.current = true;
+        emblaApi.scrollTo(safeCurrentIndex, false); // Instant scroll on init
+        setTimeout(() => {
+          isProgrammaticScrollRef.current = false;
+          hasInitializedRef.current = true;
+        }, 50);
+      } else {
+        hasInitializedRef.current = true;
+      }
     };
 
-    const handler = (entries: IntersectionObserverEntry[]) => {
-      let bestLoopIndex = -1;
-      let bestRatio = 0;
-      for (const entry of entries) {
-        const target = entry.target as HTMLElement;
-        const idxAttr = target.getAttribute('data-loop-index');
-        if (idxAttr == null) continue;
-        const loopIdx = Number(idxAttr);
-        if (entry.intersectionRatio > bestRatio) {
-          bestRatio = entry.intersectionRatio;
-          bestLoopIndex = loopIdx;
-        }
-      }
-      if (bestLoopIndex >= 0) {
-        const n = cities.length;
-        // Map loop index to real index
-        // loop indices: 0 = clone(last), 1..n = real 0..n-1, n+1 = clone(first)
-        const realIndex =
-          bestLoopIndex === 0
-            ? n - 1
-            : bestLoopIndex === n + 1
-            ? 0
-            : bestLoopIndex - 1;
-        if (realIndex !== currentIndex) {
-          setCurrentIndex(realIndex);
-        }
-      }
-    };
+    // Embla might need a tick to be ready
+    const timeout = setTimeout(initializeIndex, 0);
+    return () => clearTimeout(timeout);
+  }, [emblaApi, isMounted, safeCurrentIndex, isRtl, safeCities.length]); // Include isRtl to detect direction changes
 
-    const observer = new IntersectionObserver(handler, options);
-    slidesRef.current.forEach((el) => el && observer.observe(el));
-
-    return () => observer.disconnect();
-  }, [loopedSlides, cities.length, currentIndex, setCurrentIndex]);
-
-  // Infinite loop jump handling: when clones are fully in view, jump to corresponding real slide without animation
+  // Sync Embla with Zustand store when currentIndex changes programmatically (after init)
   useEffect(() => {
-    const container = listRef.current;
-    if (!container) return;
+    if (!emblaApi || !isMounted || !hasCities) return;
+    
+    const selectedIndex = emblaApi.selectedScrollSnap();
+    // Only scroll if index actually changed and it's not from user interaction
+    if (selectedIndex !== safeCurrentIndex && !isProgrammaticScrollRef.current) {
+      isProgrammaticScrollRef.current = true;
+      emblaApi.scrollTo(safeCurrentIndex);
+      // Reset flag after scroll animation completes
+      setTimeout(() => {
+        isProgrammaticScrollRef.current = false;
+      }, 300);
+    }
+  }, [safeCurrentIndex, emblaApi, isMounted, safeCities.length]);
 
-      let ticking = false;
-      const onScroll = () => {
-        if (ticking) return;
-        ticking = true;
-        window.requestAnimationFrame(() => {
-        ticking = false;
-        const n = cities.length;
-        if (n === 0) return;
-        // If first loop index (0) is significantly in view, jump to last real (n)
-        const firstClone = slidesRef.current[0];
-        const lastClone = slidesRef.current[n + 1];
-        if (!firstClone || !lastClone) return;
-        const firstRect = firstClone.getBoundingClientRect();
-        const lastRect = lastClone.getBoundingClientRect();
-        const rootRect = container.getBoundingClientRect();
-        const visibleWidth = (rect: DOMRect) =>
-          Math.max(0, Math.min(rect.right, rootRect.right) - Math.max(rect.left, rootRect.left));
-        const firstVisible = visibleWidth(firstRect) / rootRect.width;
-        const lastVisible = visibleWidth(lastRect) / rootRect.width;
+  // Mirror Embla slide selection into Zustand store (user-initiated scrolls only)
+  useEffect(() => {
+    if (!emblaApi || !isMounted || safeCities.length === 0) return;
 
-        if (firstVisible > 0.9) {
-          // Jump to last real slide (index n)
-          const target = slidesRef.current[n];
-          target?.scrollIntoView({ behavior: 'auto', block: 'nearest', inline: 'center' });
-        } else if (lastVisible > 0.9) {
-          // Jump to first real slide (index 1)
-          const target = slidesRef.current[1];
-          target?.scrollIntoView({ behavior: 'auto', block: 'nearest', inline: 'center' });
+    const onSelect = () => {
+      // Skip if this is a programmatic scroll to avoid loops
+      if (isProgrammaticScrollRef.current || !emblaApi) return;
+      
+      const selectedIndex = emblaApi.selectedScrollSnap();
+      // Only update if different to prevent unnecessary updates
+      setCurrentIndex((prevIndex) => {
+        if (prevIndex !== selectedIndex) {
+          return selectedIndex;
         }
+        return prevIndex;
       });
     };
-    container.addEventListener('scroll', onScroll, { passive: true });
-    return () => container.removeEventListener('scroll', onScroll);
-  }, [loopedSlides, cities.length]);
+
+    emblaApi.on('select', onSelect);
+    emblaApi.on('reInit', onSelect); // Also handle reInit events
+    
+    return () => {
+      if (emblaApi) {
+        emblaApi.off('select', onSelect);
+        emblaApi.off('reInit', onSelect);
+      }
+    };
+  }, [emblaApi, setCurrentIndex, isMounted, safeCities.length]);
 
   // Keyboard support
   useEffect(() => {
+    if (!emblaApi || !isMounted) return;
+
     const onKey = (e: KeyboardEvent) => {
-      if (!listRef.current) return;
       if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
       e.preventDefault();
       const dir = document?.documentElement?.dir || 'ltr';
-      const isRtl = dir === 'rtl';
-      const goPrev = () => setCurrentIndex(Math.max(0, currentIndex - 1));
-      const goNext = () =>
-        setCurrentIndex(Math.min(cities.length - 1, currentIndex + 1));
+      const isRtlKey = dir === 'rtl';
       if (e.key === 'ArrowLeft') {
-        isRtl ? goNext() : goPrev();
+        isRtlKey ? emblaApi.scrollNext() : emblaApi.scrollPrev();
       } else {
-        isRtl ? goPrev() : goNext();
+        isRtlKey ? emblaApi.scrollPrev() : emblaApi.scrollNext();
       }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [currentIndex, cities.length, setCurrentIndex]);
+  }, [emblaApi, isMounted]);
 
-  if (cities.length === 0) {
-    return <WeatherCardSkeleton />;
-  }
+  const goPrev = useCallback(() => {
+    if (!emblaApi || !isMounted) return;
+    emblaApi.scrollPrev();
+  }, [emblaApi, isMounted]);
+
+  const goNext = useCallback(() => {
+    if (!emblaApi || !isMounted) return;
+    emblaApi.scrollNext();
+  }, [emblaApi, isMounted]);
 
   return (
-    <div
-      className="h-full"
-      role="region"
-      aria-roledescription="carousel"
-      aria-label="Weather carousel"
-    >
-      <div
-        ref={listRef}
-        className="flex h-full w-full overflow-x-auto overflow-y-hidden snap-x snap-mandatory scrollbar-hide cursor-grab"
-        style={{ WebkitOverflowScrolling: 'touch', scrollBehavior: 'smooth' }}
-      >
-        {loopedSlides.map(({ key, city }, idx) => (
-          <div
-            key={key}
-            ref={(el) => { slidesRef.current[idx] = el; }}
-            data-loop-index={idx}
-            className="min-w-full h-full flex items-stretch"
-            style={{ height: '100%' }}
+    <div className="relative h-full" role="region" aria-roledescription="carousel" aria-label="Weather carousel">
+      {safeCities.length > 1 && (
+        <div className="pointer-events-none absolute inset-x-0 top-3 z-20 flex justify-between px-4">
+          <button
+            type="button"
+            onClick={isRtl ? goNext : goPrev}
+            aria-label={isRtl ? t('next') : t('prev')}
+            aria-controls={carouselId}
+            disabled={safeCities.length <= 1}
+            className="pointer-events-auto inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/40 bg-white/80 text-gray-900 shadow-sm backdrop-blur focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 disabled:opacity-40 dark:border-white/10 dark:bg-gray-900/70 dark:text-white"
           >
-            <Slide city={city} />
-          </div>
-        ))}
+            <ChevronLeft className="h-4 w-4" aria-hidden="true" />
+          </button>
+          <button
+            type="button"
+            onClick={isRtl ? goPrev : goNext}
+            aria-label={isRtl ? t('prev') : t('next')}
+            aria-controls={carouselId}
+            disabled={safeCities.length <= 1}
+            className="pointer-events-auto inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/40 bg-white/80 text-gray-900 shadow-sm backdrop-blur focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-500 disabled:opacity-40 dark:border-white/10 dark:bg-gray-900/70 dark:text-white"
+          >
+            <ChevronRight className="h-4 w-4" aria-hidden="true" />
+          </button>
+        </div>
+      )}
+      {/* Embla viewport - dir attribute must be here, not on parent */}
+      <div
+        ref={emblaRef}
+        key={`embla-${isRtl ? 'rtl' : 'ltr'}`}
+        className="overflow-hidden h-full w-full"
+        dir={isRtl ? 'rtl' : 'ltr'}
+      >
+        <div className="flex h-full">
+          {safeCities
+            .filter((city) => city && city.id && city.name) // Filter out invalid cities
+            .map((city) => (
+              <div
+                key={city.id}
+                className="flex-[0_0_100%] h-full flex items-stretch min-w-0"
+                style={{ height: '100%' }}
+              >
+                <Slide city={city} />
+              </div>
+            ))}
+        </div>
       </div>
     </div>
   );
+}
+
+// Export with wrapper to ensure component always has valid props for React DevTools
+export default function WeatherCarousel() {
+  return <WeatherCarouselInternal />;
 }
 
 

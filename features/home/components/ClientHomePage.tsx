@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect } from 'react';
+import { useTranslations } from 'next-intl';
+import { Loader2 } from 'lucide-react';
 import { useWeatherStore } from '@/store/useWeatherStore';
 import dynamic from 'next/dynamic';
 import CityInfoSkeleton from '@/components/skeleton/CityInfoSkeleton';
@@ -9,6 +11,7 @@ import { getWeatherBackground, isNightTime } from '@/lib/helpers';
 import { useBackgroundRefresh } from '@/hooks/useBackgroundRefresh';
 import { useUserSync } from '@/hooks/useUserSync';
 import BackgroundUpdateBanner from '@/components/ui/BackgroundUpdateBanner';
+import CityPaginationSkeleton from '@/features/weather/components/card/CityPaginationSkeleton';
 
 const WeatherCarousel = dynamic(() => import('@/features/weather/components/WeatherCarousel'), {
   loading: () => <CityInfoSkeleton />,
@@ -16,7 +19,7 @@ const WeatherCarousel = dynamic(() => import('@/features/weather/components/Weat
 });
 
 const CityPagination = dynamic(() => import('@/features/weather/components/card/CityPagination'), {
-  loading: () => null,
+  loading: () => <CityPaginationSkeleton />,
   ssr: true,
 });
 
@@ -27,7 +30,8 @@ interface ClientHomePageProps {
   locale: 'he' | 'en';
 }
 
-export default function ClientHomePage({ initialData }: ClientHomePageProps) {
+export default function ClientHomePage({ initialData, locale }: ClientHomePageProps) {
+  const t = useTranslations();
   // User sync hook - checks if user exists in database
   const { isChecking } = useUserSync();
   
@@ -64,10 +68,12 @@ export default function ClientHomePage({ initialData }: ClientHomePageProps) {
   const isNight = isNightTime(currentTime, sunrise, sunset);
   const backgroundClass = getWeatherBackground(weatherCode, isNight);
 
+  const direction = locale === 'he' ? 'rtl' : 'ltr';
+
   // Show loading state only for critical user sync operations
   if (isChecking) {
     return (
-      <div className="h-full">
+      <div className="h-full" dir={direction}>
         <div className="h-full flex flex-col w-full px-2 md:px-4 xl:px-6 pt-2">
           <div className="flex-1 flex items-center justify-center">
             <CityInfoSkeleton />
@@ -77,8 +83,14 @@ export default function ClientHomePage({ initialData }: ClientHomePageProps) {
     );
   }
 
+  const showInlineLoader = isLoading && cities.length > 0;
+  const paginationMinHeight = cities.length > 1 ? '44px' : '0px';
+
   return (
-    <div className={`h-full bg-cover bg-center bg-no-repeat transition-all duration-1000 ${backgroundClass}`}>
+    <div
+      className={`h-full bg-cover bg-center bg-no-repeat transition-all duration-1000 ${backgroundClass}`}
+      dir={direction}
+    >
       {/* Background Update Banners */}
       {pendingUpdates.map(update => (
         <BackgroundUpdateBanner
@@ -89,27 +101,33 @@ export default function ClientHomePage({ initialData }: ClientHomePageProps) {
         />
       ))}
       
-      <div className="h-full flex flex-col w-full px-2 md:px-4 xl:px-6 pt-2">
-        {isLoading && (
-          <div data-testid="loading-overlay" className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 flex items-center justify-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
-          </div>
-        )}
+      <div className="relative h-full flex flex-col w-full px-2 md:px-4 xl:px-6 pt-2">
         {cities.length > 0 ? (
           <>
             {/* Weather Card - Takes remaining space minus pagination */}
-            <div className="flex-1 min-h-0" data-testid="weather-list">
+            <div className="relative flex-1 min-h-0" data-testid="weather-list" aria-busy={isLoading}>
+              {showInlineLoader && (
+                <div
+                  data-testid="loading-overlay"
+                  className="pointer-events-none absolute top-3 right-3 z-30 flex items-center gap-2 rounded-full bg-black/60 px-3 py-1 text-xs font-medium text-white shadow-lg backdrop-blur-sm"
+                  role="status"
+                  aria-live="polite"
+                >
+                  <Loader2 className="h-3 w-3 animate-spin" aria-hidden="true" />
+                  <span>{t('loading')}</span>
+                </div>
+              )}
               <WeatherCarousel />
             </div>
             
             {/* Pagination - Fixed at Bottom, closer to the card */}
-            <div className="flex-shrink-0 mt-1">
-              <CityPagination />
+            <div className="flex-shrink-0 mt-1" style={{ minHeight: paginationMinHeight }} aria-live="polite">
+              {cities.length > 1 ? <CityPagination /> : null}
             </div>
           </>
         ) : (
           <div className="flex-1 flex items-center justify-center">
-            <EmptyPage />
+            {isLoading ? <CityInfoSkeleton /> : <EmptyPage />}
           </div>
         )}
       </div>

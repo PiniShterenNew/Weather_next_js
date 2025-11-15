@@ -68,10 +68,10 @@ export default function ForgotPassword() {
 
   if (step === 'success') {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-brand-500 to-brand-600 p-4 relative">
+      <main className="min-h-screen pt-24 pb-8 px-4 flex items-center justify-center bg-gradient-to-br from-brand-500 to-brand-600 relative">
         <AuthHeader />
         
-        <Card className="w-full max-w-md lg:max-w-lg xl:max-w-xl p-6 lg:p-8 xl:p-10 space-y-4 lg:space-y-6 animate-fade-in text-center mt-20 lg:mt-24">
+        <Card className="w-full max-w-[420px] sm:max-w-[380px] md:max-w-[420px] lg:max-w-[480px] xl:max-w-[520px] bg-white dark:bg-gray-800 rounded-2xl sm:rounded-xl shadow-xl p-8 sm:p-6 md:p-8 lg:p-10 space-y-6 sm:space-y-4 md:space-y-6 lg:space-y-8 text-center">
           <div className="inline-flex items-center justify-center w-14 h-14 lg:w-16 lg:h-16 xl:w-18 xl:h-18 rounded-full bg-green-100 dark:bg-green-900 mx-auto">
             <svg className="h-6 w-6 lg:h-8 lg:w-8 xl:h-9 xl:w-9 text-green-600 dark:text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
@@ -93,16 +93,16 @@ export default function ForgotPassword() {
             </Button>
           </Link>
         </Card>
-      </div>
+      </main>
     );
   }
 
   if (step === 'code') {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-brand-500 to-brand-600 p-4 relative">
+      <main className="min-h-screen pt-24 pb-8 px-4 flex items-center justify-center bg-gradient-to-br from-brand-500 to-brand-600 relative">
         <AuthHeader />
         
-        <Card className="w-full max-w-md lg:max-w-lg xl:max-w-xl p-6 lg:p-8 xl:p-10 space-y-4 lg:space-y-6 animate-fade-in mt-20 lg:mt-24">
+        <Card className="w-full max-w-[420px] sm:max-w-[380px] md:max-w-[420px] lg:max-w-[480px] xl:max-w-[520px] bg-white dark:bg-gray-800 rounded-2xl sm:rounded-xl shadow-xl p-8 sm:p-6 md:p-8 lg:p-10 space-y-6 sm:space-y-4 md:space-y-6 lg:space-y-8">
           <div className="text-center space-y-3 lg:space-y-4">
             <div className="inline-flex items-center justify-center w-14 h-14 lg:w-16 lg:h-16 xl:w-18 xl:h-18 rounded-full bg-gradient-to-br from-brand-500 to-brand-600">
               <Lock className="h-6 w-6 lg:h-8 lg:w-8 xl:h-9 xl:w-9 text-white" />
@@ -175,15 +175,15 @@ export default function ForgotPassword() {
             </button>
           </div>
         </Card>
-      </div>
+      </main>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-brand-500 to-brand-600 p-4 relative">
+    <main className="min-h-screen pt-24 pb-8 px-4 flex items-center justify-center bg-gradient-to-br from-brand-500 to-brand-600 relative">
       <AuthHeader />
       
-      <Card className="w-full max-w-md lg:max-w-lg xl:max-w-xl p-6 lg:p-8 xl:p-10 space-y-4 lg:space-y-6 animate-fade-in mt-20 lg:mt-24">
+      <Card className="w-full max-w-[420px] sm:max-w-[380px] md:max-w-[420px] lg:max-w-[480px] xl:max-w-[520px] bg-white dark:bg-gray-800 rounded-2xl sm:rounded-xl shadow-xl p-8 sm:p-6 md:p-8 lg:p-10 space-y-6 sm:space-y-4 md:space-y-6 lg:space-y-8">
         <div className="text-center space-y-3 lg:space-y-4">
           <div className="inline-flex items-center justify-center w-14 h-14 lg:w-16 lg:h-16 xl:w-18 xl:h-18 rounded-full bg-gradient-to-br from-brand-500 to-brand-600">
             <Thermometer className="h-6 w-6 lg:h-8 lg:w-8 xl:h-9 xl:w-9 text-white" />
@@ -250,7 +250,7 @@ export default function ForgotPassword() {
           </Link>
         </div>
       </Card>
-    </div>
+    </main>
   );
 }
 

@@ -21,6 +21,11 @@ export async function registerForPushNotifications(): Promise<PushSubscriptionDa
     return null;
   }
 
+  if (process.env.NODE_ENV !== 'production' || !window.isSecureContext || window.location.protocol !== 'https:') {
+    logger.warn('Push notifications require a secure production environment; skipping registration.');
+    throw new Error('Push notifications are only available in production environments.');
+  }
+
   try {
     // Register service worker
     const registration = await navigator.serviceWorker.register('/sw.js');
@@ -54,8 +59,9 @@ export async function registerForPushNotifications(): Promise<PushSubscriptionDa
 
     return subscriptionData;
   } catch (error) {
-    logger.error('Error registering for push notifications', error as Error);
-    return null;
+    const err = error instanceof Error ? error : new Error('Push registration failed');
+    logger.error('Error registering for push notifications', err);
+    throw err;
   }
 }
 
@@ -63,6 +69,9 @@ export async function registerForPushNotifications(): Promise<PushSubscriptionDa
  * Unregister from push notifications
  */
 export async function unregisterFromPushNotifications(): Promise<{ success: boolean; endpoint?: string }> {
+  if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+    return { success: false };
+  }
   try {
     const registration = await navigator.serviceWorker.getRegistration();
     if (registration) {

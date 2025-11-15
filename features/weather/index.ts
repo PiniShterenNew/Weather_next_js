@@ -11,6 +11,7 @@ export { default as WeatherCardContent } from './components/card/WeatherCardCont
 export { default as WeatherCardSkeleton } from './components/card/WeatherCardSkeleton';
 export { default as SwipeableWeatherCard } from './components/card/SwipeableWeatherCard';
 export { default as CityPagination } from './components/card/CityPagination';
+export { default as CityPaginationSkeleton } from './components/card/CityPaginationSkeleton';
 export { default as CityInfo } from './components/card/CityInfo';
 export { default as CityHeader } from './components/card/CityHeader';
 

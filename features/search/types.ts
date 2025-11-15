@@ -24,6 +24,7 @@ export interface SuggestionsListProps {
   isAdding: string | null;
   handleSelect: (suggestion: SearchSuggestion) => void;
   className?: string;
+  direction?: 'ltr' | 'rtl';
 }
 
 export interface SuggestionItemProps {

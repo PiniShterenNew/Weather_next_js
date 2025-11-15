@@ -6,6 +6,7 @@ import SwipeableCityCard from './SwipeableCityCard';
 import { motion } from 'framer-motion';
 import { CityWeather } from '@/types/weather';
 import { useRef } from 'react';
+import WeatherListSkeleton from '@/components/skeleton/WeatherListSkeleton';
 
 interface CitiesGridProps {
   filteredCities?: CityWeather[];
@@ -16,6 +17,7 @@ export default function CitiesGrid({ filteredCities, isSearching = false }: Citi
   const t = useTranslations();
   const allCities = useWeatherStore((s) => s.cities);
   const currentIndex = useWeatherStore((s) => s.currentIndex);
+  const isLoading = useWeatherStore((s) => s.isLoading);
   const cities = filteredCities !== undefined ? filteredCities : allCities;
   
   const containerRef = useRef<HTMLDivElement>(null);
@@ -35,9 +37,12 @@ export default function CitiesGrid({ filteredCities, isSearching = false }: Citi
       })();
 
   if (cities.length === 0) {
+    if (isLoading) {
+      return <WeatherListSkeleton />;
+    }
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center">
-        <p className="text-lg font-medium text-neutral-800 dark:text-white/90 mb-2">
+        <p className="mb-2 text-lg font-medium text-neutral-800 dark:text-white/90">
           {isSearching ? t('search.noResults') : t('empty')}
         </p>
         <p className="text-sm text-neutral-600 dark:text-white/60">

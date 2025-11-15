@@ -9,7 +9,7 @@ const resetStore = () => {
     unit: 'metric',
     locale: 'he',
     theme: 'system',
-    direction: 'ltr',
+    direction: 'rtl',
     userTimezoneOffset: initialTimezoneOffset,
     isAuthenticated: false,
     isSyncing: false,
@@ -27,7 +27,7 @@ describe('useAppPreferencesStore', () => {
     expect(state.unit).toBe('metric');
     expect(state.locale).toBe('he');
     expect(state.theme).toBe('system');
-    expect(state.direction).toBe('ltr');
+    expect(state.direction).toBe('rtl');
     expect(state.userTimezoneOffset).toBe(initialTimezoneOffset);
     expect(state.isAuthenticated).toBe(false);
     expect(state.isSyncing).toBe(false);
@@ -39,6 +39,7 @@ describe('useAppPreferencesStore', () => {
 
     setUnit('imperial');
     setLocale('en');
+    expect(useAppPreferencesStore.getState().direction).toBe('ltr');
     setTheme('dark');
     setDirection('rtl');
     setIsAuthenticated(true);
@@ -79,7 +80,7 @@ describe('useAppPreferencesStore', () => {
     expect(state.unit).toBe('metric');
     expect(state.locale).toBe('he');
     expect(state.theme).toBe('system');
-    expect(state.direction).toBe('ltr');
+    expect(state.direction).toBe('rtl');
     expect(state.userTimezoneOffset).toBe(initialTimezoneOffset);
     expect(state.isAuthenticated).toBe(false);
     expect(state.isSyncing).toBe(false);
