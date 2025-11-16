@@ -2,7 +2,6 @@
 
 import type { MouseEvent as ReactMouseEvent } from 'react';
 import { useState, useRef } from 'react';
-import { motion } from 'framer-motion';
 import { useTranslations, useLocale } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { useWeatherStore } from '@/store/useWeatherStore';
@@ -93,18 +92,12 @@ export default function SwipeableCityCard({
   }
 
   return (
-    <motion.div
+    <div
       ref={containerRef}
-      initial={{ opacity: 0, y: 20 }}
-      animate={{
-        opacity: 1,
-        y: 0
-      }}
-      transition={{ duration: 0.2, delay: index * 0.05 }}
       className="relative w-full"
     >
       <Card
-        className={`w-full p-4 cursor-pointer backdrop-blur-md rounded-2xl shadow-sm transition-all duration-200 select-none ${isActiveCity
+        className={`w-full px-4 py-5 cursor-pointer backdrop-blur-md rounded-2xl shadow-sm transition-all duration-200 select-none ${isActiveCity
           ? 'bg-sky-100/80 dark:bg-sky-900/30 border-2 border-sky-500 dark:border-sky-400 ring-2 ring-sky-500/20 shadow-lg'
           : 'bg-white/60 dark:bg-white/5 border border-white/10 hover:shadow-md'
           } cursor-pointer`}
@@ -120,7 +113,7 @@ export default function SwipeableCityCard({
         aria-label={`${t('cities.viewWeather')} ${cityName}${isCurrentLocation ? ` - ${t('cities.currentLocation')}` : ''}${isActiveCity ? ` - ${t('cities.nowShowing')}` : ''}`}
         aria-current={isActiveCity ? 'true' : 'false'}
       >
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-start justify-between gap-3">
           <CityCardContent
             city={city}
             locale={locale}
@@ -135,6 +128,6 @@ export default function SwipeableCityCard({
           />
         </div>
       </Card>
-    </motion.div>
+    </div>
   );
 }

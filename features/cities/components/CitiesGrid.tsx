@@ -3,7 +3,6 @@
 import { useTranslations } from 'next-intl';
 import { useWeatherStore } from '@/store/useWeatherStore';
 import SwipeableCityCard from './SwipeableCityCard';
-import { motion } from 'framer-motion';
 import { CityWeather } from '@/types/weather';
 import { useRef } from 'react';
 import WeatherListSkeleton from '@/components/skeleton/WeatherListSkeleton';
@@ -71,14 +70,11 @@ export default function CitiesGrid({ filteredCities, isSearching = false }: Citi
       )}
       
       {/* All cities grid */}
-      <motion.div
+      <div
         className="grid grid-cols-1 gap-4 select-none"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.3 }}
-        style={{ 
-          userSelect: 'none', 
-          WebkitUserSelect: 'none' 
+        style={{
+          userSelect: 'none',
+          WebkitUserSelect: 'none',
         }}
       >
         {sortedCities.map((city, displayIndex) => {
@@ -95,7 +91,7 @@ export default function CitiesGrid({ filteredCities, isSearching = false }: Citi
             />
           );
         })}
-      </motion.div>
+      </div>
     </div>
   );
 }

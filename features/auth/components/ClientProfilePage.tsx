@@ -116,20 +116,9 @@ export default function ClientProfilePage() {
   }
 
   return (
-    <motion.div 
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.3 }}
-      className="h-screen overflow-y-auto bg-gradient-to-b from-blue-50 to-white dark:from-[#0d1117] dark:to-[#1b1f24]"
-    >
+    <div className="h-screen overflow-y-auto bg-gradient-to-b from-blue-50 to-white dark:from-[#0d1117] dark:to-[#1b1f24]">
       {/* Header with back button */}
-      <motion.div 
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3, delay: 0.1 }}
-        className="sticky top-0 z-50 bg-white/60 dark:bg-[#0d1117]/80 backdrop-blur-md shadow-sm border-b border-white/10"
-      >
+      <div className="sticky top-0 z-50 bg-white/60 dark:bg-[#0d1117]/80 backdrop-blur-md shadow-sm border-b border-white/10">
         <div className="p-4 flex items-center gap-3 w-full max-w-3xl mx-auto">
           <Button
             onClick={() => router.back()}
@@ -144,15 +133,10 @@ export default function ClientProfilePage() {
             {t('navigation.profile')}
           </h1>
         </div>
-      </motion.div>
+      </div>
 
       {/* Profile Content */}
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, delay: 0.2 }}
-        className="px-4 py-6 pb-8 space-y-6 max-w-3xl mx-auto"
-      >
+      <div className="px-4 py-6 pb-8 space-y-6 max-w-3xl mx-auto">
         {isUploadingImage && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm">
             <div className="w-full max-w-3xl px-6">
@@ -166,11 +150,7 @@ export default function ClientProfilePage() {
           </div>
         )}
         {/* User Info Card */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.3, delay: 0.3 }}
-        >
+        <div>
         <Card className="bg-white/60 dark:bg-white/5 backdrop-blur-md rounded-2xl p-6 shadow-sm border border-white/10 text-center flex flex-col items-center gap-4">
           {/* Profile Image */}
           <div className="relative group">
@@ -239,7 +219,7 @@ export default function ClientProfilePage() {
             </Button>
           )}
         </Card>
-        </motion.div>
+        </div>
 
         {/* Remove Image Confirmation Dialog */}
         <ConfirmDialog
@@ -254,11 +234,7 @@ export default function ClientProfilePage() {
         />
 
         {/* Account Details */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, delay: 0.4 }}
-        >
+        <div>
         <Card className="bg-white/60 dark:bg-white/5 backdrop-blur-md rounded-2xl p-6 shadow-sm border border-white/10 space-y-3">
           <h3 className="text-lg font-semibold text-neutral-800 dark:text-white/90 mb-3">
             {t('settings.accountDetails')}
@@ -292,14 +268,10 @@ export default function ClientProfilePage() {
             </div>
           </div>
         </Card>
-        </motion.div>
+        </div>
 
         {/* Sign Out Button */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, delay: 0.5 }}
-        >
+        <div>
         <Button
           onClick={handleSignOut}
           className="mt-8 w-full py-3 rounded-xl bg-sky-500 hover:bg-sky-600 text-white font-medium h-12 gap-2 transition"
@@ -307,9 +279,9 @@ export default function ClientProfilePage() {
           <LogOut className="h-5 w-5" />
           {t('auth.signOut')}
         </Button>
-        </motion.div>
-      </motion.div>
-    </motion.div>
+        </div>
+      </div>
+    </div>
   );
 }
 

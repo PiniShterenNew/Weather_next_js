@@ -9,7 +9,6 @@ import { LanguageSwitcher, ThemeSwitcher, TemperatureUnitToggle } from '@/featur
 import { useWeatherStore } from '@/store/useWeatherStore';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { useOnboardingGate } from '@/features/onboarding';
 import NotificationsCard from '@/features/notifications/settings/NotificationsCard';
 
@@ -67,18 +66,14 @@ export default function SettingsPage({ isAuthenticated = false, onSignOut }: Set
     <div className="!max-h-[calc(100vh-10rem)] overflow-y-auto overflow-x-hidden scroll-smooth scrollbar-hide bg-gradient-to-b from-blue-50 to-white dark:from-[#0d1117] dark:to-[#1b1f24]">
       <div className="flex flex-col space-y-6 px-4 sm:px-6 pt-6 w-full max-w-3xl mx-auto">
         {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, delay: 0.1 }}
-        >
+        <div>
         <h1 className="text-2xl font-bold text-neutral-800 dark:text-white/90">
           {t('navigation.settings')}
         </h1>
         <p className="text-sm text-neutral-600 dark:text-white/80 mt-1">
           {t('settings.description')}
         </p>
-      </motion.div>
+      </div>
 
       {/* Language Section (no transforms to keep Select popper anchored correctly) */}
       <div>
@@ -99,11 +94,7 @@ export default function SettingsPage({ isAuthenticated = false, onSignOut }: Set
       </div>
 
       {/* Theme Section */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3, delay: 0.3 }}
-      >
+      <div>
       <Card className="p-6 bg-white/60 dark:bg-white/5 backdrop-blur-md shadow-sm border-white/10 rounded-2xl">
         <h2 className="text-lg font-medium text-neutral-800 dark:text-white/90 mb-4 flex items-center gap-3">
           <Palette className="h-5 w-5 text-sky-500 dark:text-blue-400" />
@@ -118,14 +109,10 @@ export default function SettingsPage({ isAuthenticated = false, onSignOut }: Set
           <ThemeSwitcher />
         </div>
       </Card>
-      </motion.div>
+      </div>
 
       {/* Temperature Unit Section */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3, delay: 0.4 }}
-      >
+      <div>
       <Card className="p-6 bg-white/60 dark:bg-white/5 backdrop-blur-md shadow-sm border-white/10 rounded-2xl">
         <h2 className="text-lg font-medium text-neutral-800 dark:text-white/90 mb-4 flex items-center gap-3">
           <Thermometer className="h-5 w-5 text-sky-500 dark:text-blue-400" />
@@ -140,14 +127,10 @@ export default function SettingsPage({ isAuthenticated = false, onSignOut }: Set
           <TemperatureUnitToggle />
         </div>
       </Card>
-      </motion.div>
+      </div>
 
       {/* Data Management Section */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3, delay: 0.5 }}
-      >
+      <div>
       <Card className="p-6 bg-white/60 dark:bg-white/5 backdrop-blur-md shadow-sm border-white/10 rounded-2xl">
         <h2 className="text-lg font-medium text-neutral-800 dark:text-white/90 mb-4 flex items-center gap-3">
           <HardDrive className="h-5 w-5 text-sky-500 dark:text-blue-400" />
@@ -197,17 +180,13 @@ export default function SettingsPage({ isAuthenticated = false, onSignOut }: Set
           </div>
         </div>
       </Card>
-      </motion.div>
+      </div>
 
       {/* Notifications Section */}
       <NotificationsCard />
 
       {/* About Section */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3, delay: 0.5 }}
-      >
+      <div>
         <Card className="p-6 bg-white/60 dark:bg-white/5 backdrop-blur-md shadow-sm border-white/10 rounded-2xl">
           <h2 className="text-lg font-medium text-neutral-800 dark:text-white/90 mb-4 flex items-center gap-3">
             <Info className="h-5 w-5 text-sky-500 dark:text-blue-400" />
@@ -230,14 +209,10 @@ export default function SettingsPage({ isAuthenticated = false, onSignOut }: Set
             </Button>
           </div>
         </Card>
-      </motion.div>
+      </div>
 
       {/* Reset Welcome Section */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3, delay: 0.55 }}
-      >
+      <div>
         <Card className="p-6 bg-white/60 dark:bg-white/5 backdrop-blur-md shadow-sm border-white/10 rounded-2xl">
           <h2 className="text-lg font-medium text-neutral-800 dark:text-white/90 mb-4 flex items-center gap-3">
             <RotateCcw className="h-5 w-5 text-sky-500 dark:text-blue-400" />
@@ -261,15 +236,11 @@ export default function SettingsPage({ isAuthenticated = false, onSignOut }: Set
             </Button>
           </div>
         </Card>
-      </motion.div>
+      </div>
 
       {/* Auth Section - Only show if authenticated */}
       {isAuthenticated && onSignOut && (
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3, delay: 0.6 }}
-        >
+        <div>
         <Card className="p-6 bg-white/60 dark:bg-white/5 backdrop-blur-md shadow-sm border-white/10 rounded-2xl">
           <h2 className="text-lg font-medium text-neutral-800 dark:text-white/90 mb-4 flex items-center gap-3">
             <User className="h-5 w-5 text-sky-500 dark:text-blue-400" />
@@ -292,7 +263,7 @@ export default function SettingsPage({ isAuthenticated = false, onSignOut }: Set
             </Button>
           </div>
         </Card>
-        </motion.div>
+        </div>
       )}
 
       {/* Clear Cache Confirmation Dialog */}
