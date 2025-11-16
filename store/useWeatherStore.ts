@@ -4,7 +4,7 @@ import { useMemo } from 'react';
 
 import type { WeatherStore, WeatherStoreActions } from '@/types/store';
 import type { AppLocale } from '@/types/i18n';
-import type { TemporaryUnit } from '@/types/ui';
+import type { TemporaryUnit, ThemeMode, Direction } from '@/types/ui';
 import type {
   CityWeather,
   WeatherCurrent,
@@ -94,7 +94,7 @@ const buildState = (): CombinedState => {
     maxCities: dataStore.maxCities,
     currentLocationData: locationStore.currentLocationData,
     locationTrackingEnabled: locationStore.locationTrackingEnabled,
-    locationChangeDialog: locationStore.locationChangeDialog,
+    locationChangeDialog: locationStore.locationChangeDialog ?? { isOpen: false },
 
     setOpen: (open: boolean) => useQuickAddStore.setState({ isOpen: open }),
     addCity: weatherActions.addCity,
@@ -168,8 +168,8 @@ export const useWeatherStore = <T = CombinedState>(selector?: (state: CombinedSt
       autoLocationCityId: undefined,
       currentLocationData: undefined,
       locationTrackingEnabled: false,
-      locationChangeDialog: undefined,
-    } as CombinedState;
+      locationChangeDialog: { isOpen: false },
+    } as unknown as CombinedState;
     
     const select = selector ?? ((state: CombinedState) => state as unknown as T);
     return select(minimalState);
@@ -194,8 +194,8 @@ export const useWeatherStore = <T = CombinedState>(selector?: (state: CombinedSt
       autoLocationCityId: undefined,
       currentLocationData: undefined,
       locationTrackingEnabled: false,
-      locationChangeDialog: undefined,
-    } as CombinedState;
+      locationChangeDialog: { isOpen: false },
+    } as unknown as CombinedState;
     
     const select = selector ?? ((state: CombinedState) => state as unknown as T);
     return select(minimalState);
@@ -222,15 +222,16 @@ export const useWeatherStore = <T = CombinedState>(selector?: (state: CombinedSt
       autoLocationCityId: undefined,
       currentLocationData: undefined,
       locationTrackingEnabled: false,
-      locationChangeDialog: undefined,
-    } as CombinedState;
+      locationChangeDialog: { isOpen: false },
+    } as unknown as CombinedState;
     
     const select = selector ?? ((state: CombinedState) => state as unknown as T);
     return select(minimalState);
   }
 
   // Ensure all dependencies are valid objects/values before useMemo to prevent Object.keys errors
-  const safeActions = actions && typeof actions === 'object' ? actions : {};
+  const safeActions: Partial<WeatherStoreActions> =
+    actions && typeof actions === 'object' ? (actions as Partial<WeatherStoreActions>) : {};
   const safePreferences = preferences && typeof preferences === 'object' ? preferences : {
     unit: 'metric',
     locale: 'he',
@@ -243,7 +244,7 @@ export const useWeatherStore = <T = CombinedState>(selector?: (state: CombinedSt
   const safeLocationState = locationState && typeof locationState === 'object' ? locationState : {
     currentLocationData: undefined,
     locationTrackingEnabled: false,
-    locationChangeDialog: undefined,
+    locationChangeDialog: { isOpen: false },
   };
 
   const combined = useMemo<CombinedState>(() => {
@@ -260,10 +261,10 @@ export const useWeatherStore = <T = CombinedState>(selector?: (state: CombinedSt
       isLoading: isLoading ?? false,
       autoLocationCityId,
       maxCities: maxCities ?? 15,
-      unit: safePreferences.unit || 'metric',
-      locale: safePreferences.locale || 'he',
-      theme: safePreferences.theme || 'system',
-      direction: safePreferences.direction || 'rtl',
+      unit: (safePreferences.unit || 'metric') as TemporaryUnit,
+      locale: (safePreferences.locale || 'he') as AppLocale,
+      theme: (safePreferences.theme || 'system') as ThemeMode,
+      direction: (safePreferences.direction || 'rtl') as Direction,
       userTimezoneOffset: safePreferences.userTimezoneOffset || 0,
       isAuthenticated: safePreferences.isAuthenticated ?? false,
       isSyncing: safePreferences.isSyncing ?? false,
@@ -271,23 +272,30 @@ export const useWeatherStore = <T = CombinedState>(selector?: (state: CombinedSt
       open: quickAddOpen ?? false,
       currentLocationData: safeLocationState.currentLocationData,
       locationTrackingEnabled: safeLocationState.locationTrackingEnabled ?? false,
-      locationChangeDialog: safeLocationState.locationChangeDialog,
-      setOpen: safeActions.setQuickAddOpen || (() => {}),
-      addCity: safeActions.addCity || (async () => {}),
-      addOrReplaceCurrentLocation: safeActions.addOrReplaceCurrentLocation || (async () => {}),
-      removeCity: safeActions.removeCity || (async () => {}),
+      locationChangeDialog: safeLocationState.locationChangeDialog ?? { isOpen: false },
+      setOpen: safeActions.setOpen || (() => {}),
+      addCity: safeActions.addCity || (async (_city: CityWeather) => false),
+      addOrReplaceCurrentLocation:
+        safeActions.addOrReplaceCurrentLocation || (async (_city: CityWeather) => {}),
+      removeCity: safeActions.removeCity || (async (_id: string) => {}),
       setCurrentIndex: safeActions.setCurrentIndex || (() => {}),
       showToast: useToastStore.getState().showToast || (() => {}),
       hideToast: useToastStore.getState().hideToast || (() => {}),
       setIsLoading: safeActions.setIsLoading || (() => {}),
       nextCity: safeActions.nextCity || (() => {}),
       prevCity: safeActions.prevCity || (() => {}),
-      handleLocationChange: safeActions.handleLocationChange || (async () => {}),
-      refreshCity: safeActions.refreshCity || (async () => {}),
-      applyBackgroundUpdate: safeActions.applyBackgroundUpdate || (async () => {}),
+      handleLocationChange:
+        safeActions.handleLocationChange ||
+        ((_keepOldCity: boolean, _oldCityId: string, _newCity: CityWeather) => {}),
+      refreshCity:
+        safeActions.refreshCity || (async (_id: string, _opts?: { background?: boolean }) => {}),
+      applyBackgroundUpdate:
+        safeActions.applyBackgroundUpdate ||
+        ((_id: string, _data: { lastUpdatedUtc: string } & Partial<CityWeather>) => {}),
       closeQuickAddAndResetLoading: safeActions.closeQuickAddAndResetLoading || (() => {}),
-      persistPreferencesIfAuthenticated: safeActions.persistPreferencesIfAuthenticated || (async () => {}),
-      setAutoLocationCityId: safeActions.setAutoLocationCityId || (() => {}),
+      persistPreferencesIfAuthenticated:
+        safeActions.persistPreferencesIfAuthenticated || (async (_cities: CityWeather[]) => {}),
+      setAutoLocationCityId: safeActions.setAutoLocationCityId || ((_id?: string) => {}),
     };
   }, [
       safeActions,
@@ -334,8 +342,8 @@ export const useWeatherStore = <T = CombinedState>(selector?: (state: CombinedSt
         autoLocationCityId: undefined,
         currentLocationData: undefined,
         locationTrackingEnabled: false,
-        locationChangeDialog: undefined,
-      } as CombinedState;
+        locationChangeDialog: { isOpen: false },
+      } as unknown as CombinedState;
       const select = selector ?? ((state: CombinedState) => state as unknown as T);
       return select(minimalState);
     }

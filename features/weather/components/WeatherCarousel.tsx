@@ -16,15 +16,16 @@ interface SlideProps {
 }
 
 function Slide({ city }: SlideProps) {
-  // Guard against undefined/null city
-  if (!city || !city.id || !city.name) {
-    return <WeatherCardSkeleton />;
-  }
-
   const { locale, cityLocale } = useWeatherLocale(city);
 
-  // If we somehow don't have localized name or locale data, treat as missing city
-  if (!cityLocale || !city.name[locale]) {
+  const isValidCity =
+    !!city &&
+    !!city.id &&
+    !!city.name &&
+    !!cityLocale &&
+    !!city.name[locale];
+
+  if (!isValidCity) {
     return <WeatherCardSkeleton />;
   }
 
@@ -76,11 +77,6 @@ function WeatherCarouselInternal() {
       ? Math.min(Math.max(currentIndex, 0), safeCities.length - 1)
       : 0;
 
-  // If אין ערים בכלל – משתמשים בסקלטון הבית האחיד
-  if (!hasCities) {
-    return <WeatherCardSkeleton />;
-  }
-
   // Hardening: Embla תמיד מקבל אובייקט ואוסף תוספים תקף
   const emblaOptions = {
     loop: isMounted && safeCities.length > 1,
@@ -128,7 +124,7 @@ function WeatherCarouselInternal() {
     // Embla might need a tick to be ready
     const timeout = setTimeout(initializeIndex, 0);
     return () => clearTimeout(timeout);
-  }, [emblaApi, isMounted, safeCurrentIndex, isRtl, safeCities.length]); // Include isRtl to detect direction changes
+  }, [emblaApi, isMounted, safeCurrentIndex, isRtl, safeCities.length, hasCities]); // Include isRtl to detect direction changes
 
   // Sync Embla with Zustand store when currentIndex changes programmatically (after init)
   useEffect(() => {
@@ -144,7 +140,7 @@ function WeatherCarouselInternal() {
         isProgrammaticScrollRef.current = false;
       }, 300);
     }
-  }, [safeCurrentIndex, emblaApi, isMounted, safeCities.length]);
+  }, [safeCurrentIndex, emblaApi, isMounted, safeCities.length, hasCities]);
 
   // Mirror Embla slide selection into Zustand store (user-initiated scrolls only)
   useEffect(() => {
@@ -156,12 +152,9 @@ function WeatherCarouselInternal() {
       
       const selectedIndex = emblaApi.selectedScrollSnap();
       // Only update if different to prevent unnecessary updates
-      setCurrentIndex((prevIndex) => {
-        if (prevIndex !== selectedIndex) {
-          return selectedIndex;
-        }
-        return prevIndex;
-      });
+      if (selectedIndex !== safeCurrentIndex) {
+        setCurrentIndex(selectedIndex);
+      }
     };
 
     emblaApi.on('select', onSelect);
@@ -173,7 +166,7 @@ function WeatherCarouselInternal() {
         emblaApi.off('reInit', onSelect);
       }
     };
-  }, [emblaApi, setCurrentIndex, isMounted, safeCities.length]);
+  }, [emblaApi, setCurrentIndex, isMounted, safeCities.length, safeCurrentIndex]);
 
   // Keyboard support
   useEffect(() => {
@@ -203,6 +196,10 @@ function WeatherCarouselInternal() {
     if (!emblaApi || !isMounted) return;
     emblaApi.scrollNext();
   }, [emblaApi, isMounted]);
+
+  if (!hasCities) {
+    return <WeatherCardSkeleton />;
+  }
 
   return (
     <div className="relative h-full" role="region" aria-roledescription="carousel" aria-label="Weather carousel">

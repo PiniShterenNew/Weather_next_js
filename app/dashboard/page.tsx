@@ -5,7 +5,7 @@ import { Suspense } from 'react';
 import { loadBootstrapData } from '@/lib/server/bootstrap';
 import ClientHomePage from '@/features/home/components/ClientHomePage';
 import CityInfoSkeleton from '@/components/skeleton/CityInfoSkeleton';
-import ClientAuthGuard from '@/components/auth/ClientAuthGuard';
+import ClientAuthGuard from '@/components/Auth/ClientAuthGuard';
 
 export const metadata: Metadata = {
   title: 'Dashboard - Weather App',

@@ -4,8 +4,7 @@ import React from 'react';
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { fetchWeather } from '@/features/weather';
 import { useWeatherStore } from '@/store/useWeatherStore';
-import { Loader2 } from 'lucide-react';
-import { useLocale, useTranslations } from 'next-intl';
+import { useLocale } from 'next-intl';
 import type { CitySuggestion } from '@/types/suggestion';
 import { useDebounce } from '@/hooks/useDebounce';
 import { AppLocale } from '@/types/i18n';
@@ -22,7 +21,6 @@ import { SearchBarProps } from '../types';
  * Uses Suspense for improved loading experience
  */
 export default function SearchBar({ onSelect, placeholder, className }: SearchBarProps) {
-  const t = useTranslations();
   const locale = useLocale() as AppLocale;
   const direction = getDirection(locale);
   const [query, setQuery] = useState('');
