@@ -8,6 +8,7 @@ import { useAppPreferencesStore } from '@/store/useAppPreferencesStore';
 import { useWeatherStore } from '@/store/useWeatherStore';
 import type { CityWeather } from '@/types/weather';
 import type { TemporaryUnit } from '@/types/ui';
+import announceAction from '@/lib/actions/announceAction';
 
 export interface UseLocationRefreshReturn {
   isRefreshingLocation: boolean;
@@ -18,7 +19,6 @@ export function useLocationRefresh(): UseLocationRefreshReturn {
   const router = useRouter();
   const [isRefreshingLocation, setIsRefreshingLocation] = useState(false);
   const updateCurrentLocation = useWeatherStore((s) => s.updateCurrentLocation);
-  const showToast = useWeatherStore((s) => s.showToast);
   const preferences = useAppPreferencesStore();
   const { addOrReplaceCurrentLocation } = useWeatherActions();
 
@@ -26,10 +26,7 @@ export function useLocationRefresh(): UseLocationRefreshReturn {
     event?.stopPropagation();
 
     if (!navigator.geolocation) {
-      showToast({
-        message: 'toasts.geolocationNotSupported',
-        type: 'error'
-      });
+      await announceAction({ run: async () => {}, errorMessageKey: 'toasts.geolocationNotSupported' });
       return;
     }
 
@@ -77,38 +74,32 @@ export function useLocationRefresh(): UseLocationRefreshReturn {
               // Replace current location with new city
               await addOrReplaceCurrentLocation(completeWeatherData);
 
-              showToast({
-                message: 'toasts.locationUpdated',
-                type: 'success',
-                values: { city: cityName }
+              await announceAction({
+                run: async () => {},
+                successMessageKey: 'toasts.locationUpdated',
+                values: { city: cityName },
               });
             } catch (weatherError) {
               // If weather fetch fails, still show success but log error
               // eslint-disable-next-line no-console
               console.error('Failed to fetch weather for new location:', weatherError);
-              showToast({
-                message: 'toasts.locationUpdated',
-                type: 'success',
-                values: { city: cityName }
+              await announceAction({
+                run: async () => {},
+                successMessageKey: 'toasts.locationUpdated',
+                values: { city: cityName },
               });
               // Refresh page to load data from server
               router.refresh();
             }
           }
         } catch {
-          showToast({
-            message: 'toasts.locationUpdateFailed',
-            type: 'error'
-          });
+          await announceAction({ run: async () => {}, errorMessageKey: 'toasts.locationUpdateFailed' });
         } finally {
           setIsRefreshingLocation(false);
         }
       },
-      () => {
-        showToast({
-          message: 'toasts.locationAccessDenied',
-          type: 'error'
-        });
+      async () => {
+        await announceAction({ run: async () => {}, errorMessageKey: 'toasts.locationAccessDenied' });
         setIsRefreshingLocation(false);
       },
       {

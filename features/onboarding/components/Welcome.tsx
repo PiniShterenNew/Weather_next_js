@@ -64,30 +64,33 @@ export default function Welcome() {
           transition={{ duration: 0.6, delay: 0.2 }}
           className="space-y-4"
         >
-          {features.map((feature, index) => (
-            <motion.div
-              key={feature.title}
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.4, delay: 0.3 + index * 0.1 }}
-            >
-              <Card className="p-4 bg-white/60 dark:bg-white/5 backdrop-blur-md shadow-sm border-white/10 rounded-2xl">
-                <div className="flex items-center space-x-4">
-                  <div className="p-2 bg-sky-100 dark:bg-sky-900/30 rounded-xl">
-                    <feature.icon className="h-6 w-6 text-sky-600 dark:text-sky-400" />
+          {features.map((feature, index) => {
+            const IconComponent = feature.icon;
+            return (
+              <motion.div
+                key={feature.title}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.4, delay: 0.3 + index * 0.1 }}
+              >
+                <Card className="p-4 bg-white/60 dark:bg-white/5 backdrop-blur-md shadow-sm border-white/10 rounded-2xl">
+                  <div className="flex items-center space-x-4">
+                    <div className="p-2 bg-sky-100 dark:bg-sky-900/30 rounded-xl">
+                      <IconComponent className="h-6 w-6 text-sky-600 dark:text-sky-400" />
+                    </div>
+                    <div>
+                      <h3 className="font-medium text-neutral-800 dark:text-white/90">
+                        {feature.title}
+                      </h3>
+                      <p className="text-sm text-neutral-600 dark:text-white/60">
+                        {feature.description}
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="font-medium text-neutral-800 dark:text-white/90">
-                      {feature.title}
-                    </h3>
-                    <p className="text-sm text-neutral-600 dark:text-white/60">
-                      {feature.description}
-                    </p>
-                  </div>
-                </div>
-              </Card>
-            </motion.div>
-          ))}
+                </Card>
+              </motion.div>
+            );
+          })}
         </motion.div>
 
         {/* CTA Button */}

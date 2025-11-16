@@ -2,14 +2,15 @@
 
 import React from 'react';
 import { useEffect, useState, useRef, useCallback } from 'react';
-import { fetchWeather } from '@/features/weather';
-import { useWeatherStore } from '@/store/useWeatherStore';
+
 import { useLocale } from 'next-intl';
 import type { CitySuggestion } from '@/types/suggestion';
 import { useDebounce } from '@/hooks/useDebounce';
 import { AppLocale } from '@/types/i18n';
 import { getDirection } from '@/lib/intl';
 import { cn } from '@/lib/utils';
+
+import { addCityFromSuggestion } from '@/features/weather/services/addFlow';
 import { SuggestionsList } from './SuggestionsList';
 import SearchInput from './SearchInput';
 import { useSearchKeyboard } from '../hooks/useSearchKeyboard';
@@ -33,10 +34,6 @@ export default function SearchBar({ onSelect, placeholder, className }: SearchBa
   const hideTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
-
-  const addCity = useWeatherStore((s) => s.addCity);
-  const showToast = useWeatherStore((s) => s.showToast);
-  const setIsLoading = useWeatherStore((s) => s.setIsLoading);
 
   const { suggestions, loading, hasSearched } = useSearchSuggestions(debouncedQuery, locale);
   const { selectedIndex, handleKeyDown: handleKeyboardKeyDown, setSelectedIndex } = useSearchKeyboard();
@@ -85,76 +82,22 @@ export default function SearchBar({ onSelect, placeholder, className }: SearchBa
     setIsAdding(currentCityId);
 
     try {
-      setIsLoading(true);
-      
-      // Add timeout to prevent infinite loading
-      const weatherDataPromise = fetchWeather({
+      const result = await addCityFromSuggestion({
         id: city.id,
         lat: Number(city.lat),
         lon: Number(city.lon),
-        unit: 'metric'
+        name: city.city,
+        country: city.country,
       });
 
-      const timeoutPromise = new Promise<never>((_, reject) => {
-        setTimeout(() => {
-          reject(new Error('Weather fetch timeout'));
-        }, 15000); // 15 second timeout
-      });
-
-      const weatherData = await Promise.race([
-        weatherDataPromise,
-        timeoutPromise
-      ]);
-
-      const wasAdded = await addCity(weatherData);
-      
-      // Only show success toast if city was actually added
-      if (wasAdded) {
-        showToast({
-          message: 'toasts.added',
-          values: { city: city.city[locale] || city.city.en },
-          type: 'success',
-        });
-        
-        // Navigate immediately after successful addition
+      if (result.status === 'added' || result.status === 'exists') {
         onSelect();
-        
-        // Clear search after navigation
         setTimeout(clearSearch, 100);
-      } else {
-        // City already exists
-        showToast({
-          message: 'toasts.exists',
-          values: { city: city.city[locale] || city.city.en },
-          type: 'info',
-        });
-      }
-    } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error('Error adding city:', error);
-      
-      // Check if it's a timeout or network error
-      const isTimeout = error instanceof Error && error.message.includes('timeout');
-      const isNetworkError = error instanceof TypeError || 
-                           (error instanceof Error && error.message.includes('fetch'));
-      
-      if (isTimeout || isNetworkError) {
-        showToast({
-          message: 'errors.networkError',
-          type: 'error'
-        });
-      } else {
-        showToast({
-          message: 'errors.fetchWeather',
-          type: 'error'
-        });
       }
     } finally {
-      // Always reset loading states - check if this is still the current city being added
       if (isAdding === currentCityId) {
         setIsAdding(null);
       }
-      setIsLoading(false);
     }
   };
 

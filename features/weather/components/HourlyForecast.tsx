@@ -1,9 +1,9 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useLocale } from 'next-intl';
-import { ChevronLeft, ChevronRight, Wind } from 'lucide-react';
+import { Wind } from 'lucide-react';
 
 import { WeatherIcon } from '@/features/weather/components/WeatherIcon';
 import { formatTemperatureWithConversion, formatTimeWithTimezone } from '@/lib/helpers';
@@ -17,8 +17,6 @@ interface HourlyForecastProps {
   unit: TemporaryUnit;
   timezone: string;
 }
-
-const CARD_SCROLL_AMOUNT = 140;
 
 const HourlyForecastSkeleton = () => (
   <div className="space-y-3" data-testid="hourly-forecast-skeleton" aria-hidden="true">
@@ -34,7 +32,6 @@ const HourlyForecastSkeleton = () => (
     </div>
     <div className="flex gap-3 overflow-hidden">
       {Array.from({ length: 6 }).map((_, index) => (
-        // eslint-disable-next-line react/no-array-index-key
         <div key={index} className="w-24 flex-shrink-0 rounded-2xl border border-blue-100/60 bg-white/80 p-3 dark:border-blue-900/30 dark:bg-slate-900/40">
           <div className="mb-2 h-3 w-12 rounded-full bg-blue-100/80 dark:bg-blue-900/40" />
           <div className="mb-3 h-8 w-8 rounded-full bg-blue-200/70 dark:bg-blue-800/50 mx-auto" />
@@ -48,46 +45,10 @@ const HourlyForecastSkeleton = () => (
 
 export default function HourlyForecast({ hourly, cityUnit, unit, timezone }: HourlyForecastProps) {
   const locale = useLocale() as AppLocale;
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const [canScrollPrev, setCanScrollPrev] = useState(false);
-  const [canScrollNext, setCanScrollNext] = useState(false);
-  const isRtl = locale === 'he';
 
   const visibleHours = useMemo(() => hourly?.slice(0, 12) || [], [hourly]);
 
   const now = Math.floor(Date.now() / 1000);
-
-  const updateScrollState = useCallback(() => {
-    const container = scrollRef.current;
-    if (!container) return;
-
-    const maxScroll = container.scrollWidth - container.clientWidth;
-    const current = Math.abs(container.scrollLeft);
-
-    setCanScrollPrev(current > 8);
-    setCanScrollNext(current < maxScroll - 8);
-  }, []);
-
-  useEffect(() => {
-    updateScrollState();
-    const container = scrollRef.current;
-    if (!container) return;
-    const handleScroll = () => updateScrollState();
-    container.addEventListener('scroll', handleScroll, { passive: true });
-    window.addEventListener('resize', handleScroll);
-    return () => {
-      container.removeEventListener('scroll', handleScroll);
-      window.removeEventListener('resize', handleScroll);
-    };
-  }, [updateScrollState, visibleHours.length]);
-
-  const handleArrowClick = (direction: 'prev' | 'next') => {
-    const container = scrollRef.current;
-    if (!container) return;
-    const delta = direction === 'next' ? CARD_SCROLL_AMOUNT : -CARD_SCROLL_AMOUNT;
-    const offset = isRtl ? -delta : delta;
-    container.scrollBy({ left: offset, behavior: 'smooth' });
-  };
 
   if (!visibleHours.length) {
     return (
@@ -97,40 +58,16 @@ export default function HourlyForecast({ hourly, cityUnit, unit, timezone }: Hou
     );
   }
 
-  const scrollPrev = () => handleArrowClick('prev');
-  const scrollNext = () => handleArrowClick('next');
-
   return (
     <div className="animate-fade-in rounded-2xl border border-blue-200/30 bg-blue-50/30 p-4 dark:border-blue-800/30 dark:bg-blue-950/20" data-testid="hourly-forecast">
-      <div className="mb-3 flex items-center justify-between gap-3">
+      <div className="mb-3 flex items-center gap-3">
         <h3 className="flex items-center gap-2 text-lg font-semibold text-blue-900 dark:text-blue-100">
           <div className="h-6 w-1 rounded-full bg-blue-500" />
           {locale === 'he' ? 'תחזית שעתית' : 'Hourly Forecast'}
         </h3>
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/40 bg-white/70 text-blue-900 shadow-sm transition hover:bg-white disabled:opacity-40 dark:border-white/10 dark:bg-slate-900/60 dark:text-white"
-            onClick={isRtl ? scrollNext : scrollPrev}
-            disabled={isRtl ? !canScrollNext : !canScrollPrev}
-            aria-label={isRtl ? 'הבא' : 'Previous hours'}
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </button>
-          <button
-            type="button"
-            className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-white/40 bg-white/70 text-blue-900 shadow-sm transition hover:bg-white disabled:opacity-40 dark:border-white/10 dark:bg-slate-900/60 dark:text-white"
-            onClick={isRtl ? scrollPrev : scrollNext}
-            disabled={isRtl ? !canScrollPrev : !canScrollNext}
-            aria-label={isRtl ? 'הקודם' : 'Next hours'}
-          >
-            <ChevronRight className="h-4 w-4" />
-          </button>
-        </div>
       </div>
 
       <div
-        ref={scrollRef}
         className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide"
         style={{
           scrollSnapType: 'x mandatory',

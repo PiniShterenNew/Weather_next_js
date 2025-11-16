@@ -9,6 +9,7 @@ import { Switch } from '@/components/ui/switch';
 import { Bell, Settings, AlertCircle, Loader2 } from 'lucide-react';
 import { useWeatherDataStore } from '@/features/weather/store/useWeatherDataStore';
 import { useToastStore } from '@/features/ui/store/useToastStore';
+import announceAction from '@/lib/actions/announceAction';
 import { fetchSecure } from '@/lib/fetchSecure';
 import { useUser } from '@clerk/nextjs';
 import { AppLocale } from '@/types/i18n';
@@ -187,59 +188,77 @@ export default function NotificationsCard() {
   };
 
   const toggleNotifications = async (enabled: boolean) => {
-    try {
-      if (enabled && !settings.permissionGranted) {
-        announceStatus('loading', t('loading'));
-        await requestPermission();
-        return;
-      }
+    // Build multi-step flow but show only one final toast (success or error)
+    const steps = [];
 
-      announceStatus('loading', t('loading'));
-
-      if (!enabled && settings.permissionGranted) {
-        const { unregisterFromPushNotifications } = await import('@/features/notifications/sw/registerPush');
-        const result = await unregisterFromPushNotifications();
-        
-        if (result.success && result.endpoint) {
-          await fetchSecure(`/api/notifications/subscribe?endpoint=${encodeURIComponent(result.endpoint)}`, {
-            method: 'DELETE',
-            requireAuth: true,
-          });
-        }
-
-        await saveSettings({ enabled: false });
-      } else if (enabled && settings.permissionGranted) {
-        const { registerForPushNotifications } = await import('@/features/notifications/sw/registerPush');
-        const subscription = await registerForPushNotifications();
-        
-        if (subscription) {
-          const response = await fetchSecure('/api/notifications/subscribe', {
-            method: 'POST',
-            requireAuth: true,
-            body: JSON.stringify({
-              ...subscription,
-            }),
-          });
-
-          if (!response.ok) {
-            throw new Error('Failed to save subscription');
-          }
-        }
-
-        await saveSettings({ enabled: true });
-      } else {
-        await saveSettings({ enabled });
-      }
-    } catch (error) {
-      const fallbackMessage =
-        error instanceof Error && error.message
-          ? error.message
-          : t('permissionDenied');
-      announceStatus('error', fallbackMessage);
-      if (enabled) {
-        setSettings((prev) => ({ ...prev, enabled: false }));
-      }
+    if (enabled && !settings.permissionGranted) {
+      steps.push({
+        key: 'permission',
+        inlineLabelKey: 'notifications.loading',
+        run: async () => {
+          await requestPermission();
+        },
+      });
     }
+
+    if (!enabled && settings.permissionGranted) {
+      steps.push({
+        key: 'unregister',
+        inlineLabelKey: 'notifications.loading',
+        run: async () => {
+          const { unregisterFromPushNotifications } = await import('@/features/notifications/sw/registerPush');
+          const result = await unregisterFromPushNotifications();
+          if (result.success && result.endpoint) {
+            await fetchSecure(`/api/notifications/subscribe?endpoint=${encodeURIComponent(result.endpoint)}`, {
+              method: 'DELETE',
+              requireAuth: true,
+            });
+          }
+        },
+      });
+    }
+
+    if (enabled && settings.permissionGranted) {
+      steps.push({
+        key: 'register',
+        inlineLabelKey: 'notifications.loading',
+        run: async () => {
+          const { registerForPushNotifications } = await import('@/features/notifications/sw/registerPush');
+          const subscription = await registerForPushNotifications();
+          if (subscription) {
+            const response = await fetchSecure('/api/notifications/subscribe', {
+              method: 'POST',
+              requireAuth: true,
+              body: JSON.stringify({ ...subscription }),
+            });
+            if (!response.ok) throw new Error('Failed to save subscription');
+          }
+        },
+      });
+    }
+
+    // Final saveSettings
+    steps.push({
+      key: 'save',
+      inlineLabelKey: 'notifications.loading',
+      run: async () => {
+        await saveSettings({ enabled });
+      },
+    });
+
+    announceStatus('loading', t('loading'));
+
+    await announceAction.sequence(steps, {
+      onStepChange: () => {
+        announceStatus('loading', t('loading'));
+      },
+      success: {
+        message: enabled ? 'notifications.enabled' : 'notifications.disabled',
+      },
+      error: {
+        message: 'toasts.error',
+      },
+    });
   };
 
   const hasCities = cities && cities.length > 0;

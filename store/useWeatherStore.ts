@@ -20,6 +20,7 @@ import { useQuickAddStore } from '@/features/search/store/useQuickAddStore';
 import { useLocationStore } from '@/features/location/store/useLocationStore';
 import { weatherActions } from '@/features/weather/actions/weatherActions';
 import { useWeatherActions } from '@/features/weather/hooks/useWeatherActions';
+import { logger } from '@/lib/errors';
 
 type CombinedState = WeatherStore & WeatherStoreActions;
 
@@ -150,7 +151,7 @@ export const useWeatherStore = <T = CombinedState>(selector?: (state: CombinedSt
 
   // Guard against undefined preferences or locationState
   if (!preferences || typeof preferences !== 'object') {
-    console.error('useAppPreferencesStore returned invalid value', { preferences });
+    logger.error('useAppPreferencesStore returned invalid value', undefined, { preferences });
     const minimalState = {
       cities: [],
       currentIndex: 0,
@@ -176,7 +177,7 @@ export const useWeatherStore = <T = CombinedState>(selector?: (state: CombinedSt
   }
 
   if (!locationState || typeof locationState !== 'object') {
-    console.error('useLocationStore returned invalid value', { locationState });
+    logger.error('useLocationStore returned invalid value', undefined, { locationState });
     const minimalState = {
       cities: [],
       currentIndex: 0,
@@ -203,7 +204,7 @@ export const useWeatherStore = <T = CombinedState>(selector?: (state: CombinedSt
 
   // Guard against undefined actions
   if (!actions || typeof actions !== 'object') {
-    console.error('useWeatherActions returned invalid value', { actions });
+    logger.error('useWeatherActions returned invalid value', undefined, { actions });
     // Return minimal state to prevent crashes
     const minimalState = {
       cities: [],
@@ -377,7 +378,7 @@ export const useWeatherStore = <T = CombinedState>(selector?: (state: CombinedSt
     return result;
   } catch (error) {
     // If selector throws, return fallback
-    console.error('useWeatherStore selector error:', error);
+    logger.error('useWeatherStore selector error', error as Error);
     try {
       const fallbackState = buildState();
       if (!fallbackState || typeof fallbackState !== 'object') {
@@ -390,7 +391,7 @@ export const useWeatherStore = <T = CombinedState>(selector?: (state: CombinedSt
       }
       return fallbackResult;
     } catch (fallbackError) {
-      console.error('useWeatherStore fallback error:', fallbackError);
+      logger.error('useWeatherStore fallback error', fallbackError as Error);
       return {} as T;
     }
   }

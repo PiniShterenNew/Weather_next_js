@@ -60,13 +60,6 @@
     "description": "המידע עודכן ברקע. לחץ להצגה.",
     "apply": "הצג"
   },
-  "toasts": {
-    "refreshed": "מידע עודכן עבור {city}",
-    "serverData": "נתוני שרת זמניים",
-    "geolocationDenied": "גישה למיקום נדחתה",
-    "geolocationTimeout": "זמן קצוב למיקום פג",
-    "apiFailure": "שגיאה בטעינת נתונים"
-  },
   "errorBanner": {
     "geolocationDenied": "גישה למיקום נדחתה",
     "geolocationTimeout": "זמן קצוב למיקום פג",
@@ -383,6 +376,10 @@
     "refreshed": "העיר {city} עודכנה",
     "exists": "העיר {city} כבר קיימת ברשימה",
     "error": "משהו השתבש",
+    "serverData": "נתוני שרת זמניים",
+    "geolocationDenied": "גישה למיקום נדחתה",
+    "geolocationTimeout": "זמן קצוב למיקום פג",
+    "apiFailure": "שגיאה בטעינת נתונים",
     "locationAdded": "הוספת {name} לפי מיקום הנוכחי",
     "maxCities": "ניתן להוסיף עד {maxCities} ערים",
     "slowNetwork": "נראה שחיבור האינטרנט איטי. אנא בדוק את חיבור הרשת שלך או נסה לעבור למקום אחר",
@@ -395,7 +392,9 @@
     "locationUpdated": "המיקום עודכן ל-{city}",
     "locationUpdateFailed": "שגיאה בעדכון המיקום",
     "locationAccessDenied": "גישה למיקום נדחתה",
-    "geolocationNotSupported": "דפדפן זה אינו תומך במיקום גיאוגרפי"
+    "geolocationNotSupported": "דפדפן זה אינו תומך במיקום גיאוגרפי",
+    "adding": "מוסיף את {city}...",
+    "locationAdding": "מוסיף מיקום נוכחי..."
   },
   "common": {
     "close": "סגור",
@@ -498,6 +497,9 @@
     "signIn": "התחבר",
     "signOut": "התנתק",
     "signUp": "הירשם",
+    "signingOut": "מתנתק...",
+    "signingInDescription": "אנא המתן, מתחברים...",
+    "signingOutDescription": "אנא המתן, מתנתקים...",
     "signInWithGoogle": "התחבר עם Google",
     "signUpWithGoogle": "הירשם עם Google",
     "loginDescription": "התחבר כדי לשמור את ההעדפות שלך ולגשת אליהן מכל מכשיר",

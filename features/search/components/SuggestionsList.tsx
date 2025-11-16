@@ -14,7 +14,6 @@ const SuggestionsSkeleton = ({ count = 5 }: SuggestionsSkeletonProps) => (
   <div className="space-y-2" aria-hidden="true" data-testid="suggestions-skeleton">
     {Array.from({ length: count }).map((_, index) => (
       <div
-        // eslint-disable-next-line react/no-array-index-key
         key={index}
         className="flex items-center justify-between rounded-xl bg-muted/40 px-3 py-2"
       >

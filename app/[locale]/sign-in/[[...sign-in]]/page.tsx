@@ -2,6 +2,7 @@ import { Metadata } from 'next';
 import { auth } from '@clerk/nextjs/server';
 import { redirect } from 'next/navigation';
 import CustomSignIn from '@/features/auth/components/CustomSignIn';
+import ClearAuthOverlay from '@/components/Auth/ClearAuthOverlay';
 
 export const metadata: Metadata = {
   title: 'Sign In - Weather App',
@@ -20,6 +21,11 @@ export default async function SignInPage({ params }: SignInPageProps) {
     redirect(`/${locale}`);
   }
 
-  return <CustomSignIn />;
+  return (
+    <>
+      <ClearAuthOverlay />
+      <CustomSignIn />
+    </>
+  );
 }
 

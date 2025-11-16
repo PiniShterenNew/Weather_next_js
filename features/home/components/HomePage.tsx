@@ -8,15 +8,14 @@ import CityInfoSkeleton from '@/components/skeleton/CityInfoSkeleton';
 import EmptyPage from '@/features/ui/components/EmptyPage';
 import { getWeatherBackground, isNightTime } from '@/lib/helpers';
 import { useWeatherStore } from '@/store/useWeatherStore';
-import CityPaginationSkeleton from '@/features/weather/components/card/CityPaginationSkeleton';
 
 const SwipeableWeatherCard = dynamic(() => import('@/features/weather/components/card/SwipeableWeatherCard'), {
-  loading: () => <CityInfoSkeleton />,
+  loading: () => <div className="w-full h-full" aria-hidden="true" />,
   ssr: true,
 });
 
 const CityPagination = dynamic(() => import('@/features/weather/components/card/CityPagination'), {
-  loading: () => <CityPaginationSkeleton />,
+  loading: () => <div className="h-11 w-full" aria-hidden="true" />,
   ssr: true,
 });
 
@@ -68,8 +67,8 @@ export default function HomePage() {
   // Removed unnecessary hydration delay for better performance
 
   return (
-    <div className={`h-full bg-cover bg-center bg-no-repeat transition-all duration-1000 ${backgroundClass}`}>
-      <div className="relative h-full flex flex-col w-full px-2 md:px-4 xl:px-6 pt-2">
+    <div className={`h-full bg-cover bg-center bg-no-repeat ${backgroundClass}`}>
+      <div className="relative h-full flex flex-col w-full px-2 md:px-4 xl:px-6 pt-2 max-w-3xl mx-auto">
         {cities.length > 0 ? (
           <>
             {/* Weather Card - Takes remaining space minus pagination */}

@@ -65,7 +65,7 @@ export default function SettingsPage({ isAuthenticated = false, onSignOut }: Set
 
   return (
     <div className="!max-h-[calc(100vh-10rem)] overflow-y-auto overflow-x-hidden scroll-smooth scrollbar-hide bg-gradient-to-b from-blue-50 to-white dark:from-[#0d1117] dark:to-[#1b1f24]">
-      <div className="flex flex-col space-y-6 px-4 sm:px-6 pt-6 w-full">
+      <div className="flex flex-col space-y-6 px-4 sm:px-6 pt-6 w-full max-w-3xl mx-auto">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -80,12 +80,8 @@ export default function SettingsPage({ isAuthenticated = false, onSignOut }: Set
         </p>
       </motion.div>
 
-      {/* Language Section */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3, delay: 0.2 }}
-      >
+      {/* Language Section (no transforms to keep Select popper anchored correctly) */}
+      <div>
       <Card className="p-6 bg-white/60 dark:bg-white/5 backdrop-blur-md shadow-sm border-white/10 rounded-2xl">
         <h2 className="text-lg font-medium text-neutral-800 dark:text-white/90 mb-4 flex items-center gap-3">
           <Globe className="h-5 w-5 text-sky-500 dark:text-blue-400" />
@@ -100,7 +96,7 @@ export default function SettingsPage({ isAuthenticated = false, onSignOut }: Set
           <LanguageSwitcher />
         </div>
       </Card>
-      </motion.div>
+      </div>
 
       {/* Theme Section */}
       <motion.div

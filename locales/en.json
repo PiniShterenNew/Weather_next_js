@@ -65,7 +65,12 @@
     "serverData": "Temporary server data",
     "geolocationDenied": "Location access denied",
     "geolocationTimeout": "Location timeout",
-    "apiFailure": "Data loading error"
+    "apiFailure": "Data loading error",
+    "added": "{city} was added to your cities",
+    "exists": "{city} is already in your list",
+    "maxCities": "You've reached the maximum number of cities ({max})",
+    "adding": "Adding {city}...",
+    "locationAdding": "Adding current location..."
   },
   "errorBanner": {
     "geolocationDenied": "Location access denied",
@@ -497,6 +502,9 @@
     "signIn": "Sign In",
     "signOut": "Sign Out",
     "signUp": "Sign Up",
+    "signingOut": "Signing out...",
+    "signingInDescription": "Please wait, we’re signing you in",
+    "signingOutDescription": "Please wait, we’re signing you out",
     "signInWithGoogle": "Sign in with Google",
     "signUpWithGoogle": "Sign up with Google",
     "loginDescription": "Sign in to save your preferences and access them from any device",

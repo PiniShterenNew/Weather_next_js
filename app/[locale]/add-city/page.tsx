@@ -1,79 +1,23 @@
-'use client';
-
-import { useTranslations, useLocale } from 'next-intl';
-import { useRouter } from 'next/navigation';
-import { MapPin, Star } from 'lucide-react';
+import { Metadata } from 'next';
 import { Suspense } from 'react';
-import { SearchBar, RecentSearches } from '@/features/search';
-import PopularCities from '@/features/search/components/quickAdd/PopularCities';
-import AddLocation from '@/features/search/components/quickAdd/AddLocation';
-import { getDirection } from '@/lib/intl';
-import { AppLocale } from '@/types/i18n';
+import ClientAddCityPage from '@/features/search/components/ClientAddCityPage';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useWeatherStore } from '@/store/useWeatherStore';
 
-export default function AddCityPage() {
-  const t = useTranslations();
-  const locale = useLocale() as AppLocale;
-  const router = useRouter();
-  const direction = getDirection(locale);
-  const { cities, autoLocationCityId } = useWeatherStore();
-  
-  // Show add location button only if there's no current location city in the list
-  // Check both isCurrentLocation flag and autoLocationCityId to be safe
-  const hasCurrentLocationCity = autoLocationCityId !== undefined || cities.some(city => city.isCurrentLocation === true);
-  const showAddLocation = !hasCurrentLocationCity;
+export const metadata: Metadata = {
+  title: 'Weather App - Add City',
+  description: 'Search and add new cities to your weather list',
+};
 
-  const handleCitySelect = () => {
-    // Navigate back to weather page after city selection
-    router.push(`/${locale}`);
-  };
+interface PageProps {
+  params: Promise<{ locale: string }>;
+}
+
+export default async function AddCityPage({ params }: PageProps) {
+  const { locale } = await params;
 
   return (
-    <div className="bg-gradient-to-b from-blue-50 to-white dark:from-[#0d1117] dark:to-[#1b1f24] overflow-x-hidden overflow-y-auto scrollbar-hide">
-      {/* Header */}
-      <div className="flex items-center justify-between p-6 pb-4 w-full">
-        <h1 className="text-2xl font-bold text-neutral-800 dark:text-white/90 flex items-center gap-3">
-          <MapPin className="h-6 w-6 text-sky-500 dark:text-blue-400" />
-          {t('search.addCity')}
-        </h1>
-      </div>
-
-      <div className="px-6 space-y-6 w-full">
-        {/* Search Input */}
-        <div className="relative">
-          <Suspense fallback={<Skeleton className="h-12 w-full rounded-lg" />}>
-            <SearchBar
-              onSelect={handleCitySelect}
-            />
-          </Suspense>
-        </div>
-
-        {/* Add Current Location Button */}
-        {showAddLocation && (
-          <div className="flex justify-center">
-            <AddLocation size="lg" type="default" dataTestId="add-location-page" />
-          </div>
-        )}
-
-        {/* Recent Searches */}
-        <Suspense fallback={<Skeleton className="h-32 w-full rounded-lg" />}>
-          <RecentSearches
-            onSelect={handleCitySelect}
-          />
-        </Suspense>
-
-        {/* Popular Cities */}
-        <div className="space-y-3">
-          <h3 className="text-lg font-medium text-neutral-800 dark:text-white/90 flex items-center gap-3">
-            <Star className="h-5 w-5 text-sky-500 dark:text-blue-400" />
-            {t('search.popularCities')}
-          </h3>
-          <Suspense fallback={<Skeleton className="h-48 w-full rounded-lg" />}>
-            <PopularCities direction={direction} />
-          </Suspense>
-        </div>
-      </div>
-    </div>
+    <Suspense fallback={<Skeleton className="h-full w-full" />}>
+      <ClientAddCityPage locale={locale} />
+    </Suspense>
   );
 }

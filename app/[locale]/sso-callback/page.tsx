@@ -1,22 +1,18 @@
-'use client';
+import { Metadata } from 'next';
+import { Suspense } from 'react';
+import ClientSSOCallback from '@/features/auth/components/ClientSSOCallback';
+import { Skeleton } from '@/components/ui/skeleton';
 
-import { AuthenticateWithRedirectCallback } from '@clerk/nextjs';
-import { useTranslations } from 'next-intl';
-import { Loader2 } from 'lucide-react';
+export const metadata: Metadata = {
+  title: 'Signing In - Weather App',
+  description: 'Completing sign in',
+};
 
 export default function SSOCallback() {
-  const t = useTranslations('auth');
-
   return (
-    <>
-      <AuthenticateWithRedirectCallback />
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-brand-500 to-brand-600">
-        <div className="text-center space-y-4">
-          <Loader2 className="h-12 w-12 animate-spin text-white mx-auto" />
-          <p className="text-white text-lg font-medium">{t('completingSignIn')}</p>
-        </div>
-      </div>
-    </>
+    <Suspense fallback={<Skeleton className="h-full w-full" />}>
+      <ClientSSOCallback />
+    </Suspense>
   );
 }
 

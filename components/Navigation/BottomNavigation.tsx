@@ -33,6 +33,7 @@ export default function BottomNavigation() {
             {/* Mobile buttons with original styling */}
             <Link
               href="/add-city"
+              prefetch
               className={`flex flex-col items-center justify-center py-3 px-4 rounded-xl min-h-touch-target min-w-touch-target transition-all duration-150 active:scale-95 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 ${
                 isActive('/add-city') 
                   ? 'scale-105 bg-sky-500/10 dark:bg-blue-400/10' 
@@ -53,6 +54,7 @@ export default function BottomNavigation() {
             </Link>
             <Link
               href="/cities"
+              prefetch
               className={`flex flex-col items-center justify-center py-3 px-4 rounded-xl min-h-touch-target min-w-touch-target transition-all duration-150 active:scale-95 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 ${
                 isActive('/cities') 
                   ? 'scale-105 bg-sky-500/10 dark:bg-blue-400/10' 
@@ -73,6 +75,7 @@ export default function BottomNavigation() {
             </Link>
             <Link
               href="/"
+              prefetch
               className={`flex flex-col items-center justify-center py-3 px-4 rounded-xl min-h-touch-target min-w-touch-target transition-all duration-150 active:scale-95 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 ${
                 isActive('/') 
                   ? 'scale-105 bg-sky-500/10 dark:bg-blue-400/10' 
@@ -93,6 +96,7 @@ export default function BottomNavigation() {
             </Link>
             <Link
               href="/settings"
+              prefetch
               className={`flex flex-col items-center justify-center py-3 px-4 rounded-xl min-h-touch-target min-w-touch-target transition-all duration-150 active:scale-95 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 ${
                 isActive('/settings') 
                   ? 'scale-105 bg-sky-500/10 dark:bg-blue-400/10' 
@@ -127,6 +131,7 @@ export default function BottomNavigation() {
           {/* Add City Button */}
           <Link
             href="/add-city"
+            prefetch
             className="flex flex-col items-center justify-center transition-all duration-150 hover:opacity-80 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
             aria-label={t('search.addCity')}
             onTouchStart={() => hapticButtonPress()}
@@ -145,6 +150,7 @@ export default function BottomNavigation() {
           {/* Cities List Button */}
           <Link
             href="/cities"
+            prefetch
             className="flex flex-col items-center justify-center transition-all duration-150 hover:opacity-80 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
             aria-label={t('navigation.cities')}
             onTouchStart={() => hapticButtonPress()}
@@ -163,6 +169,7 @@ export default function BottomNavigation() {
           {/* Weather Button */}
           <Link
             href="/"
+            prefetch
             className="flex flex-col items-center justify-center transition-all duration-150 hover:opacity-80 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
             aria-label={t('navigation.weather')}
             onTouchStart={() => hapticButtonPress()}
@@ -181,6 +188,7 @@ export default function BottomNavigation() {
           {/* Settings Button */}
           <Link
             href="/settings"
+            prefetch
             className="flex flex-col items-center justify-center transition-all duration-150 hover:opacity-80 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
             aria-label={t('navigation.settings')}
             onTouchStart={() => hapticButtonPress()}

@@ -30,14 +30,19 @@ const DialogOverlay = React.forwardRef<
 ))
 DialogOverlay.displayName = DialogPrimitive.Overlay.displayName
 
+type DialogContentProps = React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content> & {
+  'aria-describedby'?: string;
+  'aria-labelledby'?: string;
+};
+
 const DialogContent = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
+  DialogContentProps
 >(({ className, children, ...props }, ref) => {
   const fallbackDescId = useId()
-  const describedBy = (props as any)["aria-describedby"]
-  const labelledByProp = (props as any)["aria-labelledby"]
   const fallbackLabelId = useId()
+  const describedBy = props['aria-describedby']
+  const labelledByProp = props['aria-labelledby']
   const labelledBy = labelledByProp ?? fallbackLabelId
 
   return (

@@ -2,15 +2,12 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { useLocale } from 'next-intl';
-import { AppLocale } from '@/types/i18n';
-import { Star, Cloud } from 'lucide-react';
+import { Cloud } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
-import PopularCities from '@/features/search/components/quickAdd/PopularCities';
-import { getDirection } from '@/lib/intl';
 import { motion } from 'framer-motion';
 import dynamic from 'next/dynamic';
 import { Skeleton } from '@/components/ui/skeleton';
+import CitiesSuggestions from '@/features/search/components/CitiesSuggestions';
 
 const AddLocation = dynamic(() => import('@/features/search/components/quickAdd/AddLocation').then((module) => module.default), {
   loading: () => (
@@ -20,17 +17,15 @@ const AddLocation = dynamic(() => import('@/features/search/components/quickAdd/
 
 export default function EmptyPage() {
   const t = useTranslations();
-  const locale = useLocale() as AppLocale;
-  const direction = getDirection(locale);
 
   return (
-    <div className="flex flex-col items-center justify-center gap-8 p-6 w-full mx-auto" data-testid="weather-empty">
+    <div className="flex flex-col items-center justify-center gap-8 p-6 w-full" data-testid="weather-empty">
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: 20 }}
         transition={{ duration: 0.4, ease: "easeOut" }}
-        className="flex-1 flex flex-col items-center justify-center gap-8"
+        className="flex-1 flex flex-col items-center justify-center gap-8 w-full max-w-3xl mx-auto"
       >
         {/* Main Empty State */}
         <Card className="w-full">
@@ -62,22 +57,14 @@ export default function EmptyPage() {
           </CardContent>
         </Card>
 
-        {/* Popular Cities Section */}
+        {/* Popular Cities Section (shared) */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4, duration: 0.3 }}
           className="w-full"
         >
-          <Card>
-            <CardContent className="p-6">
-              <h2 className="text-lg font-semibold mb-4 text-center flex items-center justify-center gap-2">
-                <Star className="h-5 w-5 text-brand-500" />
-                {t('popular.title')}
-              </h2>
-              <PopularCities direction={direction} color="primary" />
-            </CardContent>
-          </Card>
+          <CitiesSuggestions />
         </motion.div>
       </motion.div>
     </div>

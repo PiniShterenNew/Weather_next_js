@@ -3,7 +3,7 @@
 import { Skeleton } from '@/components/ui/skeleton';
 
 export const WeatherCardSkeleton = () => (
-  <div className="animate-fade-in h-full overflow-y-auto overflow-x-hidden scroll-smooth transition-all duration-300 opacity-100">
+  <div className="animate-fade-in h-full overflow-y-auto overflow-x-hidden scrollbar-hide opacity-100">
     <div className="flex flex-col gap-4 pb-6 pl-4 pr-4 pt-4 md:pb-8 md:pl-6 md:pr-6 md:pt-6 xl:pb-10 xl:pl-8 xl:pr-8 xl:pt-8">
       <div className="flex-shrink-0">
         <div className="px-2 pt-2">

@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { Globe, Loader2, Plus } from 'lucide-react';
+import { Globe, Plus } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 
 import { Button } from '@/components/ui/button';
@@ -11,7 +11,7 @@ import { cn } from '@/lib/utils';
 import type { AppLocale } from '@/types/i18n';
 import type { TemporaryUnit } from '@/types/ui';
 import { useWeatherStore } from '@/store/useWeatherStore';
-import { fetchWeather } from '@/features/weather';
+import { addCityFromPopular } from '@/features/weather/services/addFlow';
 
 interface PopularCitiesProps {
   direction: 'ltr' | 'rtl';
@@ -23,12 +23,10 @@ const INITIAL_LOAD = 12;
 const LOAD_MORE_COUNT = 8;
 
 const PopularCities = ({ direction, color = 'default', onCityAdded }: PopularCitiesProps) => {
-  const { addCity, cities, unit, showToast, setIsLoading, setOpen } = useWeatherStore((state) => ({
-    addCity: state.addCity,
+  const { cities, unit, showToast, setOpen } = useWeatherStore((state) => ({
     cities: state.cities,
     unit: state.unit,
     showToast: state.showToast,
-    setIsLoading: state.setIsLoading,
     setOpen: state.setOpen,
   }));
   const router = useRouter();
@@ -47,34 +45,31 @@ const PopularCities = ({ direction, color = 'default', onCityAdded }: PopularCit
 
   const handleAddCity = async (city: (typeof POPULAR_CITIES)[number]) => {
     setLoadingCityId(city.id);
-    setIsLoading(true);
 
     try {
-      const weatherData = await fetchWeather({
-        ...city,
+      const result = await addCityFromPopular({
+        id: city.id,
+        lat: city.lat,
+        lon: city.lon,
+        city: city.city,
+        country: city.country,
         unit: unit as TemporaryUnit,
       });
 
-      const wasAdded = await addCity({
-        ...weatherData,
-        lastUpdated: Date.now(),
-      });
-
-      if (wasAdded) {
-        showToast({ message: 'toasts.added', type: 'success', values: { city: city.city[locale] } });
-
+      if (result.status === 'added' || result.status === 'exists') {
         if (isAddCityPage) {
           router.push('/');
         }
 
         setOpen(false);
         onCityAdded?.();
+      } else if (result.status === 'max_cities') {
+        // toast already handled in service
+      } else if (result.status === 'error') {
+        showToast({ message: 'toasts.apiFailure', type: 'error' });
       }
-    } catch {
-      showToast({ message: 'toasts.error', type: 'error' });
     } finally {
       setLoadingCityId(null);
-      setIsLoading(false);
     }
   };
 
@@ -123,11 +118,7 @@ const PopularCities = ({ direction, color = 'default', onCityAdded }: PopularCit
                   </span>
                 </div>
                 <div className="ml-3 flex h-8 w-8 items-center justify-center rounded-full border border-white/40 bg-white/70 text-brand-700 dark:border-white/10 dark:bg-white/5 dark:text-white">
-                  {isLoading ? (
-                    <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
-                  ) : (
-                    <Plus className="h-4 w-4" aria-hidden="true" />
-                  )}
+                  <Plus className="h-4 w-4" aria-hidden="true" />
                   <span className="sr-only">
                     {isLoading ? t('search.loading') : t('search.addCity')}
                   </span>

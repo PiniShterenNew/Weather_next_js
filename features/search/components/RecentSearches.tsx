@@ -1,3 +1,5 @@
+'use client';
+
 import { useTranslations, useLocale } from 'next-intl';
 import { Clock } from 'lucide-react';
 import { AppLocale } from '@/types/i18n';

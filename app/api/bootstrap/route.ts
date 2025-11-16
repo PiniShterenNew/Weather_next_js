@@ -204,16 +204,7 @@ export async function GET(request: NextRequest) {
 
   } catch (error) {
     logger.error('Bootstrap API error', error as Error);
-    
-    // Log more details in development
-    if (process.env.NODE_ENV === 'development') {
-      console.error('Bootstrap error details:', {
-        message: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack : undefined,
-        error
-      });
-    }
-    
+
     return NextResponse.json(
       { 
         error: 'Internal server error',
