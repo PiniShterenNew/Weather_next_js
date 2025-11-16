@@ -4,6 +4,7 @@ import { useWeatherStore } from '@/store/useWeatherStore';
 import { Thermometer } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useTranslations } from 'next-intl';
+import announceAction from '@/lib/actions/announceAction';
 
 export default function TemperatureUnitToggle() {
   const unitTranslations = useTranslations('unit');
@@ -19,18 +20,17 @@ export default function TemperatureUnitToggle() {
     // Persist preferences to server if authenticated
     try {
       await persistPreferencesIfAuthenticated(cities);
+      await announceAction({
+        run: async () => {},
+        successMessageKey: 'settings.unitChanged',
+        values: { unit: newUnit === 'metric' ? '°C' : '°F' },
+      });
     } catch (error) {
-      // Silently fail - the unit change is still applied locally
+      // Local change applied; inform user about sync failure
+      await announceAction({ run: async () => {}, errorMessageKey: 'toasts.error' });
       // eslint-disable-next-line no-console
       console.error('Failed to persist unit preference:', error);
     }
-    
-    // Show toast notification
-    useWeatherStore.getState().showToast({
-      message: 'settings.unitChanged',
-      type: 'success',
-      values: { unit: newUnit === 'metric' ? '°C' : '°F' }
-    });
   };
 
   return (

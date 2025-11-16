@@ -1,0 +1,503 @@
+---
+alwaysApply: true
+description: Accessibility and Mobile UX - WCAG 2.2 AA + Touch optimization
+---
+
+# Accessibility & Mobile UX
+
+## Summary
+Every user, on every device, with any limitation - must be able to use the system.
+Accessibility is not "nice to have", it's a legal and moral obligation.
+
+---
+
+## 1. Semantic HTML - Always
+
+**Why it matters:** Screen readers rely on correct HTML to understand structure.
+
+### Requirements:
+```tsx
+// ✅ Correct
+<button onClick={handleClick}>Save</button>
+<nav>...</nav>
+<header>...</header>
+<main>...</main>
+<form>...</form>
+
+// ❌ Wrong
+<div onClick={handleClick}>Save</div> // Looks like button but isn't
+<div className="nav">...</div> // No semantic meaning
+```
+
+### Rules:
+- **Buttons:** `<button>` for actions, `<a>` for navigation
+- **Navigation:** Wrap in `<nav>`
+- **Headings:** Logical order (h1 → h2 → h3), no skipping
+- **Lists:** `<ul>/<ol>` for lists, not divs
+- **Forms:** `<form>` + `<label>` for every input
+
+---
+
+## 2. Keyboard Navigation
+
+**Why it matters:** Many users don't use a mouse (accessibility, power users).
+
+### Requirements:
+- ✅ All interactions accessible via Tab/Shift+Tab
+- ✅ Enter/Space activates buttons
+- ✅ Escape closes modals/dropdowns
+- ✅ Arrow keys for navigating lists/menus
+
+### Focus Indicators:
+```css
+/* ✅ Always visible */
+button:focus-visible {
+  outline: 2px solid blue;
+  outline-offset: 2px;
+}
+
+/* ❌ Never hide */
+*:focus {
+  outline: none; /* This is forbidden! */
+}
+```
+
+### Focus Management:
+```tsx
+// ✅ When modal opens, focus moves into it
+useEffect(() => {
+  if (isOpen) {
+    modalRef.current?.focus();
+  }
+}, [isOpen]);
+
+// ✅ When modal closes, focus returns to original place
+const handleClose = () => {
+  setIsOpen(false);
+  triggerButtonRef.current?.focus();
+};
+```
+
+### Skip Links:
+```tsx
+// ✅ Allow skipping navigation to content
+<a href="#main-content" className="sr-only focus:not-sr-only">
+  Skip to content
+</a>
+```
+
+---
+
+## 3. Labels & ARIA
+
+**Why it matters:** Screen readers need to know what every element does.
+
+### Requirements:
+
+#### Inputs
+```tsx
+// ✅ Correct
+<label htmlFor="email">Email</label>
+<input id="email" type="email" />
+
+// Or
+<input aria-label="Email" type="email" />
+```
+
+#### Icon Buttons
+```tsx
+// ✅ Correct
+<button aria-label="Close">
+  <X className="w-4 h-4" />
+</button>
+
+// ❌ Wrong
+<button>
+  <X className="w-4 h-4" /> {/* Screen reader doesn't know what this is */}
+</button>
+```
+
+#### Images
+```tsx
+// ✅ Content images
+<img src={url} alt="Full description of the image" />
+
+// ✅ Decorative images
+<img src={decoration} alt="" /> {/* Empty alt, not missing alt */}
+```
+
+### ARIA States:
+```tsx
+// ✅ Dynamic states
+<button
+  aria-expanded={isOpen}
+  aria-controls="menu-id"
+>
+  Menu
+</button>
+
+<div
+  id="menu-id"
+  aria-hidden={!isOpen}
+  role="menu"
+>
+  ...
+</div>
+```
+
+### ARIA Live Regions:
+```tsx
+// ✅ For dynamic messages
+<div 
+  role="status" 
+  aria-live="polite"
+  className="sr-only"
+>
+  {successMessage}
+</div>
+```
+
+**When to use:**
+- `aria-live="polite"` - Non-urgent messages (success, info)
+- `aria-live="assertive"` - Urgent messages (errors, warnings)
+
+---
+
+## 4. Color & Contrast
+
+**Why it matters:** 1 in 12 men suffer from color blindness.
+
+### Requirements:
+- **Normal text:** Contrast ratio of at least 4.5:1
+- **Large text (18px+):** At least 3:1
+- **UI elements:** At least 3:1
+
+```tsx
+// ✅ Good contrast
+<p className="text-gray-900 dark:text-gray-100">
+  Text on white/black background
+</p>
+
+// ❌ Poor contrast
+<p className="text-gray-400">
+  Hard to read on white background
+</p>
+```
+
+### Don't rely on color alone:
+```tsx
+// ❌ Only color
+<span className="text-red-500">Error</span>
+
+// ✅ Color + icon
+<span className="text-red-500">
+  <AlertCircle className="inline mr-1" />
+  Error
+</span>
+```
+
+---
+
+## 5. Mobile Touch Targets
+
+**Why it matters:** Fingers aren't as precise as a mouse.
+
+### Requirements:
+- **Minimum size:** 44x44px (Apple HIG) or 48x48px (Material)
+- **Space between targets:** At least 8px
+
+```tsx
+// ✅ Correct
+<button className="min-h-[44px] min-w-[44px] p-3">
+  <Icon className="w-5 h-5" />
+</button>
+
+// ❌ Wrong
+<button className="p-1">
+  <Icon className="w-4 h-4" />
+</button>
+```
+
+### Touch Gestures:
+- ✅ Swipe to close modals/drawers
+- ✅ Pull-to-refresh (optional)
+- ✅ Pinch-to-zoom on images
+- ❌ Hover-only interactions
+
+```tsx
+// ✅ Touch-friendly menu
+<button 
+  onTouchStart={handleOpen}
+  onClick={handleOpen}
+>
+  Menu
+</button>
+```
+
+---
+
+## 6. Responsive Typography
+
+**Why it matters:** Small text on mobile = unreadable.
+
+### Requirements:
+- **Minimum size:** 16px (prevents automatic zoom on iOS)
+- **Line height:** At least 1.5 for normal text
+- **Line length:** 50-75 characters per line (optimal)
+
+```tsx
+// ✅ Responsive text
+<p className="text-base md:text-lg leading-relaxed max-w-prose">
+  Long text that's readable on any screen
+</p>
+```
+
+---
+
+## 7. Viewport & Safe Areas
+
+**Why it matters:** Notch/home indicator can block content.
+
+### Requirements:
+```tsx
+// ✅ Safe area support
+<div className="pb-safe pt-safe px-4">
+  Content protected from notch
+</div>
+```
+
+```css
+/* In globals.css */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .pt-safe {
+    padding-top: env(safe-area-inset-top);
+  }
+}
+```
+
+### Fixed Elements:
+```tsx
+// ✅ Bottom navigation with safe area
+<nav className="fixed bottom-0 pb-safe">
+  ...
+</nav>
+```
+
+---
+
+## 8. Mobile Forms
+
+**Why it matters:** Forms on mobile need to be easy to fill out.
+
+### Requirements:
+
+#### Input Types
+```tsx
+// ✅ Correct keyboard for each type
+<input type="email" inputMode="email" />
+<input type="tel" inputMode="tel" />
+<input type="number" inputMode="numeric" />
+<input type="search" />
+```
+
+#### Autocomplete
+```tsx
+// ✅ Help browser autofill
+<input 
+  type="email" 
+  autoComplete="email"
+  name="email"
+/>
+<input 
+  type="tel" 
+  autoComplete="tel"
+  name="phone"
+/>
+```
+
+#### Validation Timing
+- ❌ After every keystroke (annoying)
+- ✅ After blur
+- ✅ Before submit
+- ✅ Real-time after first error (to see correction)
+
+```tsx
+const [touched, setTouched] = useState(false);
+
+<input
+  onBlur={() => setTouched(true)}
+  className={touched && error ? 'border-red-500' : ''}
+/>
+{touched && error && (
+  <p className="text-red-500 text-sm mt-1">{error}</p>
+)}
+```
+
+---
+
+## 9. Reduced Motion
+
+**Why it matters:** People with vestibular disorders suffer from animations.
+
+### Requirements:
+```css
+/* ✅ Always support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+```
+
+```tsx
+// ✅ In React
+const prefersReducedMotion = useReducedMotion();
+
+<motion.div
+  animate={prefersReducedMotion ? {} : { scale: 1.1 }}
+>
+  ...
+</motion.div>
+```
+
+---
+
+## 10. Screen Reader Testing
+
+**Why it matters:** Not enough to be "theoretically accessible", must test.
+
+### Tools:
+- **macOS:** VoiceOver (Cmd+F5)
+- **Windows:** NVDA (free)
+- **iOS:** VoiceOver in Settings
+- **Android:** TalkBack in Settings
+
+### Checklist:
+- [ ] Is every interaction announced?
+- [ ] Is the order logical?
+- [ ] Do modals trap focus?
+- [ ] Are errors announced?
+- [ ] Are loading states announced?
+
+---
+
+## 11. Mobile Performance
+
+**Why it matters:** Mobile = less power, more latency.
+
+### Strategies:
+
+#### Lazy Loading
+```tsx
+// ✅ Only what's visible
+<Image
+  src={url}
+  loading="lazy"
+  decoding="async"
+/>
+```
+
+#### Touch Delay
+```css
+/* ✅ Remove the 300ms delay */
+* {
+  touch-action: manipulation;
+}
+```
+
+#### Viewport Meta
+```html
+<!-- ✅ In head -->
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
+```
+
+**Don't use:**
+- ❌ `maximum-scale=1` (prevents zoom)
+- ❌ `user-scalable=no` (prevents zoom)
+
+---
+
+## 12. Mobile Navigation Patterns
+
+### Bottom Navigation (up to 5 items)
+```tsx
+// ✅ Mobile-friendly
+<nav className="fixed bottom-0 w-full pb-safe bg-white border-t">
+  <div className="flex justify-around">
+    {items.map(item => (
+      <button className="flex-1 py-3 min-h-[56px]">
+        <Icon />
+        <span className="text-xs">{item.label}</span>
+      </button>
+    ))}
+  </div>
+</nav>
+```
+
+### Hamburger Menu
+```tsx
+// ✅ With smooth animation
+<Sheet open={isOpen} onOpenChange={setIsOpen}>
+  <SheetTrigger aria-label="Menu">
+    <Menu />
+  </SheetTrigger>
+  <SheetContent side="right">
+    <nav>...</nav>
+  </SheetContent>
+</Sheet>
+```
+
+### Swipeable Drawers
+```tsx
+// ✅ Primarily mobile
+<Drawer>
+  <DrawerContent className="pb-safe">
+    ...
+  </DrawerContent>
+</Drawer>
+```
+
+---
+
+## Testing Checklist
+
+Before every release:
+
+### Desktop:
+- [ ] Keyboard navigation works
+- [ ] Focus indicators visible
+- [ ] Screen reader announces correctly
+- [ ] Contrast passes check
+
+### Mobile:
+- [ ] Touch targets large enough
+- [ ] Forms easy to fill
+- [ ] Safe areas respected
+- [ ] Good performance (LCP < 2.5s)
+- [ ] Tested on iPhone + Android
+
+### Tools:
+- Lighthouse (Chrome DevTools)
+- axe DevTools (extension)
+- WAVE (extension)
+- Color contrast analyzer
+
+---
+
+## Never Do
+
+❌ `outline: none` without alternative
+❌ Touch targets below 44px
+❌ Rely on color alone to convey info
+❌ Hover-only interactions on mobile
+❌ Block zoom (user-scalable=no)
+❌ Skip alt text
+❌ Divs with onClick instead of button
+❌ Modal that doesn't trap focus

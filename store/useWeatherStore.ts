@@ -4,7 +4,7 @@ import { useMemo } from 'react';
 
 import type { WeatherStore, WeatherStoreActions } from '@/types/store';
 import type { AppLocale } from '@/types/i18n';
-import type { TemporaryUnit } from '@/types/ui';
+import type { TemporaryUnit, ThemeMode, Direction } from '@/types/ui';
 import type {
   CityWeather,
   WeatherCurrent,
@@ -20,6 +20,7 @@ import { useQuickAddStore } from '@/features/search/store/useQuickAddStore';
 import { useLocationStore } from '@/features/location/store/useLocationStore';
 import { weatherActions } from '@/features/weather/actions/weatherActions';
 import { useWeatherActions } from '@/features/weather/hooks/useWeatherActions';
+import { logger } from '@/lib/errors';
 
 type CombinedState = WeatherStore & WeatherStoreActions;
 
@@ -75,9 +76,13 @@ const buildState = (): CombinedState => {
   const quickAddStore = useQuickAddStore.getState();
   const locationStore = useLocationStore.getState();
 
+  // Guard against undefined/null values
+  const safeCities = dataStore?.cities || [];
+  const safeCurrentIndex = dataStore?.currentIndex ?? 0;
+
   return {
-    cities: dataStore.cities,
-    currentIndex: dataStore.currentIndex,
+    cities: safeCities,
+    currentIndex: safeCurrentIndex,
     unit: preferences.unit,
     locale: preferences.locale,
     theme: preferences.theme,
@@ -90,7 +95,7 @@ const buildState = (): CombinedState => {
     maxCities: dataStore.maxCities,
     currentLocationData: locationStore.currentLocationData,
     locationTrackingEnabled: locationStore.locationTrackingEnabled,
-    locationChangeDialog: locationStore.locationChangeDialog,
+    locationChangeDialog: locationStore.locationChangeDialog ?? { isOpen: false },
 
     setOpen: (open: boolean) => useQuickAddStore.setState({ isOpen: open }),
     addCity: weatherActions.addCity,
@@ -144,67 +149,252 @@ export const useWeatherStore = <T = CombinedState>(selector?: (state: CombinedSt
   const locationState = useLocationStore();
   const actions = useWeatherActions();
 
-  const combined = useMemo<CombinedState>(
-    () => ({
-      ...buildState(),
+  // Guard against undefined preferences or locationState
+  if (!preferences || typeof preferences !== 'object') {
+    logger.error('useAppPreferencesStore returned invalid value', undefined, { preferences });
+    const minimalState = {
+      cities: [],
+      currentIndex: 0,
+      isLoading: false,
+      unit: 'metric' as const,
+      locale: 'he' as const,
+      theme: 'system' as const,
+      direction: 'rtl' as const,
+      toasts: [],
+      open: false,
+      maxCities: 15,
+      isAuthenticated: false,
+      isSyncing: false,
+      userTimezoneOffset: 0,
+      autoLocationCityId: undefined,
+      currentLocationData: undefined,
+      locationTrackingEnabled: false,
+      locationChangeDialog: { isOpen: false },
+    } as unknown as CombinedState;
+    
+    const select = selector ?? ((state: CombinedState) => state as unknown as T);
+    return select(minimalState);
+  }
+
+  if (!locationState || typeof locationState !== 'object') {
+    logger.error('useLocationStore returned invalid value', undefined, { locationState });
+    const minimalState = {
+      cities: [],
+      currentIndex: 0,
+      isLoading: false,
+      unit: 'metric' as const,
+      locale: 'he' as const,
+      theme: 'system' as const,
+      direction: 'rtl' as const,
+      toasts: [],
+      open: false,
+      maxCities: 15,
+      isAuthenticated: false,
+      isSyncing: false,
+      userTimezoneOffset: 0,
+      autoLocationCityId: undefined,
+      currentLocationData: undefined,
+      locationTrackingEnabled: false,
+      locationChangeDialog: { isOpen: false },
+    } as unknown as CombinedState;
+    
+    const select = selector ?? ((state: CombinedState) => state as unknown as T);
+    return select(minimalState);
+  }
+
+  // Guard against undefined actions
+  if (!actions || typeof actions !== 'object') {
+    logger.error('useWeatherActions returned invalid value', undefined, { actions });
+    // Return minimal state to prevent crashes
+    const minimalState = {
+      cities: [],
+      currentIndex: 0,
+      isLoading: false,
+      unit: 'metric' as const,
+      locale: 'he' as const,
+      theme: 'system' as const,
+      direction: 'rtl' as const,
+      toasts: [],
+      open: false,
+      maxCities: 15,
+      isAuthenticated: false,
+      isSyncing: false,
+      userTimezoneOffset: 0,
+      autoLocationCityId: undefined,
+      currentLocationData: undefined,
+      locationTrackingEnabled: false,
+      locationChangeDialog: { isOpen: false },
+    } as unknown as CombinedState;
+    
+    const select = selector ?? ((state: CombinedState) => state as unknown as T);
+    return select(minimalState);
+  }
+
+  // Ensure all dependencies are valid objects/values before useMemo to prevent Object.keys errors
+  const safeActions: Partial<WeatherStoreActions> =
+    actions && typeof actions === 'object' ? (actions as Partial<WeatherStoreActions>) : {};
+  const safePreferences = preferences && typeof preferences === 'object' ? preferences : {
+    unit: 'metric',
+    locale: 'he',
+    theme: 'system',
+    direction: 'rtl',
+    userTimezoneOffset: 0,
+    isAuthenticated: false,
+    isSyncing: false,
+  };
+  const safeLocationState = locationState && typeof locationState === 'object' ? locationState : {
+    currentLocationData: undefined,
+    locationTrackingEnabled: false,
+    locationChangeDialog: { isOpen: false },
+  };
+
+  const combined = useMemo<CombinedState>(() => {
+    const baseState = buildState();
+    // Guard against undefined/null baseState
+    if (!baseState || typeof baseState !== 'object') {
+      return buildState(); // Fallback to rebuild
+    }
+    
+    return {
+      ...baseState,
+      cities: cities || [],
+      currentIndex: currentIndex ?? 0,
+      isLoading: isLoading ?? false,
+      autoLocationCityId,
+      maxCities: maxCities ?? 15,
+      unit: (safePreferences.unit || 'metric') as TemporaryUnit,
+      locale: (safePreferences.locale || 'he') as AppLocale,
+      theme: (safePreferences.theme || 'system') as ThemeMode,
+      direction: (safePreferences.direction || 'rtl') as Direction,
+      userTimezoneOffset: safePreferences.userTimezoneOffset || 0,
+      isAuthenticated: safePreferences.isAuthenticated ?? false,
+      isSyncing: safePreferences.isSyncing ?? false,
+      toasts: toasts || [],
+      open: quickAddOpen ?? false,
+      currentLocationData: safeLocationState.currentLocationData,
+      locationTrackingEnabled: safeLocationState.locationTrackingEnabled ?? false,
+      locationChangeDialog: safeLocationState.locationChangeDialog ?? { isOpen: false },
+      setOpen: safeActions.setOpen || (() => {}),
+      addCity: safeActions.addCity || (async (_city: CityWeather) => false),
+      addOrReplaceCurrentLocation:
+        safeActions.addOrReplaceCurrentLocation || (async (_city: CityWeather) => {}),
+      removeCity: safeActions.removeCity || (async (_id: string) => {}),
+      setCurrentIndex: safeActions.setCurrentIndex || (() => {}),
+      showToast: useToastStore.getState().showToast || (() => {}),
+      hideToast: useToastStore.getState().hideToast || (() => {}),
+      setIsLoading: safeActions.setIsLoading || (() => {}),
+      nextCity: safeActions.nextCity || (() => {}),
+      prevCity: safeActions.prevCity || (() => {}),
+      handleLocationChange:
+        safeActions.handleLocationChange ||
+        ((_keepOldCity: boolean, _oldCityId: string, _newCity: CityWeather) => {}),
+      refreshCity:
+        safeActions.refreshCity || (async (_id: string, _opts?: { background?: boolean }) => {}),
+      applyBackgroundUpdate:
+        safeActions.applyBackgroundUpdate ||
+        ((_id: string, _data: { lastUpdatedUtc: string } & Partial<CityWeather>) => {}),
+      closeQuickAddAndResetLoading: safeActions.closeQuickAddAndResetLoading || (() => {}),
+      persistPreferencesIfAuthenticated:
+        safeActions.persistPreferencesIfAuthenticated || (async (_cities: CityWeather[]) => {}),
+      setAutoLocationCityId: safeActions.setAutoLocationCityId || ((_id?: string) => {}),
+    };
+  }, [
+      safeActions,
+      autoLocationCityId,
       cities,
       currentIndex,
       isLoading,
-      autoLocationCityId,
+      safeLocationState.currentLocationData,
+      safeLocationState.locationChangeDialog,
+      safeLocationState.locationTrackingEnabled,
       maxCities,
-      unit: preferences.unit,
-      locale: preferences.locale,
-      theme: preferences.theme,
-      direction: preferences.direction,
-      userTimezoneOffset: preferences.userTimezoneOffset,
-      isAuthenticated: preferences.isAuthenticated,
-      isSyncing: preferences.isSyncing,
-      toasts,
-      open: quickAddOpen,
-      currentLocationData: locationState.currentLocationData,
-      locationTrackingEnabled: locationState.locationTrackingEnabled,
-      locationChangeDialog: locationState.locationChangeDialog,
-      setOpen: actions.setQuickAddOpen,
-      addCity: actions.addCity,
-      addOrReplaceCurrentLocation: actions.addOrReplaceCurrentLocation,
-      removeCity: actions.removeCity,
-      setCurrentIndex: actions.setCurrentIndex,
-      showToast: useToastStore.getState().showToast,
-      hideToast: useToastStore.getState().hideToast,
-      setIsLoading: actions.setIsLoading,
-      nextCity: actions.nextCity,
-      prevCity: actions.prevCity,
-      handleLocationChange: actions.handleLocationChange,
-      refreshCity: actions.refreshCity,
-      applyBackgroundUpdate: actions.applyBackgroundUpdate,
-      closeQuickAddAndResetLoading: actions.closeQuickAddAndResetLoading,
-      persistPreferencesIfAuthenticated: actions.persistPreferencesIfAuthenticated,
-      setAutoLocationCityId: actions.setAutoLocationCityId,
-    }),
-    [
-      actions,
-      autoLocationCityId,
-      cities,
-      currentIndex,
-      isLoading,
-      locationState.currentLocationData,
-      locationState.locationChangeDialog,
-      locationState.locationTrackingEnabled,
-      maxCities,
-      preferences.direction,
-      preferences.isAuthenticated,
-      preferences.isSyncing,
-      preferences.locale,
-      preferences.theme,
-      preferences.unit,
-      preferences.userTimezoneOffset,
+      safePreferences.direction,
+      safePreferences.isAuthenticated,
+      safePreferences.isSyncing,
+      safePreferences.locale,
+      safePreferences.theme,
+      safePreferences.unit,
+      safePreferences.userTimezoneOffset,
       quickAddOpen,
       toasts,
     ],
   );
 
-  const select = selector ?? ((state: CombinedState) => state as unknown as T);
-  return select(combined);
+  // Guard against undefined/null combined state
+  if (!combined || typeof combined !== 'object') {
+    // Return a safe fallback state
+    const fallbackState = buildState();
+    if (!fallbackState || typeof fallbackState !== 'object') {
+      // Last resort: return empty object with minimal required properties
+      const minimalState = {
+        cities: [],
+        currentIndex: 0,
+        isLoading: false,
+        unit: 'metric' as const,
+        locale: 'he' as const,
+        theme: 'system' as const,
+        direction: 'rtl' as const,
+        toasts: [],
+        open: false,
+        maxCities: 15,
+        isAuthenticated: false,
+        isSyncing: false,
+        userTimezoneOffset: 0,
+        autoLocationCityId: undefined,
+        currentLocationData: undefined,
+        locationTrackingEnabled: false,
+        locationChangeDialog: { isOpen: false },
+      } as unknown as CombinedState;
+      const select = selector ?? ((state: CombinedState) => state as unknown as T);
+      return select(minimalState);
+    }
+    const select = selector ?? ((state: CombinedState) => state as unknown as T);
+    return select(fallbackState);
+  }
+
+  try {
+    const select = selector ?? ((state: CombinedState) => state as unknown as T);
+    const result = select(combined);
+    
+    // Guard against undefined/null result - React DevTools might call Object.keys on this
+    if (result === undefined || result === null) {
+      // If selector returns undefined/null, return the property directly
+      if (selector) {
+        // Try to get the property name from selector if possible
+        const fallbackState = buildState();
+        const fallbackResult = select(fallbackState);
+        // Ensure we always return an object, not undefined/null
+        if (fallbackResult === undefined || fallbackResult === null) {
+          // Last resort: return empty object
+          return {} as T;
+        }
+        return fallbackResult;
+      }
+      // If no selector, return the combined state (which we already validated is an object)
+      return combined as unknown as T;
+    }
+    
+    // Return result as-is (can be primitive or object)
+    return result;
+  } catch (error) {
+    // If selector throws, return fallback
+    logger.error('useWeatherStore selector error', error as Error);
+    try {
+      const fallbackState = buildState();
+      if (!fallbackState || typeof fallbackState !== 'object') {
+        return {} as T;
+      }
+      const select = selector ?? ((state: CombinedState) => state as unknown as T);
+      const fallbackResult = select(fallbackState);
+      if (fallbackResult === undefined || fallbackResult === null) {
+        return {} as T;
+      }
+      return fallbackResult;
+    } catch (fallbackError) {
+      logger.error('useWeatherStore fallback error', fallbackError as Error);
+      return {} as T;
+    }
+  }
 };
 
 useWeatherStore.getState = buildState;

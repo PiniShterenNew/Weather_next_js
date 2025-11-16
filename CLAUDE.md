@@ -276,3 +276,222 @@ All API routes and client-server interactions must:
 - Log security-related actions in development mode for auditability.
 
 Each PR must include a security review checklist if any API/service logic was modified.
+
+### 14. Build & Prerendering Rules (Next.js 15 App Router)
+
+**Critical:** These rules prevent prerendering errors and ensure successful builds.
+
+#### 14.1. Page Component Structure
+
+**ALWAYS use Server Component pattern for page files:**
+
+```tsx
+// ✅ CORRECT - app/[locale]/example/page.tsx
+import { Metadata } from 'next';
+import { Suspense } from 'react';
+import ClientExamplePage from '@/features/example/components/ClientExamplePage';
+import { Skeleton } from '@/components/ui/skeleton';
+
+export const metadata: Metadata = {
+  title: 'Example - Weather App',
+  description: 'Example page description',
+};
+
+interface PageProps {
+  params: Promise<{ locale: string }>;
+}
+
+export default async function ExamplePage({ params }: PageProps) {
+  const { locale } = await params;
+  
+  return (
+    <Suspense fallback={<Skeleton className="h-full w-full" />}>
+      <ClientExamplePage locale={locale} />
+    </Suspense>
+  );
+}
+```
+
+```tsx
+// ❌ WRONG - Page with 'use client'
+'use client';
+
+export default function ExamplePage() {
+  // This causes prerendering errors!
+}
+```
+
+#### 14.2. Client Component Naming Convention
+
+**Client components for pages MUST be named `Client<PageName>Page`:**
+
+- Location: `features/<feature>/components/Client<PageName>Page.tsx`
+- Example: `features/cities/components/ClientCitiesPage.tsx`
+- Example: `features/search/components/ClientAddCityPage.tsx`
+- Example: `features/auth/components/ClientProfilePage.tsx`
+
+#### 14.3. Suspense Usage Rules
+
+**Suspense ONLY in Server Components:**
+
+✅ **CORRECT:**
+```tsx
+// Server Component (page.tsx)
+export default async function Page() {
+  return (
+    <Suspense fallback={<Skeleton />}>
+      <ClientComponent />
+    </Suspense>
+  );
+}
+```
+
+❌ **WRONG:**
+```tsx
+// Client Component
+'use client';
+export default function Component() {
+  return (
+    <Suspense fallback={<Skeleton />}>  {/* Causes prerendering errors! */}
+      <OtherComponent />
+    </Suspense>
+  );
+}
+```
+
+#### 14.4. 'use client' Directive Rules
+
+**Rules for 'use client':**
+
+1. **NEVER** use 'use client' in `app/**/page.tsx` files
+2. **ALWAYS** use 'use client' in client component files inside `features/**/components/`
+3. Client components can use hooks, browser APIs, event handlers
+4. Server components can import and render client components, but not vice versa
+
+#### 14.5. Page File Checklist
+
+Before creating or modifying any `app/**/page.tsx`:
+
+- [ ] File does NOT have 'use client' directive
+- [ ] File exports async function (or sync if no async needed)
+- [ ] File exports Metadata object
+- [ ] File uses Suspense to wrap client component
+- [ ] Client component is named `Client<PageName>Page`
+- [ ] Client component is in `features/<feature>/components/`
+- [ ] Suspense has appropriate fallback (Skeleton component)
+
+#### 14.6. Common Prerendering Errors & Solutions
+
+**Error:** `Element type is invalid: expected a string (for built-in components) or a class/function (for composite components) but got: object.`
+
+**Cause:** Suspense inside 'use client' component or page.tsx with 'use client'
+
+**Solution:** 
+1. Remove 'use client' from page.tsx
+2. Create separate Client<PageName>Page component
+3. Move 'use client' to client component
+4. Wrap with Suspense in server component
+
+**Error:** `Error occurred prerendering page "/en/example"`
+
+**Cause:** Client component using Suspense or page.tsx not structured correctly
+
+**Solution:** Follow pattern from section 14.1
+
+#### 14.7. Import Patterns
+
+**Server Component (page.tsx):**
+```tsx
+import { Metadata } from 'next';  // ✅
+import { Suspense } from 'react';  // ✅
+import ClientComponent from '@/features/...';  // ✅
+import { Skeleton } from '@/components/ui/skeleton';  // ✅
+```
+
+**Client Component:**
+```tsx
+'use client';  // ✅ Must be first line
+
+import { useState } from 'react';  // ✅
+import { useTranslations } from 'next-intl';  // ✅
+import { Button } from '@/components/ui/button';  // ✅
+```
+
+#### 14.8. Build Verification
+
+**Before committing any page changes:**
+
+1. Run `npm run build` locally
+2. Verify no prerendering errors
+3. Check all pages generate successfully (● SSG or ƒ Dynamic)
+4. Verify Suspense boundaries are in server components only
+
+**Pages that MUST pass build:**
+- All pages in `app/[locale]/**/page.tsx`
+- All dynamic routes
+- All static routes
+
+#### 14.9. Migration Pattern
+
+**When converting existing 'use client' page to correct pattern:**
+
+1. Create `features/<feature>/components/Client<PageName>Page.tsx`
+2. Move entire component code from page.tsx to Client component
+3. Add 'use client' as first line in Client component
+4. Replace page.tsx content with server component pattern (section 14.1)
+5. Pass any params/props from server component to client component
+
+**Example migration:**
+```tsx
+// Before: app/[locale]/cities/page.tsx
+'use client';
+export default function CitiesPage() {
+  // ... component code
+}
+
+// After: app/[locale]/cities/page.tsx
+import { Metadata } from 'next';
+import { Suspense } from 'react';
+import ClientCitiesPage from '@/features/cities/components/ClientCitiesPage';
+import { Skeleton } from '@/components/ui/skeleton';
+
+export const metadata: Metadata = { /* ... */ };
+
+export default async function CitiesPage({ params }: PageProps) {
+  const { locale } = await params;
+  return (
+    <Suspense fallback={<Skeleton className="h-full w-full" />}>
+      <ClientCitiesPage locale={locale} />
+    </Suspense>
+  );
+}
+```
+
+#### 14.10. Exceptions & Edge Cases
+
+**When NOT to split:**
+- Layout files (app/**/layout.tsx) can be async server components
+- Loading/Error files (app/**/loading.tsx, error.tsx) follow their own patterns
+- API routes (app/api/**/route.ts) are server-only
+
+**Special cases:**
+- Dashboard pages with auth checks: Use server component with auth check, then wrap client component
+- Pages that need async data fetching: Fetch in server component, pass to client component as props
+
+#### 14.11. Automated Checks
+
+**Add to pre-commit hooks or CI:**
+
+```bash
+# Check for 'use client' in page files
+grep -r "'use client'" app/**/page.tsx && echo "ERROR: 'use client' found in page.tsx" && exit 1
+
+# Check for Suspense in client components (basic check)
+grep -r "Suspense" features/**/*Client*.tsx | grep -v "^//" && echo "WARNING: Suspense may be in client component" && exit 1
+```
+
+**Summary:**
+- All `app/**/page.tsx` files MUST be Server Components
+- All client logic goes in `Client<PageName>Page` components
+- Suspense ONLY in server components
+- Always test build before committing page changes

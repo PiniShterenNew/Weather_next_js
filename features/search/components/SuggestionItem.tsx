@@ -49,10 +49,12 @@ export function SuggestionItem({
       aria-label={`${cityName}, ${countryName}`}
       role="option"
     >
-      <div className={cn(
-        "flex items-center justify-between",
-        direction === 'rtl' ? 'flex-row-reverse' : 'flex-row'
-      )}>
+        <div
+          className={cn(
+            "flex items-center justify-between",
+            direction === 'rtl' ? 'flex-row-reverse' : 'flex-row'
+          )}
+        >
         <div className="flex-1 min-w-0">
           <div className="font-medium text-foreground truncate">
             {suggestion.city[locale] || suggestion.city.en}
@@ -61,14 +63,6 @@ export function SuggestionItem({
             {suggestion.country[locale] || suggestion.country.en}
           </div>
         </div>
-        {isAdding && (
-          <div className={cn(
-            "flex-shrink-0",
-            direction === 'rtl' ? 'mr-2' : 'ml-2'
-          )}>
-            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
-          </div>
-        )}
       </div>
     </button>
   );

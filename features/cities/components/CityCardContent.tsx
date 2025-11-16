@@ -32,39 +32,45 @@ export default function CityCardContent({
     : '--°';
 
   return (
-    <div className="flex items-center justify-between">
-      <div className="flex items-center justify-between gap-3">
-        {/* City Name */}
-        <div className="flex-1 min-w-0">
-          <h3 className={`text-base ${isCurrentLocation ? 'font-bold' : 'font-semibold'} text-neutral-800 dark:text-white/90 flex items-center gap-1.5`}>
-            <span className="truncate">{cityName}</span>
-            {isCurrentLocation && (
-              <span 
-                className="inline-flex animate-pulse flex-shrink-0" 
-                title="Current Location"
-                aria-label="Current Location"
-                role="img"
-              >
-                <MapPin className="h-4 w-4 text-sky-500 dark:text-sky-400" aria-hidden="true" />
-              </span>
-            )}
-          </h3>
-          {city.country && (
-            <p className="text-xs text-neutral-600 dark:text-white/80 truncate">
-              {city.country[locale] || city.country.en}
-            </p>
+    <div className="flex items-center gap-3 w-full min-w-0">
+      {/* City Name */}
+      <div className="flex-1 min-w-0">
+        <h3
+          className={`text-sm sm:text-base ${
+            isCurrentLocation ? 'font-bold' : 'font-semibold'
+          } text-neutral-800 dark:text-white/90 flex items-center gap-1.5`}
+        >
+          <span className="truncate">{cityName}</span>
+          {isCurrentLocation && (
+            <span
+              className="inline-flex animate-pulse flex-shrink-0"
+              title="Current Location"
+              aria-label="Current Location"
+              role="img"
+            >
+              <MapPin className="h-4 w-4 text-sky-500 dark:text-sky-400" aria-hidden="true" />
+            </span>
           )}
-        </div>
-        <div className="flex items-center gap-3 flex-shrink-0">
-          <WeatherIcon
-            code={weatherCode.toString()}
-            icon={weatherIcon}
-            size={48}
-            className="h-12 w-12"
-          />
-          <div className={`text-2xl ${isCurrentLocation ? 'font-extrabold' : 'font-bold'} text-sky-600 dark:text-sky-400`}>
-            {displayTemp}
-          </div>
+        </h3>
+        {city.country && (
+          <p className="text-xs text-neutral-600 dark:text-white/80 truncate">
+            {city.country[locale] || city.country.en}
+          </p>
+        )}
+      </div>
+      <div className="flex items-center gap-2 flex-shrink-0">
+        <WeatherIcon
+          code={weatherCode.toString()}
+          icon={weatherIcon}
+          size={48}
+          className="h-10 w-10 sm:h-12 sm:w-12"
+        />
+        <div
+          className={`text-xl sm:text-2xl ${
+            isCurrentLocation ? 'font-extrabold' : 'font-bold'
+          } text-sky-600 dark:text-sky-400`}
+        >
+          {displayTemp}
         </div>
       </div>
     </div>

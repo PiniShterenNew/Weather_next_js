@@ -18,6 +18,14 @@ export function triggerHapticFeedback(type: HapticFeedbackType = 'light'): void 
 
     // Modern browsers with Vibration API
     if (hasNavigator && 'vibrate' in navigator) {
+      // Respect Chrome's user activation requirement to avoid console interventions
+      const navWithActivation = navigator as Navigator & {
+        userActivation?: { isActive: boolean };
+      };
+      const hasUserActivation = typeof navWithActivation.userActivation === 'object';
+      if (hasUserActivation && navWithActivation.userActivation && navWithActivation.userActivation.isActive === false) {
+        return;
+      }
       const patterns = {
         light: [10],
         medium: [20],

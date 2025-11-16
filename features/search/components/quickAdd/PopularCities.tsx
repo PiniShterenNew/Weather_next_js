@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { Globe } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { Globe, Plus } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 
 import { Button } from '@/components/ui/button';
@@ -11,7 +11,7 @@ import { cn } from '@/lib/utils';
 import type { AppLocale } from '@/types/i18n';
 import type { TemporaryUnit } from '@/types/ui';
 import { useWeatherStore } from '@/store/useWeatherStore';
-import { fetchWeather } from '@/features/weather';
+import { addCityFromPopular } from '@/features/weather/services/addFlow';
 
 interface PopularCitiesProps {
   direction: 'ltr' | 'rtl';
@@ -23,12 +23,10 @@ const INITIAL_LOAD = 12;
 const LOAD_MORE_COUNT = 8;
 
 const PopularCities = ({ direction, color = 'default', onCityAdded }: PopularCitiesProps) => {
-  const { addCity, cities, unit, showToast, setIsLoading, setOpen } = useWeatherStore((state) => ({
-    addCity: state.addCity,
+  const { cities, unit, showToast, setOpen } = useWeatherStore((state) => ({
     cities: state.cities,
     unit: state.unit,
     showToast: state.showToast,
-    setIsLoading: state.setIsLoading,
     setOpen: state.setOpen,
   }));
   const router = useRouter();
@@ -40,38 +38,38 @@ const PopularCities = ({ direction, color = 'default', onCityAdded }: PopularCit
   const [displayCount, setDisplayCount] = useState(INITIAL_LOAD);
   const [loadingCityId, setLoadingCityId] = useState<string | null>(null);
 
-  const filteredCities = POPULAR_CITIES.filter((city) => !cities.some((existing) => existing.id === city.id));
+  const filteredCities = useMemo(
+    () => POPULAR_CITIES.filter((city) => !cities.some((existing) => existing.id === city.id)),
+    [cities],
+  );
 
   const handleAddCity = async (city: (typeof POPULAR_CITIES)[number]) => {
     setLoadingCityId(city.id);
-    setIsLoading(true);
 
     try {
-      const weatherData = await fetchWeather({
-        ...city,
+      const result = await addCityFromPopular({
+        id: city.id,
+        lat: city.lat,
+        lon: city.lon,
+        city: city.city,
+        country: city.country,
         unit: unit as TemporaryUnit,
       });
 
-      const wasAdded = await addCity({
-        ...weatherData,
-        lastUpdated: Date.now(),
-      });
-
-      if (wasAdded) {
-        showToast({ message: 'toasts.added', type: 'success', values: { city: city.city[locale] } });
-
+      if (result.status === 'added' || result.status === 'exists') {
         if (isAddCityPage) {
           router.push('/');
         }
 
         setOpen(false);
         onCityAdded?.();
+      } else if (result.status === 'max_cities') {
+        // toast already handled in service
+      } else if (result.status === 'error') {
+        showToast({ message: 'toasts.apiFailure', type: 'error' });
       }
-    } catch {
-      showToast({ message: 'toasts.error', type: 'error' });
     } finally {
       setLoadingCityId(null);
-      setIsLoading(false);
     }
   };
 
@@ -93,16 +91,16 @@ const PopularCities = ({ direction, color = 'default', onCityAdded }: PopularCit
       dir={direction}
       aria-live="polite"
     >
-      <ul className="space-y-2">
+      <ul className="space-y-2" role="listbox" aria-label={t('search.popularCities')}>
         {visibleCities.map((city) => {
           const isLoading = loadingCityId === city.id;
 
           return (
-            <li key={city.id}>
+            <li key={city.id} role="option" aria-selected={false}>
               <button
                 type="button"
                 className={cn(
-                  'flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-60',
+                  'flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-60',
                   direction === 'rtl' ? 'text-right' : 'text-left',
                   color === 'primary'
                     ? 'bg-brand-500/10 text-brand-900 hover:bg-brand-500/20 dark:text-white'
@@ -113,16 +111,18 @@ const PopularCities = ({ direction, color = 'default', onCityAdded }: PopularCit
                 aria-busy={isLoading}
                 aria-label={city.city[locale]}
               >
-                <span className="text-base font-medium">{city.city[locale]}</span>
-                {isLoading ? (
-                  <span
-                    className="h-4 w-4 animate-spin rounded-full border border-current border-t-transparent"
-                    role="status"
-                    aria-live="assertive"
-                  >
-                    <span className="sr-only">{t('search.loading')}</span>
+                <div className="flex flex-col">
+                  <span className="text-base font-medium">{city.city[locale]}</span>
+                  <span className="text-xs text-muted-foreground">
+                    {t('popular.title')} • {city.country[locale] ?? city.country.en}
                   </span>
-                ) : null}
+                </div>
+                <div className="ml-3 flex h-8 w-8 items-center justify-center rounded-full border border-white/40 bg-white/70 text-brand-700 dark:border-white/10 dark:bg-white/5 dark:text-white">
+                  <Plus className="h-4 w-4" aria-hidden="true" />
+                  <span className="sr-only">
+                    {isLoading ? t('search.loading') : t('search.addCity')}
+                  </span>
+                </div>
               </button>
             </li>
           );
@@ -136,11 +136,18 @@ const PopularCities = ({ direction, color = 'default', onCityAdded }: PopularCit
             size="sm"
             onClick={() => setDisplayCount((previous) => Math.min(previous + LOAD_MORE_COUNT, filteredCities.length))}
             className="w-full justify-center text-sm font-medium text-neutral-600 transition-colors hover:text-neutral-800 dark:text-white/70 dark:hover:text-white/90"
+            disabled={!!loadingCityId}
           >
             {t('common.loadMore')} ({filteredCities.length - displayCount})
           </Button>
         </div>
       ) : null}
+
+      <p className="sr-only" role="status" aria-live="polite">
+        {loadingCityId
+          ? `${t('search.loading')} ${filteredCities.find((c) => c.id === loadingCityId)?.city[locale] ?? ''}`
+          : t('search.searchResults')}
+      </p>
     </section>
   );
 };

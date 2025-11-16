@@ -60,7 +60,7 @@ const CityHeader = ({
                 title={t('cities.refreshLocation')}
                 disabled={isRefreshingLocation}
                 aria-label={t('cities.refreshLocation')}
-                className={`h-10 w-10 min-h-[44px] min-w-[44px] transition-all hover:bg-blue-100 hover-scale text-gray-900 dark:text-white dark:hover:bg-blue-900/20 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 ${
+                className={`h-10 w-10 min-h-[44px] min-w-[44px] hover:bg-blue-100 hover-scale text-gray-900 dark:text-white dark:hover:bg-blue-900/20 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 ${
                   isRefreshingLocation ? 'animate-pulse' : ''
                 }`}
               >
@@ -80,7 +80,7 @@ const CityHeader = ({
               disabled={isRefreshing}
               aria-label={`${t('refresh')} ${cityWeather.name[locale] || cityWeather.name.en}`}
               aria-busy={isRefreshing}
-              className={`h-10 w-10 min-h-[44px] min-w-[44px] transition-all hover:bg-gray-100 hover-scale text-gray-900 dark:text-white dark:hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 ${
+              className={`h-10 w-10 min-h-[44px] min-w-[44px] hover:bg-gray-100 hover-scale text-gray-900 dark:text-white dark:hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 ${
                 isRefreshing ? 'refresh-rotate animate-pulse ring-2 ring-brand-400/50' : ''
               }`}
             >
@@ -97,7 +97,7 @@ const CityHeader = ({
               onClick={onRemove}
               title={t('remove')}
               aria-label={`${t('remove')} ${cityWeather.name[locale] || cityWeather.name.en}`}
-              className="h-10 w-10 min-h-[44px] min-w-[44px] hover-scale text-gray-900 transition-all hover:bg-gray-100 dark:text-white dark:hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
+              className="h-10 w-10 min-h-[44px] min-w-[44px] hover-scale text-gray-900 hover:bg-gray-100 dark:text-white dark:hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
             >
               <Trash className="h-4 w-4" aria-hidden="true" />
             </Button>
@@ -131,7 +131,7 @@ const CityHeader = ({
 
         {cityLocale.current.tempMin !== undefined && cityLocale.current.tempMax !== undefined ? (
           <div className="flex items-center gap-4 text-sm tabular-nums animate-fade-in">
-            <div className="hover-scale flex items-center gap-2 rounded-xl border border-red-500/30 bg-red-50 px-4 py-3 transition-all dark:bg-black/40">
+            <div className="hover-scale flex items-center gap-2 rounded-xl border border-red-500/30 bg-red-50 px-4 py-3 dark:bg-black/40">
               <span className="sr-only">{t('high')}</span>
               <span className="text-lg font-bold text-red-500 dark:text-red-400" aria-hidden="true">
                 ↑
@@ -140,7 +140,7 @@ const CityHeader = ({
                 {formatTemperatureWithConversion(cityLocale.current.tempMax, cityLocale.unit as TemporaryUnit, currentUnit as TemporaryUnit)}
               </span>
             </div>
-            <div className="hover-scale flex items-center gap-2 rounded-xl border border-blue-500/30 bg-blue-50 px-4 py-3 transition-all dark:bg-black/40">
+            <div className="hover-scale flex items-center gap-2 rounded-xl border border-blue-500/30 bg-blue-50 px-4 py-3 dark:bg-black/40">
               <span className="sr-only">{t('low')}</span>
               <span className="text-lg font-bold text-blue-500 dark:text-blue-400" aria-hidden="true">
                 ↓
@@ -177,8 +177,8 @@ const CityHeader = ({
             </p>
           </div>
           {cityLocale.current.tempMin !== undefined && cityLocale.current.tempMax !== undefined ? (
-              <div className="hover-scale mt-4 flex items-center justify-center gap-4 text-sm tabular-nums animate-fade-in">
-              <div className="flex items-center gap-2 rounded-xl border border-red-500/30 bg-red-50 px-4 py-3 transition-all dark:bg-black/40">
+            <div className="hover-scale mt-4 flex items-center justify-center gap-4 text-sm tabular-nums animate-fade-in">
+              <div className="flex items-center gap-2 rounded-xl border border-red-500/30 bg-red-50 px-4 py-3 dark:bg-black/40">
                 <span className="sr-only">{t('high')}</span>
                 <span className="text-lg font-bold text-red-500 dark:text-red-400" aria-hidden="true">
                   ↑
@@ -187,7 +187,7 @@ const CityHeader = ({
                   {formatTemperatureWithConversion(cityLocale.current.tempMax, cityLocale.unit as TemporaryUnit, currentUnit as TemporaryUnit)}
                 </span>
               </div>
-              <div className="flex items-center gap-2 rounded-xl border border-blue-500/30 bg-blue-50 px-4 py-3 transition-all dark:bg-black/40">
+              <div className="flex items-center gap-2 rounded-xl border border-blue-500/30 bg-blue-50 px-4 py-3 dark:bg-black/40">
                 <span className="sr-only">{t('low')}</span>
                 <span className="text-lg font-bold text-blue-500 dark:text-blue-400" aria-hidden="true">
                   ↓

@@ -2,6 +2,7 @@
 
 import { create } from 'zustand';
 
+import { getDirection } from '@/lib/intl';
 import type { AppLocale } from '@/types/i18n';
 import type { TemporaryUnit } from '@/types/ui';
 
@@ -32,18 +33,19 @@ interface AppPreferencesActions {
 
 type AppPreferencesStore = AppPreferencesState & AppPreferencesActions;
 
+const initialLocale: AppLocale = 'he';
 const initialTimezoneOffset = -new Date().getTimezoneOffset() * 60;
 
 export const useAppPreferencesStore = create<AppPreferencesStore>((set, get) => ({
   unit: 'metric',
-  locale: 'he',
+  locale: initialLocale,
   theme: 'system',
-  direction: 'ltr',
+  direction: getDirection(initialLocale),
   userTimezoneOffset: initialTimezoneOffset,
   isAuthenticated: false,
   isSyncing: false,
   setUnit: (unit) => set({ unit }),
-  setLocale: (locale) => set({ locale }),
+  setLocale: (locale) => set({ locale, direction: getDirection(locale) }),
   setTheme: (theme) => set({ theme }),
   setDirection: (direction) => set({ direction }),
   setUserTimezoneOffset: (offsetSeconds) => set({ userTimezoneOffset: offsetSeconds }),
@@ -53,9 +55,9 @@ export const useAppPreferencesStore = create<AppPreferencesStore>((set, get) => 
   resetPreferences: () =>
     set({
       unit: 'metric',
-      locale: 'he',
+      locale: initialLocale,
       theme: 'system',
-      direction: 'ltr',
+      direction: getDirection(initialLocale),
       userTimezoneOffset: initialTimezoneOffset,
       isAuthenticated: false,
       isSyncing: false,

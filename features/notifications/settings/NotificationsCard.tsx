@@ -6,9 +6,10 @@ import { motion } from 'framer-motion';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
-import { Bell, Settings, AlertCircle } from 'lucide-react';
+import { Bell, Settings, AlertCircle, Loader2 } from 'lucide-react';
 import { useWeatherDataStore } from '@/features/weather/store/useWeatherDataStore';
 import { useToastStore } from '@/features/ui/store/useToastStore';
+import announceAction from '@/lib/actions/announceAction';
 import { fetchSecure } from '@/lib/fetchSecure';
 import { useUser } from '@clerk/nextjs';
 import { AppLocale } from '@/types/i18n';
@@ -32,6 +33,8 @@ export default function NotificationsCard() {
     permissionGranted: false,
   });
   const [isClient, setIsClient] = useState(false);
+  const [statusMessage, setStatusMessage] = useState('');
+  const [statusType, setStatusType] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
 
   // Track client-side hydration
   useEffect(() => {
@@ -68,19 +71,24 @@ export default function NotificationsCard() {
     // and database saves when settings change
   }, [user?.id]);
 
+  const announceStatus = (type: 'idle' | 'loading' | 'success' | 'error', message: string) => {
+    setStatusType(type);
+    setStatusMessage(message);
+  };
+
   // Fixed notification times - no need to sync local time states
 
 
   const saveSettings = async (newSettings: Partial<NotificationSettings>) => {
     const updatedSettings = { ...settings, ...newSettings };
+    const successMessage = t(updatedSettings.enabled ? 'enabled' : 'disabled');
     setSettings(updatedSettings);
+    announceStatus('loading', t('loading'));
     
-    // Save to localStorage for immediate UI update
     if (typeof window !== 'undefined') {
       window.localStorage.setItem('notificationSettings', JSON.stringify(updatedSettings));
     }
 
-    // Save to database if user is authenticated
     if (user?.id) {
       try {
         const response = await fetchSecure('/api/user/preferences', {
@@ -94,24 +102,27 @@ export default function NotificationsCard() {
         });
         
         if (response.ok) {
-          // Show success toast
           showToast({
             message: updatedSettings.enabled ? 'notifications.enabled' : 'notifications.disabled',
             type: 'success',
           });
+          announceStatus('success', successMessage);
         } else {
-          // Show error toast
           showToast({
             message: 'toasts.error',
             type: 'error',
           });
+          announceStatus('error', t('toasts.error'));
         }
       } catch {
         showToast({
           message: 'toasts.error',
           type: 'error',
         });
+        announceStatus('error', t('toasts.error'));
       }
+    } else {
+      announceStatus('success', successMessage);
     }
   };
 
@@ -121,20 +132,20 @@ export default function NotificationsCard() {
         message: 'notifications.permissionDenied',
         type: 'error',
       });
+      announceStatus('error', t('permissionDenied'));
       return;
     }
 
+    announceStatus('loading', t('loading'));
     const permission = await Notification.requestPermission();
     const granted = permission === 'granted';
     
     if (granted) {
-      // Register for push notifications
       try {
         const { registerForPushNotifications } = await import('@/features/notifications/sw/registerPush');
         const subscription = await registerForPushNotifications();
         
         if (subscription) {
-          // Send subscription to server
           const response = await fetchSecure('/api/notifications/subscribe', {
             method: 'POST',
             requireAuth: true,
@@ -147,9 +158,9 @@ export default function NotificationsCard() {
             setSettings(prev => ({
               ...prev,
               permissionGranted: true,
-              enabled: true
+              enabled: true,
             }));
-
+            announceStatus('success', t('permissionGranted'));
           } else {
             throw new Error('Failed to save subscription');
           }
@@ -159,89 +170,100 @@ export default function NotificationsCard() {
           message: 'notifications.permissionDenied',
           type: 'error',
         });
+        announceStatus('error', t('permissionDenied'));
       }
     } else {
       setSettings(prev => ({
         ...prev,
         permissionGranted: false,
-        enabled: false
+        enabled: false,
       }));
 
       showToast({
         message: 'notifications.permissionDenied',
         type: 'error',
       });
+      announceStatus('error', t('permissionDenied'));
     }
   };
 
   const toggleNotifications = async (enabled: boolean) => {
+    // Build multi-step flow but show only one final toast (success or error)
+    const steps = [];
+
     if (enabled && !settings.permissionGranted) {
-      requestPermission();
-      return;
+      steps.push({
+        key: 'permission',
+        inlineLabelKey: 'notifications.loading',
+        run: async () => {
+          await requestPermission();
+        },
+      });
     }
-    
+
     if (!enabled && settings.permissionGranted) {
-      // Unsubscribe from push notifications
-      try {
-        const { unregisterFromPushNotifications } = await import('@/features/notifications/sw/registerPush');
-        const result = await unregisterFromPushNotifications();
-        
-        if (result.success && result.endpoint) {
-          // Remove from server using query parameter
-          await fetchSecure(`/api/notifications/subscribe?endpoint=${encodeURIComponent(result.endpoint)}`, {
-            method: 'DELETE',
-            requireAuth: true,
-          });
-
-          // Update state regardless of server response
-          await saveSettings({ enabled: false });
-        } else {
-          // Still update the UI state even if unsubscribe failed
-          await saveSettings({ enabled: false });
-        }
-      } catch {
-        // Still update the UI state even if there was an error
-        await saveSettings({ enabled: false });
-        showToast({
-          message: 'notifications.permissionDenied',
-          type: 'error',
-        });
-      }
-    } else if (enabled && settings.permissionGranted) {
-      // User wants to enable notifications and has permission
-      // Check if we need to register for push notifications
-      try {
-        const { registerForPushNotifications } = await import('@/features/notifications/sw/registerPush');
-        const subscription = await registerForPushNotifications();
-        
-        if (subscription) {
-          // Send subscription to server
-          const response = await fetchSecure('/api/notifications/subscribe', {
-            method: 'POST',
-            requireAuth: true,
-            body: JSON.stringify({
-              ...subscription,
-            }),
-          });
-
-          if (response.ok) {
-            await saveSettings({ enabled: true });
-          } else {
-            throw new Error('Failed to save subscription');
+      steps.push({
+        key: 'unregister',
+        inlineLabelKey: 'notifications.loading',
+        run: async () => {
+          const { unregisterFromPushNotifications } = await import('@/features/notifications/sw/registerPush');
+          const result = await unregisterFromPushNotifications();
+          if (result.success && result.endpoint) {
+            await fetchSecure(`/api/notifications/subscribe?endpoint=${encodeURIComponent(result.endpoint)}`, {
+              method: 'DELETE',
+              requireAuth: true,
+            });
           }
-        } else {
-          // No subscription available, but still save the preference
-          await saveSettings({ enabled: true });
-        }
-      } catch {
-        await saveSettings({ enabled: true });
-      }
-    } else {
-      await saveSettings({ enabled });
+        },
+      });
     }
+
+    if (enabled && settings.permissionGranted) {
+      steps.push({
+        key: 'register',
+        inlineLabelKey: 'notifications.loading',
+        run: async () => {
+          const { registerForPushNotifications } = await import('@/features/notifications/sw/registerPush');
+          const subscription = await registerForPushNotifications();
+          if (subscription) {
+            const response = await fetchSecure('/api/notifications/subscribe', {
+              method: 'POST',
+              requireAuth: true,
+              body: JSON.stringify({ ...subscription }),
+            });
+            if (!response.ok) throw new Error('Failed to save subscription');
+          }
+        },
+      });
+    }
+
+    // Final saveSettings
+    steps.push({
+      key: 'save',
+      inlineLabelKey: 'notifications.loading',
+      run: async () => {
+        await saveSettings({ enabled });
+      },
+    });
+
+    announceStatus('loading', t('loading'));
+
+    await announceAction.sequence(steps, {
+      onStepChange: () => {
+        announceStatus('loading', t('loading'));
+      },
+      success: {
+        message: enabled ? 'notifications.enabled' : 'notifications.disabled',
+      },
+      error: {
+        message: 'toasts.error',
+      },
+    });
   };
 
   const hasCities = cities && cities.length > 0;
+  const isBusy = statusType === 'loading';
+  const liveMessage = statusMessage || (isClient ? '' : t('loading'));
 
   return (
     <motion.div
@@ -293,7 +315,8 @@ export default function NotificationsCard() {
             <Switch
               checked={isClient ? (settings.enabled && settings.permissionGranted && hasCities) : false}
               onCheckedChange={toggleNotifications}
-              disabled={!hasCities || !isClient}
+              disabled={!hasCities || !isClient || isBusy}
+              aria-busy={isBusy}
               isRTL={isRTL}
             />
           </div>
@@ -316,14 +339,27 @@ export default function NotificationsCard() {
                   variant="outline"
                   size="sm"
                   onClick={requestPermission}
+                  disabled={isBusy}
                   className={`text-red-700 border-red-300 hover:bg-red-50 dark:text-red-300 dark:border-red-700 dark:hover:bg-red-900/30 ${isRTL ? 'flex-row-reverse' : ''}`}
                 >
-                  <Settings className={`h-3 w-3 ${isRTL ? 'ml-1' : 'mr-1'}`} />
+                  {isBusy ? (
+                    <Loader2 className="h-3 w-3 animate-spin" aria-hidden="true" />
+                  ) : (
+                    <Settings className={`h-3 w-3 ${isRTL ? 'ml-1' : 'mr-1'}`} />
+                  )}
                   {t('openSettings')}
                 </Button>
               </div>
             </motion.div>
           )}
+
+          <p
+            className={`text-xs ${statusType === 'error' ? 'text-red-600 dark:text-red-400' : 'text-neutral-500 dark:text-white/60'}`}
+            role="status"
+            aria-live="polite"
+          >
+            {liveMessage}
+          </p>
 
         </div>
       </Card>

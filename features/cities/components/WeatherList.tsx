@@ -10,6 +10,7 @@ import { useRouter } from '@/i18n/navigation';
 import { useWeatherStore } from '@/store/useWeatherStore';
 
 import WeatherListItem from './WeatherListItem';
+import WeatherListSkeleton from '@/components/skeleton/WeatherListSkeleton';
 
 const WeatherList = () => {
   const isClient = useIsClient();
@@ -21,6 +22,7 @@ const WeatherList = () => {
   const setCurrentIndex = useWeatherStore((state) => state.setCurrentIndex);
   const nextCity = useWeatherStore((state) => state.nextCity);
   const prevCity = useWeatherStore((state) => state.prevCity);
+  const isLoading = useWeatherStore((state) => state.isLoading);
 
   const parentRef = useRef<HTMLDivElement>(null);
   const itemRefs = useRef<Array<HTMLButtonElement | null>>([]);
@@ -57,11 +59,13 @@ const WeatherList = () => {
   }, [nextCity, prevCity]);
 
   if (!isClient) {
-    return null;
+    return <WeatherListSkeleton />;
   }
 
   if (cities.length === 0) {
-    return (
+    return isLoading ? (
+      <WeatherListSkeleton />
+    ) : (
       <div className="bg-background_page relative mx-auto h-full w-full p-4 lg:bg-transparent">
         <div className="py-12 text-center">
           <p className="text-base text-gray-500 dark:text-gray-400">{t('empty.description')}</p>
@@ -74,6 +78,7 @@ const WeatherList = () => {
     <div
       ref={parentRef}
       className="bg-background_page relative mx-auto h-full w-full overflow-y-auto p-4 lg:max-h-[calc(100vh-6rem)] lg:bg-transparent lg:p-0"
+      style={{ minHeight: '320px' }}
       aria-live="polite"
       data-testid="weather-list"
       role="list"

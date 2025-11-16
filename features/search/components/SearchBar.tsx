@@ -1,16 +1,16 @@
 'use client';
 
 import React from 'react';
-import { useEffect, useState, useRef, useCallback, Suspense } from 'react';
-import { fetchWeather } from '@/features/weather';
-import { useWeatherStore } from '@/store/useWeatherStore';
-import { Loader2 } from 'lucide-react';
-import { useLocale, useTranslations } from 'next-intl';
+import { useEffect, useState, useRef, useCallback } from 'react';
+
+import { useLocale } from 'next-intl';
 import type { CitySuggestion } from '@/types/suggestion';
 import { useDebounce } from '@/hooks/useDebounce';
 import { AppLocale } from '@/types/i18n';
 import { getDirection } from '@/lib/intl';
 import { cn } from '@/lib/utils';
+
+import { addCityFromSuggestion } from '@/features/weather/services/addFlow';
 import { SuggestionsList } from './SuggestionsList';
 import SearchInput from './SearchInput';
 import { useSearchKeyboard } from '../hooks/useSearchKeyboard';
@@ -22,7 +22,6 @@ import { SearchBarProps } from '../types';
  * Uses Suspense for improved loading experience
  */
 export default function SearchBar({ onSelect, placeholder, className }: SearchBarProps) {
-  const t = useTranslations();
   const locale = useLocale() as AppLocale;
   const direction = getDirection(locale);
   const [query, setQuery] = useState('');
@@ -35,10 +34,6 @@ export default function SearchBar({ onSelect, placeholder, className }: SearchBa
   const hideTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
-
-  const addCity = useWeatherStore((s) => s.addCity);
-  const showToast = useWeatherStore((s) => s.showToast);
-  const setIsLoading = useWeatherStore((s) => s.setIsLoading);
 
   const { suggestions, loading, hasSearched } = useSearchSuggestions(debouncedQuery, locale);
   const { selectedIndex, handleKeyDown: handleKeyboardKeyDown, setSelectedIndex } = useSearchKeyboard();
@@ -87,76 +82,22 @@ export default function SearchBar({ onSelect, placeholder, className }: SearchBa
     setIsAdding(currentCityId);
 
     try {
-      setIsLoading(true);
-      
-      // Add timeout to prevent infinite loading
-      const weatherDataPromise = fetchWeather({
+      const result = await addCityFromSuggestion({
         id: city.id,
         lat: Number(city.lat),
         lon: Number(city.lon),
-        unit: 'metric'
+        name: city.city,
+        country: city.country,
       });
 
-      const timeoutPromise = new Promise<never>((_, reject) => {
-        setTimeout(() => {
-          reject(new Error('Weather fetch timeout'));
-        }, 15000); // 15 second timeout
-      });
-
-      const weatherData = await Promise.race([
-        weatherDataPromise,
-        timeoutPromise
-      ]);
-
-      const wasAdded = await addCity(weatherData);
-      
-      // Only show success toast if city was actually added
-      if (wasAdded) {
-        showToast({
-          message: 'toasts.added',
-          values: { city: city.city[locale] || city.city.en },
-          type: 'success',
-        });
-        
-        // Navigate immediately after successful addition
+      if (result.status === 'added' || result.status === 'exists') {
         onSelect();
-        
-        // Clear search after navigation
         setTimeout(clearSearch, 100);
-      } else {
-        // City already exists
-        showToast({
-          message: 'toasts.exists',
-          values: { city: city.city[locale] || city.city.en },
-          type: 'info',
-        });
-      }
-    } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error('Error adding city:', error);
-      
-      // Check if it's a timeout or network error
-      const isTimeout = error instanceof Error && error.message.includes('timeout');
-      const isNetworkError = error instanceof TypeError || 
-                           (error instanceof Error && error.message.includes('fetch'));
-      
-      if (isTimeout || isNetworkError) {
-        showToast({
-          message: 'errors.networkError',
-          type: 'error'
-        });
-      } else {
-        showToast({
-          message: 'errors.fetchWeather',
-          type: 'error'
-        });
       }
     } finally {
-      // Always reset loading states - check if this is still the current city being added
       if (isAdding === currentCityId) {
         setIsAdding(null);
       }
-      setIsLoading(false);
     }
   };
 
@@ -203,29 +144,20 @@ export default function SearchBar({ onSelect, placeholder, className }: SearchBa
         <div
           ref={dropdownRef}
           className={cn(
-            "absolute top-full mt-2 w-full z-[9999] border rounded-lg shadow-2xl bg-card backdrop-blur-md border-border animate-in fade-in-0 zoom-in-95 duration-200",
+            "absolute top-full mt-2 w-full z-[9999] border rounded-2xl shadow-2xl bg-card backdrop-blur-md border-border animate-in fade-in-0 zoom-in-95 duration-200",
             direction === 'rtl' ? 'right-0' : 'left-0'
           )}
         >
-          <Suspense fallback={
-            <div className="p-6 text-center">
-              <Loader2 className="h-6 w-6 animate-spin text-primary mx-auto mb-2" role="status">
-                <span className="sr-only">{t('search.loading')}</span>
-              </Loader2>
-              <p className="text-sm text-muted-foreground font-medium">
-                {t('search.searching')}
-              </p>
-            </div>
-          }>
-            <SuggestionsList
-              suggestions={suggestions}
-              loading={loading}
-              hasSearched={hasSearched}
-              selectedIndex={selectedIndex}
-              isAdding={isAdding}
-              handleSelect={handleSelect}
-            />
-          </Suspense>
+          <SuggestionsList
+            suggestions={suggestions}
+            loading={loading}
+            hasSearched={hasSearched}
+            selectedIndex={selectedIndex}
+            isAdding={isAdding}
+            handleSelect={handleSelect}
+            className="p-1"
+            direction={direction}
+          />
         </div>
       )}
     </div>

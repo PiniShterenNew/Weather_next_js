@@ -7,7 +7,7 @@ import React from 'react';
 
 // UI Component Props
 export interface LoadingOverlayProps {
-  isLoading: boolean;
+  isLoading?: boolean;
   message?: string;
   className?: string;
 }

@@ -1,35 +1,49 @@
 'use client';
 
-import { useWeatherStore } from '@/store/useWeatherStore';
+import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
 
-type Props = {
-  isLoading?: boolean;
-};
+import { useWeatherStore } from '@/store/useWeatherStore';
+import type { LoadingOverlayProps } from '@/features/ui/types';
 
-const LoadingOverlay = ({ isLoading }: Props) => {
+const HIDE_DELAY_MS = 250;
+
+const LoadingOverlay = ({ isLoading, message, className }: LoadingOverlayProps) => {
   const t = useTranslations();
-  const isLoadingFlag = useWeatherStore((s) => s.isLoading);
+  const storeLoading = useWeatherStore((s) => s.isLoading);
+  const isBusy = Boolean(isLoading || storeLoading);
+  const [isVisible, setIsVisible] = useState(isBusy);
 
-  if (!isLoadingFlag && !isLoading) return null;
+  useEffect(() => {
+    if (isBusy) {
+      setIsVisible(true);
+      return;
+    }
+    const timeout = window.setTimeout(() => setIsVisible(false), HIDE_DELAY_MS);
+    return () => window.clearTimeout(timeout);
+  }, [isBusy]);
+
+  if (!isVisible && !isBusy) {
+    return null;
+  }
+
+  const statusLabel = message || t('loading');
 
   return (
-    <div
-      className="fixed inset-0 z-[999] bg-background/80 backdrop-blur-sm flex items-center justify-center"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="loading-text"
-    >
-      <div className="bg-card p-8 rounded-xl shadow-xl border border-border">
-        <div className="flex flex-col items-center gap-4">
-          <div
-            data-testid="spinner"
-            className="animate-spin rounded-full h-12 w-12 border-4 border-muted border-t-brand-500"
-            role="img"
-            aria-label={t('loading')}
-          />
-          <p className="text-lg font-medium text-card-foreground" id="loading-text">{t('loading')}</p>
+    <div className="pointer-events-none fixed inset-x-0 top-0 z-[999] flex justify-center px-4">
+      <div
+        data-testid="loading-overlay"
+        className={`mt-2 flex w-full max-w-4xl items-center gap-3 rounded-full bg-gray-900/70 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-white shadow-lg backdrop-blur transition-all duration-200 ${
+          isBusy ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2'
+        } ${className ?? ''}`}
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+      >
+        <div className="h-1 w-full overflow-hidden rounded-full bg-white/30">
+          <span className="block h-full w-full animate-[pulse_1.2s_ease-in-out_infinite] rounded-full bg-gradient-to-r from-sky-400 via-blue-500 to-sky-400" />
         </div>
+        <span>{statusLabel}</span>
       </div>
     </div>
   );

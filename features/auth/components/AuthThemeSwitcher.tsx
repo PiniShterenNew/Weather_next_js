@@ -25,14 +25,16 @@ export default function AuthThemeSwitcher() {
       <Laptop size={16} role="presentation" className="text-white dark:text-gray-800" />
     );
 
+  const ariaLabel = theme === 'light' ? t('light') : theme === 'dark' ? t('dark') : t('system');
+  
   return (
     <motion.div whileTap={{ scale: 0.95 }} whileHover={{ scale: 1.05 }}>
       <Button
         variant="outline" 
         size="icon" 
         onClick={cycleTheme} 
-        aria-label={theme === 'light' ? t('light') : theme === 'dark' ? t('dark') : t('system')}
-        className="h-8 w-8 lg:h-10 lg:w-10 rounded-full border-2 border-white/20 bg-white/10 hover:bg-white/20 transition-colors backdrop-blur-xl"
+        aria-label={ariaLabel || 'Toggle theme'}
+        className="w-10 h-10 rounded-lg border-2 border-white/20 bg-white/10 hover:bg-white/20 active:bg-white/30 transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-white focus-visible:outline-offset-2"
       >
         {icon}
       </Button>

@@ -22,7 +22,7 @@ export default function CityCardActions({
   const t = useTranslations();
 
   return (
-    <div className="flex justify-end gap-3 flex-shrink-0">
+    <div className="flex items-center justify-end gap-2 flex-shrink-0 flex-wrap">
       {/* Location Refresh Button - Only for current location */}
       {isCurrentLocation && (
         <Button
@@ -30,7 +30,7 @@ export default function CityCardActions({
           variant="ghost"
           onClick={onRefreshLocation}
           disabled={isRefreshingLocation}
-          className="h-10 w-10 aspect-square rounded-full text-gray-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 transition-all duration-200 flex items-center justify-center p-0 mr-6 min-h-[44px] min-w-[44px]"
+          className="h-10 w-10 aspect-square rounded-full text-gray-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 transition-all duration-200 flex items-center justify-center p-0 min-h-[44px] min-w-[44px]"
           title={t('cities.refreshLocation')}
           aria-label={t('cities.refreshLocation')}
         >

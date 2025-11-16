@@ -261,7 +261,7 @@ export default function WeatherDetails({ cityLocale, _locale }: WeatherDetailsPr
         {cards.map((card) => (
           <div
             key={card.id}
-            className="flex flex-col items-center text-center hover-lift transition-all animate-fade-in"
+            className="flex flex-col items-center text-center hover-lift animate-fade-in"
             role="listitem"
             aria-label={card.ariaLabel}
             style={getCardStyle(card.accent)}
@@ -273,18 +273,18 @@ export default function WeatherDetails({ cityLocale, _locale }: WeatherDetailsPr
             </p>
             <p style={labelStyle}>{card.label}</p>
             {card.description ? <p style={descriptionStyle(card.accent)}>{card.description}</p> : null}
-        </div>
+          </div>
         ))}
       </div>
 
       <div className="grid grid-cols-2 lg:hidden" style={secondaryGridStyle}>
         <div
-          className="flex flex-col items-center text-center hover-lift transition-all animate-fade-in"
+          className="flex flex-col items-center text-center hover-lift animate-fade-in"
           role="region"
           aria-label={t("aria.sunriseTime", { time: sunriseTime === "--:--" ? fallbackLabel : sunriseTime })}
-      style={getCardStyle(colors.ui.sunrise)}
+          style={getCardStyle(colors.ui.sunrise)}
         >
-      <Sunrise aria-hidden="true" style={getIconStyle(colors.ui.sunrise)} />
+          <Sunrise aria-hidden="true" style={getIconStyle(colors.ui.sunrise)} />
           <p style={valueStyle} dir="ltr">
             <span>{sunriseTime}</span>
           </p>
@@ -292,12 +292,12 @@ export default function WeatherDetails({ cityLocale, _locale }: WeatherDetailsPr
         </div>
 
         <div
-          className="flex flex-col items-center text-center hover-lift transition-all animate-fade-in"
+          className="flex flex-col items-center text-center hover-lift animate-fade-in"
           role="region"
           aria-label={t("aria.sunsetTime", { time: sunsetTime === "--:--" ? fallbackLabel : sunsetTime })}
-      style={getCardStyle(colors.ui.sunset)}
+          style={getCardStyle(colors.ui.sunset)}
         >
-      <Sunset aria-hidden="true" style={getIconStyle(colors.ui.sunset)} />
+          <Sunset aria-hidden="true" style={getIconStyle(colors.ui.sunset)} />
           <p style={valueStyle} dir="ltr">
             <span>{sunsetTime}</span>
           </p>

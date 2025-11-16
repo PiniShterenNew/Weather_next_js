@@ -1,0 +1,594 @@
+---
+alwaysApply: true
+description: Design System, Scrolling, UX Writing - Visual and content consistency
+---
+
+# Design System, Scrolling & Content Guidelines
+
+---
+
+## 1. Design Tokens - Single Source of Truth
+
+**Why it matters:** Visual consistency = professionalism.
+
+### Requirements:
+- ✅ All tokens defined in `config/tokens.ts`
+- ✅ Use only Tailwind utilities, not arbitrary values
+- ✅ If you need something new - add to config, not inline
+
+```tsx
+// ✅ Correct
+<button className="rounded-lg shadow-md text-primary-600">
+  Button
+</button>
+
+// ❌ Wrong
+<button className="rounded-[12px] shadow-[0_4px_12px_rgba(0,0,0,0.1)] text-[#3B82F6]">
+  Button
+</button>
+```
+
+### Structure:
+```typescript
+// config/tokens.ts
+export const tokens = {
+  colors: {
+    primary: { /* ... */ },
+    secondary: { /* ... */ },
+    success: { /* ... */ },
+    error: { /* ... */ },
+    warning: { /* ... */ },
+  },
+  spacing: {
+    // 4px base unit
+    // xs: 4px, sm: 8px, md: 16px, lg: 24px, xl: 32px, 2xl: 48px
+  },
+  radius: {
+    sm: '4px',
+    md: '8px',
+    lg: '12px',
+    xl: '16px',
+    full: '9999px',
+  },
+  shadows: {
+    sm: '...',
+    md: '...',
+    lg: '...',
+  },
+  typography: {
+    // fonts, sizes, weights
+  }
+};
+```
+
+---
+
+## 2. Typography Scale
+
+**Why it matters:** Clear visual hierarchy = better readability.
+
+### Requirements:
+```tsx
+// ✅ Use defined scale
+<h1 className="text-4xl md:text-5xl font-bold">Main Heading</h1>
+<h2 className="text-3xl md:text-4xl font-semibold">Secondary Heading</h2>
+<h3 className="text-2xl md:text-3xl font-semibold">H3 Heading</h3>
+<p className="text-base md:text-lg leading-relaxed">Body text</p>
+<small className="text-sm text-gray-600">Small text</small>
+```
+
+### Font Weights:
+- **font-normal (400):** Regular text
+- **font-medium (500):** Light emphasis
+- **font-semibold (600):** Subheadings
+- **font-bold (700):** Main headings
+
+### Line Height:
+- **leading-tight (1.25):** Headings
+- **leading-normal (1.5):** Default
+- **leading-relaxed (1.625):** Long text
+
+---
+
+## 3. Spacing System
+
+**Why it matters:** Consistent spacing = organized design.
+
+### Requirements:
+- ✅ Use 4px base unit
+- ✅ gap/padding/margin only from scale
+
+```tsx
+// ✅ 4px scale
+<div className="space-y-4"> {/* 16px */}
+  <div className="p-6"> {/* 24px */}
+    <div className="mb-2"> {/* 8px */}
+      ...
+    </div>
+  </div>
+</div>
+
+// ❌ arbitrary spacing
+<div className="mb-[13px]"> // Why 13?
+```
+
+### Common Patterns:
+- **Cards:** `p-4` or `p-6`
+- **Sections:** `py-12` or `py-16`
+- **Inline spacing:** `gap-2` or `gap-4`
+- **Form fields:** `space-y-4`
+
+---
+
+## 4. Color System
+
+**Why it matters:** Consistent colors convey brand identity.
+
+### Palette Structure:
+```typescript
+primary: {
+  50: '#...', // lightest
+  100: '#...',
+  // ... 
+  600: '#...', // main
+  // ...
+  900: '#...'  // darkest
+}
+```
+
+### Usage:
+- **Backgrounds:** `-50`, `-100`, `-900` (dark mode)
+- **Text:** `-600`, `-700`, `-800`
+- **Borders:** `-200`, `-300`
+- **Hover:** +100 from base
+- **Active:** +200 from base
+
+```tsx
+// ✅ Consistent colors
+<button className="
+  bg-primary-600 
+  hover:bg-primary-700 
+  active:bg-primary-800
+  text-white
+">
+  Button
+</button>
+```
+
+---
+
+## 5. Component Variants
+
+**Why it matters:** Consistency across all buttons/inputs on site.
+
+### Button Variants:
+```tsx
+// config/variants.ts
+export const buttonVariants = {
+  variant: {
+    primary: 'bg-primary-600 text-white hover:bg-primary-700',
+    secondary: 'bg-gray-200 text-gray-900 hover:bg-gray-300',
+    outline: 'border-2 border-primary-600 text-primary-600 hover:bg-primary-50',
+    ghost: 'hover:bg-gray-100 text-gray-700',
+    danger: 'bg-red-600 text-white hover:bg-red-700',
+  },
+  size: {
+    sm: 'px-3 py-1.5 text-sm',
+    md: 'px-4 py-2 text-base',
+    lg: 'px-6 py-3 text-lg',
+  }
+};
+```
+
+### Usage:
+```tsx
+<Button variant="primary" size="lg">
+  Primary Button
+</Button>
+```
+
+---
+
+## 6. Icons - Consistent Sizing
+
+**Why it matters:** Icons at the same size look balanced.
+
+### Requirements:
+- **Small:** `w-4 h-4` (16px)
+- **Medium:** `w-5 h-5` (20px)
+- **Large:** `w-6 h-6` (24px)
+
+```tsx
+// ✅ Correct
+<Button>
+  <Save className="w-4 h-4 mr-2" />
+  Save
+</Button>
+
+// ❌ Inconsistent
+<Button>
+  <Save className="w-[18px] h-[18px]" />
+  Save
+</Button>
+```
+
+### Icon Library:
+- Use only one library (lucide-react recommended)
+- Don't mix multiple libraries
+
+---
+
+## 7. Horizontal Scrolling & Galleries
+
+**Why it matters:** Card galleries are a common UI pattern that's easy to mess up.
+
+### Requirements:
+
+#### Container Setup:
+```tsx
+<div className="
+  flex 
+  gap-4 
+  overflow-x-auto 
+  scroll-smooth 
+  snap-x snap-mandatory
+  overscroll-x-contain
+  pb-4
+  scrollbar-hide
+">
+  {items.map(item => (
+    <Card className="
+      flex-none 
+      w-[280px] 
+      snap-start
+    ">
+      ...
+    </Card>
+  ))}
+</div>
+```
+
+#### Key Properties:
+- **`flex-none`** on cards - prevents shrinking
+- **`w-[280px]`** - fixed width (responsive breakpoints)
+- **`snap-start`** - smooth stop at start of each card
+- **`gap-4`** - consistent spacing
+- **`pb-4`** - room for scrollbar
+
+#### Responsive Width:
+```tsx
+<Card className="
+  flex-none
+  w-[280px]     // mobile
+  sm:w-[320px]  // tablet
+  md:w-[360px]  // desktop
+  snap-start
+">
+```
+
+### Arrow Navigation (optional):
+```tsx
+const scrollContainer = useRef<HTMLDivElement>(null);
+
+const scrollLeft = () => {
+  scrollContainer.current?.scrollBy({
+    left: -320,
+    behavior: 'smooth'
+  });
+};
+
+<div className="relative">
+  <button 
+    onClick={scrollLeft}
+    className="absolute left-0 top-1/2 -translate-y-1/2 z-10"
+    aria-label="Scroll left"
+  >
+    <ChevronLeft />
+  </button>
+  
+  <div ref={scrollContainer} className="overflow-x-auto...">
+    {/* cards */}
+  </div>
+  
+  <button onClick={scrollRight} /* ... */>
+    <ChevronRight />
+  </button>
+</div>
+```
+
+### Never:
+- ❌ Nested horizontal scroll
+- ❌ scroll-snap without smooth behavior
+- ❌ Cards with variable size in same gallery
+- ❌ Visible scrollbar (hide with CSS)
+
+---
+
+## 8. Vertical Scrolling - Long Lists
+
+**Why it matters:** Long lists without optimization = lag.
+
+### Virtual Scrolling (1000+ items):
+```tsx
+import { useVirtualizer } from '@tanstack/react-virtual';
+
+const virtualizer = useVirtualizer({
+  count: items.length,
+  getScrollElement: () => parentRef.current,
+  estimateSize: () => 80, // estimated item height
+});
+
+<div ref={parentRef} className="h-screen overflow-auto">
+  <div style={{ height: virtualizer.getTotalSize() }}>
+    {virtualizer.getVirtualItems().map(virtualItem => (
+      <div
+        key={virtualItem.key}
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: virtualItem.size,
+          transform: `translateY(${virtualItem.start}px)`,
+        }}
+      >
+        {items[virtualItem.index]}
+      </div>
+    ))}
+  </div>
+</div>
+```
+
+### Infinite Scroll:
+```tsx
+const { ref, inView } = useInView();
+
+useEffect(() => {
+  if (inView && hasMore) {
+    loadMore();
+  }
+}, [inView]);
+
+<div>
+  {items.map(item => <Item key={item.id} />)}
+  <div ref={ref} className="h-20">
+    {hasMore && <Spinner />}
+  </div>
+</div>
+```
+
+### Pagination vs Infinite:
+- **Pagination:** Better when there's complex filtering/sorting
+- **Infinite:** Better for feeds/chronological content
+
+---
+
+## 9. Scroll Restoration
+
+**Why it matters:** When returning from internal page, don't jump to top.
+
+```tsx
+// Next.js App Router
+// layout.tsx
+export default function Layout({ children }) {
+  return (
+    <html>
+      <body>
+        {children}
+      </body>
+    </html>
+  );
+}
+
+// next.config.js
+module.exports = {
+  experimental: {
+    scrollRestoration: true,
+  },
+};
+```
+
+---
+
+## 10. UX Writing - Tone of Voice
+
+**Why it matters:** How we write affects how users feel.
+
+### Principles:
+1. **Clear and precise** - not shouting, not vague
+2. **Friendly but respectful** - not condescending, not childish
+3. **Concise** - every word serves a purpose
+4. **Positive** - say what to **do**, not what **not to do**
+
+### Examples:
+
+#### Error Messages:
+```tsx
+// ❌ Bad
+"Error 500: Internal Server Error"
+
+// ✅ Good
+"Something went wrong on our end. We're working on it - try again in a few minutes."
+
+// ❌ Bad
+"Invalid email format"
+
+// ✅ Good
+"Please enter a valid email address (e.g., name@example.com)"
+```
+
+#### Empty States:
+```tsx
+// ❌ Bad
+"No results"
+
+// ✅ Good
+"We couldn't find any items matching your search. Try different search terms."
+
+// ❌ Bad
+"List is empty"
+
+// ✅ Good
+"You haven't added any items yet. Ready to get started?"
+```
+
+#### Success Messages:
+```tsx
+// ❌ Bad
+"Success"
+
+// ✅ Good
+"Changes saved successfully!"
+
+// ❌ Bad
+"Item deleted"
+
+// ✅ Good
+"Item deleted. You can restore it for 30 days."
+```
+
+#### Confirmation Dialogs:
+```tsx
+// ❌ Bad
+"Are you sure?"
+
+// ✅ Good
+"Delete this item?"
+"This action will permanently delete the item and cannot be undone."
+
+Buttons:
+- "Delete" (primary, danger)
+- "Cancel" (secondary)
+```
+
+#### Loading States:
+```tsx
+// ❌ Bad
+"Loading..."
+
+// ✅ Good (specific to what's happening)
+"Loading data..."
+"Saving changes..."
+"Uploading file..."
+```
+
+### Writing Rules:
+
+1. **Use second person ("you")**
+   - ✅ "Your changes were saved"
+   - ❌ "The user's changes were saved"
+
+2. **Avoid technical jargon**
+   - ✅ "We couldn't save"
+   - ❌ "Failed to POST to /api/save"
+
+3. **Provide context and solution**
+   - ✅ "File is too large (max 5MB). Try compressing it."
+   - ❌ "Validation failed"
+
+4. **Avoid blame**
+   - ✅ "That email doesn't look right"
+   - ❌ "You entered the wrong email"
+
+---
+
+## 11. Microcopy Guidelines
+
+### Form Labels:
+```tsx
+// ✅ Concise and clear
+<label>First Name</label>
+<label>Email</label>
+
+// Not
+<label>Please enter your first name:</label>
+```
+
+### Helper Text:
+```tsx
+// ✅ When needed
+<input aria-describedby="password-help" />
+<p id="password-help" className="text-sm text-gray-600">
+  At least 8 characters, including uppercase and number
+</p>
+```
+
+### Buttons:
+```tsx
+// ✅ Clear action verbs
+"Save"
+"Send"
+"Add Item"
+"Continue to Payment"
+
+// ❌ Vague
+"Confirm"
+"OK"
+"Continue"
+```
+
+### Placeholders:
+```tsx
+// ✅ Example or brief instruction
+<input placeholder="name@example.com" />
+<input placeholder="Search by name or category" />
+
+// ❌ Long instructions (belongs in helper text)
+<input placeholder="Please enter your email address to..." />
+```
+
+---
+
+## 12. Component Documentation
+
+**Why it matters:** Consistency starts with good documentation.
+
+### Structure:
+```tsx
+/**
+ * Button Component
+ * 
+ * @description Primary button for user actions
+ * 
+ * @example
+ * <Button variant="primary" size="lg">
+ *   Save
+ * </Button>
+ * 
+ * @param variant - primary | secondary | outline | ghost | danger
+ * @param size - sm | md | lg
+ * @param disabled - boolean
+ * @param loading - boolean - shows spinner and disabled
+ */
+export function Button({ variant, size, disabled, loading, children }: ButtonProps) {
+  // ...
+}
+```
+
+---
+
+## Design System Checklist
+
+Before every new feature:
+
+- [ ] All colors from tokens
+- [ ] All spacing from scale (4px)
+- [ ] Consistent typography
+- [ ] Icons uniform size
+- [ ] Components use defined variants
+- [ ] Clear and friendly UX copy
+- [ ] Consistent hover/active states
+- [ ] No arbitrary values (unless added to config)
+
+---
+
+## Never Do
+
+❌ Arbitrary values (`w-[237px]`) without reason
+❌ Colors not from palette
+❌ Font sizes not from scale
+❌ Spacing not in 4px multiples
+❌ Mix multiple icon libraries
+❌ Technical jargon in user messages
+❌ Unfriendly error messages
+❌ Empty states without CTA

@@ -1,0 +1,20 @@
+---
+alwaysApply: true
+---
+# Cursor Rules – Root
+
+This project uses structured rules under `.cursor/rules`.  
+Always load all rule files and apply them to every task, especially UI-related tasks.
+
+The assistant must:
+
+- Enforce consistent UX across the project.
+- Prevent layout shift.
+- Ensure smooth scrolling and correct loading states.
+- Provide clear, pleasant user feedback.
+- Respect accessibility (WCAG AA level).
+- Follow the project’s design tokens and component structure.
+
+When modifying any UI/React/Tailwind/Next.js code:
+- Apply all UX rules automatically, even if the user did not request them explicitly.
+- Prefer improving UX quality silently when detecting issues.

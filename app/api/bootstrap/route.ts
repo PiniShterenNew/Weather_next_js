@@ -2,13 +2,11 @@ export const runtime = 'nodejs';
 
 import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@clerk/nextjs/server';
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/prisma/prisma';
 
 import { logger } from '@/lib/errors';
 import { getWeatherCached } from '@/lib/server/weather';
 import { findMatchingLimiter, getErrorMessage, getRequestIP } from '@/lib/simple-rate-limiter';
-
-const prisma = new PrismaClient();
 
 export async function GET(request: NextRequest) {
   // Apply rate limiting
@@ -133,9 +131,9 @@ export async function GET(request: NextRequest) {
 
     // Get current city ID (first city or current location)
     let currentCityId: string | null = null;
-    if (user.currentLocation) {
+    if (user.currentLocation && user.currentLocation.cityId) {
       currentCityId = user.currentLocation.cityId;
-    } else if (user.userCities.length > 0) {
+    } else if (user.userCities.length > 0 && user.userCities[0]?.cityId) {
       currentCityId = user.userCities[0].cityId;
     }
 
@@ -143,6 +141,12 @@ export async function GET(request: NextRequest) {
     const cities = [];
     for (const userCity of user.userCities) {
       try {
+        // Guard against undefined city
+        if (!userCity.city || !userCity.city.id || userCity.city.lat === undefined || userCity.city.lon === undefined) {
+          logger.warn('Skipping city with invalid data', { userCityId: userCity.city?.id });
+          continue;
+        }
+
         const weatherData = await getWeatherCached(
           userCity.city.id,
           userCity.city.lat,
@@ -150,21 +154,25 @@ export async function GET(request: NextRequest) {
           locale
         );
 
-        if (weatherData) {
+        if (weatherData && weatherData.current && weatherData.forecast && weatherData.hourly) {
+          // Guard against undefined values
+          const lastUpdated = weatherData.lastUpdated || new Date().toISOString();
           const cityData = {
             id: userCity.city.id,
             name: {
-              en: userCity.city.cityEn,
-              he: userCity.city.cityHe
+              en: userCity.city.cityEn || '',
+              he: userCity.city.cityHe || ''
             },
             country: {
-              en: userCity.city.countryEn,
-              he: userCity.city.countryHe
+              en: userCity.city.countryEn || '',
+              he: userCity.city.countryHe || ''
             },
             lat: userCity.city.lat,
             lon: userCity.city.lon,
-            isCurrentLocation: userCity.isCurrentLocation,
-            lastUpdatedUtc: new Date(weatherData.lastUpdated).toISOString(),
+            isCurrentLocation: userCity.isCurrentLocation || false,
+            lastUpdatedUtc: typeof lastUpdated === 'string' 
+              ? lastUpdated 
+              : new Date(lastUpdated).toISOString(),
             current: weatherData.current,
             forecast: weatherData.forecast,
             hourly: weatherData.hourly
@@ -196,8 +204,14 @@ export async function GET(request: NextRequest) {
 
   } catch (error) {
     logger.error('Bootstrap API error', error as Error);
+
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { 
+        error: 'Internal server error',
+        ...(process.env.NODE_ENV === 'development' && {
+          details: error instanceof Error ? error.message : String(error)
+        })
+      },
       { status: 500 }
     );
   }

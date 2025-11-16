@@ -10,6 +10,7 @@ import { useAppPreferencesStore } from '@/store/useAppPreferencesStore';
 import { useToastStore } from '@/features/ui/store/useToastStore';
 import { useQuickAddStore } from '@/features/search/store/useQuickAddStore';
 import { useLocationStore } from '@/features/location/store/useLocationStore';
+import announceAction from '@/lib/actions/announceAction';
 
 interface AddCityOptions {
   persist?: boolean;
@@ -39,24 +40,15 @@ const addCity = async (city: CityWeather, options: AddCityOptions = {}) => {
   const { persist = true } = options;
   const dataStore = useWeatherDataStore.getState();
   const preferences = useAppPreferencesStore.getState();
-  const { showToast } = useToastStore.getState();
 
   if (dataStore.cities.length >= dataStore.maxCities) {
-    showToast({
-      message: 'toasts.maxCities',
-      type: 'warning',
-      values: { maxCities: dataStore.maxCities.toString() },
-    });
+    await announceAction({ run: async () => {}, successMessageKey: 'toasts.maxCities', values: { maxCities: dataStore.maxCities.toString() } });
     return false;
   }
 
   const alreadyExists = dataStore.cities.some((existing) => existing.id === city.id);
   if (alreadyExists) {
-    showToast({
-      message: 'toasts.exists',
-      type: 'info',
-      values: { city: city.name[preferences.locale] },
-    });
+    await announceAction({ run: async () => {}, successMessageKey: 'toasts.exists', values: { city: city.name[preferences.locale] } });
     return false;
   }
 
@@ -70,7 +62,7 @@ const addCity = async (city: CityWeather, options: AddCityOptions = {}) => {
     dataStore.addCity(city);
     return true;
   } catch {
-    showToast({ message: 'toasts.error', type: 'error' });
+    await announceAction({ run: async () => {}, errorMessageKey: 'toasts.error' });
     return false;
   } finally {
     setLoading(false);
@@ -86,15 +78,13 @@ const addOrReplaceCurrentLocation = async (city: CityWeather) => {
     return;
   }
 
-  setLoading(true);
-  
   // Add city to store first (optimistic update)
   dataStore.addOrReplaceCurrentLocation(city);
-  
+
   try {
     // Get updated cities after adding (which already has the new city as first)
     const updatedCities = useWeatherDataStore.getState().cities;
-    
+
     // Build payload for persistence (cities are already in correct order)
     const updated = updatedCities.map((c) => ({
       ...c,
@@ -107,8 +97,6 @@ const addOrReplaceCurrentLocation = async (city: CityWeather) => {
     // Silently fail - city is already in store, persistence is optional
     // eslint-disable-next-line no-console
     console.error('Failed to persist current location to server:', error);
-  } finally {
-    setLoading(false);
   }
 };
 
@@ -139,7 +127,6 @@ const refreshCity = async (id: string, options: { background?: boolean } = {}) =
 
   const dataStore = useWeatherDataStore.getState();
   const preferences = useAppPreferencesStore.getState();
-  const { showToast } = useToastStore.getState();
 
   const city = dataStore.cities.find((entry) => entry.id === id);
   if (!city) {
@@ -166,15 +153,15 @@ const refreshCity = async (id: string, options: { background?: boolean } = {}) =
     dataStore.updateCity(updatedCity);
 
     if (!background) {
-      showToast({
-        message: 'toasts.refreshed',
-        type: 'success',
+      await announceAction({
+        run: async () => {},
+        successMessageKey: 'toasts.refreshed',
         values: { city: updatedCity.name[preferences.locale] },
       });
     }
   } catch {
     if (!background) {
-      showToast({ message: 'toasts.error', type: 'error' });
+      await announceAction({ run: async () => {}, errorMessageKey: 'toasts.error' });
     }
   } finally {
     if (!background) {

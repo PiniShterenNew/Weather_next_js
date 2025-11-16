@@ -10,10 +10,12 @@ import { useAppPreferencesStore } from '@/store/useAppPreferencesStore';
 import { useWeatherActions } from '@/features/weather/hooks/useWeatherActions';
 import { useWeatherDataStore } from '@/features/weather/store/useWeatherDataStore';
 import { useToastStore } from '@/features/ui/store/useToastStore';
+import announceAction from '@/lib/actions/announceAction';
 import type { AppLocale } from '@/types/i18n';
 import type { TemporaryUnit } from '@/types/ui';
 import { fetchReverse } from '@/features/weather/fetchReverse';
 import { fetchWeather } from '@/features/weather';
+import { useBusyStore } from '@/store/useBusyStore';
 
 interface AddLocationProps {
   size?: ButtonProperties['size'];
@@ -34,7 +36,7 @@ const getCurrentPositionAsync = (): Promise<GeolocationPosition> =>
 const AddLocation = ({ size = 'md', type = 'default', dataTestId, onComplete }: AddLocationProps) => {
   const t = useTranslations();
   const preferences = useAppPreferencesStore();
-  const { addOrReplaceCurrentLocation, setIsLoading, closeQuickAddAndResetLoading } = useWeatherActions();
+  const { addOrReplaceCurrentLocation, closeQuickAddAndResetLoading } = useWeatherActions();
   const cities = useWeatherDataStore((state) => state.cities);
   const { showToast } = useToastStore();
   const locale = useLocale() as AppLocale;
@@ -46,7 +48,11 @@ const AddLocation = ({ size = 'md', type = 'default', dataTestId, onComplete }: 
       return;
     }
 
-    setIsLoading(true);
+    const busy = useBusyStore.getState();
+    const token = busy.beginBusy('add', 'location', {
+      blocking: true,
+      status: { key: 'search.loading' },
+    });
 
     try {
       const { coords } = await getCurrentPositionAsync();
@@ -69,9 +75,9 @@ const AddLocation = ({ size = 'md', type = 'default', dataTestId, onComplete }: 
 
       await addOrReplaceCurrentLocation(completeWeatherData);
 
-      showToast({
-        message: 'toasts.locationAdded',
-        type: 'success',
+      await announceAction({
+        run: async () => {},
+        successMessageKey: 'toasts.locationAdded',
         values: { name: completeWeatherData.name[preferences.locale] },
       });
 
@@ -83,19 +89,19 @@ const AddLocation = ({ size = 'md', type = 'default', dataTestId, onComplete }: 
       if (error instanceof GeolocationPositionError) {
         switch (error.code) {
           case error.PERMISSION_DENIED:
-            showToast({ message: 'toasts.geolocationDenied', type: 'error' });
+            await announceAction({ run: async () => {}, errorMessageKey: 'toasts.geolocationDenied' });
             break;
           case error.TIMEOUT:
-            showToast({ message: 'toasts.geolocationTimeout', type: 'error' });
+            await announceAction({ run: async () => {}, errorMessageKey: 'toasts.geolocationTimeout' });
             break;
           default:
-            showToast({ message: 'toasts.apiFailure', type: 'error' });
+            await announceAction({ run: async () => {}, errorMessageKey: 'toasts.apiFailure' });
         }
       } else {
-        showToast({ message: 'toasts.apiFailure', type: 'error' });
+        await announceAction({ run: async () => {}, errorMessageKey: 'toasts.apiFailure' });
       }
     } finally {
-      setIsLoading(false);
+      busy.endBusy(token);
     }
   };
 

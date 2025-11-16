@@ -207,10 +207,10 @@ export default function CustomSignUp() {
 
   if (verifying) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-brand-500 to-brand-600 p-4 relative">
+      <main className="min-h-screen pt-24 pb-8 px-4 flex items-center justify-center bg-gradient-to-br from-brand-500 to-brand-600 relative">
         <AuthHeader />
         
-        <Card className="w-full max-w-md lg:max-w-lg xl:max-w-xl p-6 lg:p-8 xl:p-10 space-y-4 lg:space-y-6 animate-fade-in mt-20 lg:mt-24">
+        <Card className="w-full max-w-[420px] sm:max-w-[380px] lg:max-w-[540px] xl:max-w-[600px] bg-white dark:bg-gray-800 rounded-2xl sm:rounded-xl shadow-xl p-8 sm:p-6 md:p-8 lg:p-10 space-y-6 sm:space-y-4 md:space-y-6 lg:space-y-8">
           <div className="text-center space-y-3 lg:space-y-4">
             <div className="inline-flex items-center justify-center w-14 h-14 lg:w-16 lg:h-16 xl:w-18 xl:h-18 rounded-full bg-gradient-to-br from-brand-500 to-brand-600">
               <Mail className="h-6 w-6 lg:h-8 lg:w-8 xl:h-9 xl:w-9 text-white" />
@@ -229,7 +229,7 @@ export default function CustomSignUp() {
 
           <form onSubmit={handleVerification} className="space-y-4">
             <div>
-              <label htmlFor="code" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label htmlFor="code" className={`block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 ${locale === 'he' ? 'text-right' : 'text-left'}`}>
                 {t('verificationCode')}
               </label>
               <Input
@@ -271,15 +271,15 @@ export default function CustomSignUp() {
             </button>
           </div>
         </Card>
-      </div>
+      </main>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-brand-500 to-brand-600 p-4 relative">
+    <main className="min-h-screen pt-24 pb-8 px-4 flex items-center justify-center bg-gradient-to-br from-brand-500 to-brand-600 relative">
       <AuthHeader />
       
-      <Card className="w-full max-w-md lg:max-w-lg xl:max-w-xl p-6 lg:p-8 xl:p-10 space-y-4 lg:space-y-6 animate-fade-in mt-20 lg:mt-24">
+      <Card className="w-full max-w-[420px] sm:max-w-[380px] lg:max-w-[540px] xl:max-w-[600px] bg-white dark:bg-gray-800 rounded-2xl sm:rounded-xl shadow-xl p-8 sm:p-6 md:p-8 lg:p-10 space-y-6 sm:space-y-4 md:space-y-6 lg:space-y-8">
         {/* Logo & Title */}
         <div className="text-center space-y-3 lg:space-y-4">
           <div className="inline-flex items-center justify-center w-14 h-14 lg:w-16 lg:h-16 xl:w-18 xl:h-18 rounded-full bg-gradient-to-br from-brand-500 to-brand-600">
@@ -333,7 +333,7 @@ export default function CustomSignUp() {
         </div>
 
         {/* Divider */}
-        <div className="relative">
+        <div className="relative my-6">
           <div className="absolute inset-0 flex items-center">
             <div className="w-full border-t border-gray-300 dark:border-gray-600"></div>
           </div>
@@ -345,12 +345,12 @@ export default function CustomSignUp() {
         </div>
 
         {/* Email/Password Form */}
-        <form onSubmit={handleEmailSignUp} className="space-y-3 lg:space-y-4">
+        <form onSubmit={handleEmailSignUp} className="space-y-4">
           {/* Clerk CAPTCHA widget container */}
           <div id="clerk-captcha" className="sr-only" aria-hidden="true" />
           
           <div>
-            <label htmlFor="email" className="block text-xs lg:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 lg:mb-2">
+            <label htmlFor="email" className={`block text-xs lg:text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 lg:mb-2 ${locale === 'he' ? 'text-right' : 'text-left'}`}>
               {t('email')}
             </label>
             <div className="relative">
@@ -383,8 +383,7 @@ export default function CustomSignUp() {
           <Button
             type="submit"
             disabled={isLoading}
-            className="w-full h-10 lg:h-12 xl:h-14 bg-gradient-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700 text-sm lg:text-base"
-            size="lg"
+            className="w-full h-12 lg:h-12 bg-gradient-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700 disabled:bg-gray-300 dark:disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-semibold rounded-lg transition-all duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 text-base lg:text-base"
           >
             {isLoading ? (
               <>
@@ -415,7 +414,7 @@ export default function CustomSignUp() {
           {t('termsAgreement')}
         </p>
       </Card>
-    </div>
+    </main>
   );
 }
 
